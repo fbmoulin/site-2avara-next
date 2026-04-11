@@ -29,16 +29,16 @@ export async function NewsPreview() {
   const hasArticles = articles.length > 0
 
   return (
-    <section className="bg-slate-50 py-20">
+    <section className="bg-muted py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="mb-12 text-center">
           <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
             Informativo
           </p>
-          <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">
+          <h2 className="text-3xl font-bold text-foreground md:text-4xl">
             Notícias e Avisos
           </h2>
-          <p className="mt-4 text-slate-600">
+          <p className="mt-4 text-muted-foreground">
             Fique por dentro das últimas novidades do TJES e desta vara.
           </p>
         </div>
@@ -51,18 +51,18 @@ export async function NewsPreview() {
                 href={article.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex flex-col rounded-xl border border-slate-200 bg-white p-6 transition-shadow hover:shadow-md"
+                className="group flex flex-col rounded-xl border border-border bg-background p-6 transition-shadow hover:shadow-md"
               >
                 {article.category && (
                   <span className="mb-3 inline-block w-fit rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
                     {article.category}
                   </span>
                 )}
-                <h3 className="mb-3 text-base font-semibold text-slate-900 line-clamp-2 group-hover:text-amber-600 transition-colors">
+                <h3 className="mb-3 text-base font-semibold text-foreground line-clamp-2 group-hover:text-amber-600 transition-colors">
                   {article.title}
                 </h3>
                 {article.publishedAt && (
-                  <p className="mt-auto text-xs text-slate-400">
+                  <p className="mt-auto text-xs text-muted-foreground">
                     {new Date(article.publishedAt).toLocaleDateString("pt-BR", {
                       day: "2-digit",
                       month: "long",
@@ -83,18 +83,18 @@ export async function NewsPreview() {
             {FALLBACK_NEWS.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-col rounded-xl border border-slate-200 bg-white p-6"
+                className="flex flex-col rounded-xl border border-border bg-background p-6"
               >
                 <span className="mb-3 inline-block w-fit rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
                   {item.category}
                 </span>
-                <h3 className="mb-2 text-base font-semibold text-slate-900 line-clamp-2">
+                <h3 className="mb-2 text-base font-semibold text-foreground line-clamp-2">
                   {item.title}
                 </h3>
-                <p className="text-sm text-slate-500 line-clamp-2">
+                <p className="text-sm text-muted-foreground line-clamp-2">
                   {item.summary}
                 </p>
-                <p className="mt-auto pt-3 text-xs text-slate-400">
+                <p className="mt-auto pt-3 text-xs text-muted-foreground">
                   {item.date}
                 </p>
               </div>

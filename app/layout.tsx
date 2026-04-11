@@ -42,16 +42,14 @@ export default function RootLayout({
         <Chatbot />
 
         {/* VLibras - acessibilidade em Libras */}
-        <div className="enabled" id="vlibras-container">
-          <div
-            // @ts-expect-error — VLibras uses non-standard vw attribute
-            vw="true"
-            className="enabled"
-          >
-            <div vw-access-button="true" className="active" />
-            <div vw-plugin-wrapper="true">
-              <div className="vw-plugin-top-wrapper" />
-            </div>
+        <div
+          // @ts-expect-error — VLibras uses non-standard vw attribute
+          vw="true"
+          className="enabled"
+        >
+          <div vw-access-button="true" className="active" />
+          <div vw-plugin-wrapper="true">
+            <div className="vw-plugin-top-wrapper" />
           </div>
         </div>
         <Script
@@ -61,6 +59,10 @@ export default function RootLayout({
         <Script id="vlibras-init" strategy="lazyOnload">
           {`new window.VLibras.Widget("https://vlibras.gov.br/app");`}
         </Script>
+        <style>{`
+          [vw] .active { position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 9999 !important; }
+          [vw-plugin-wrapper] { position: fixed !important; z-index: 9998 !important; }
+        `}</style>
       </body>
     </html>
   )

@@ -57,16 +57,16 @@ export function ContactForm() {
   }
 
   return (
-    <section id="contato" className="bg-white py-20">
+    <section id="contato" className="bg-background py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="mb-12 text-center">
           <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
             Atendimento
           </p>
-          <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">
+          <h2 className="text-3xl font-bold text-foreground md:text-4xl">
             Entre em Contato
           </h2>
-          <p className="mt-4 text-slate-600">
+          <p className="mt-4 text-muted-foreground">
             Envie sua mensagem ou dúvida. Nossa equipe retornará em breve.
           </p>
         </div>
@@ -80,8 +80,8 @@ export function ContactForm() {
                   <MapPin className="size-5 text-amber-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-900">Endereço</p>
-                  <p className="text-sm text-slate-600">{CONTACT_INFO.address}</p>
+                  <p className="font-semibold text-foreground">Endereço</p>
+                  <p className="text-sm text-muted-foreground">{CONTACT_INFO.address}</p>
                 </div>
               </div>
 
@@ -90,8 +90,8 @@ export function ContactForm() {
                   <Phone className="size-5 text-amber-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-900">Telefone</p>
-                  <p className="text-sm text-slate-600">{CONTACT_INFO.phone}</p>
+                  <p className="font-semibold text-foreground">Telefone</p>
+                  <p className="text-sm text-muted-foreground">{CONTACT_INFO.phone}</p>
                 </div>
               </div>
 
@@ -100,8 +100,8 @@ export function ContactForm() {
                   <Mail className="size-5 text-amber-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-900">E-mail</p>
-                  <p className="text-sm text-slate-600">{CONTACT_INFO.email}</p>
+                  <p className="font-semibold text-foreground">E-mail</p>
+                  <p className="text-sm text-muted-foreground">{CONTACT_INFO.email}</p>
                 </div>
               </div>
 
@@ -110,14 +110,14 @@ export function ContactForm() {
                   <Clock className="size-5 text-amber-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-900">Horário</p>
-                  <p className="text-sm text-slate-600">Seg-Sex: 12h às 18h</p>
+                  <p className="font-semibold text-foreground">Horário</p>
+                  <p className="text-sm text-muted-foreground">Seg-Sex: 12h às 18h</p>
                 </div>
               </div>
             </div>
 
             {/* Google Maps */}
-            <div className="overflow-hidden rounded-xl border border-slate-200">
+            <div className="overflow-hidden rounded-xl border border-border">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3741.!2d-40.41!3d-20.35!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjDCsDIxJzAzLjAiUyA0MMKwMjQnMzguMCJX!5e0!3m2!1sen!2sbr!4v1"
                 width="100%"
@@ -132,19 +132,19 @@ export function ContactForm() {
           </div>
 
           {/* Right: form */}
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 md:p-8">
+          <div className="rounded-xl border border-border bg-muted p-6 md:p-8">
             {status === "success" ? (
               <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
                 <CheckCircle className="size-16 text-green-500" />
-                <h3 className="text-xl font-bold text-slate-900">
+                <h3 className="text-xl font-bold text-foreground">
                   Mensagem enviada!
                 </h3>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-muted-foreground">
                   Recebemos sua mensagem e retornaremos em breve.
                 </p>
                 <Button
                   onClick={() => setStatus("idle")}
-                  className="mt-4 bg-amber-500 text-slate-900 hover:bg-amber-400"
+                  className="mt-4 bg-amber-500 text-foreground hover:bg-amber-400"
                 >
                   Enviar outra mensagem
                 </Button>
@@ -158,7 +158,7 @@ export function ContactForm() {
                     name="name"
                     placeholder="Seu nome"
                     required
-                    className="bg-white"
+                    className="bg-background"
                   />
                 </div>
 
@@ -171,7 +171,7 @@ export function ContactForm() {
                       type="tel"
                       placeholder="(27) 99999-0000"
                       required
-                      className="bg-white"
+                      className="bg-background"
                     />
                   </div>
                   <div className="space-y-2">
@@ -182,7 +182,7 @@ export function ContactForm() {
                       type="email"
                       placeholder="seu@email.com"
                       required
-                      className="bg-white"
+                      className="bg-background"
                     />
                   </div>
                 </div>
@@ -193,7 +193,7 @@ export function ContactForm() {
                     value={subject}
                     onValueChange={(val) => setSubject(val)}
                   >
-                    <SelectTrigger className="w-full bg-white">
+                    <SelectTrigger className="w-full bg-background">
                       <SelectValue placeholder="Selecione o assunto" />
                     </SelectTrigger>
                     <SelectContent>
@@ -214,7 +214,7 @@ export function ContactForm() {
                     placeholder="Descreva sua solicitação..."
                     rows={5}
                     required
-                    className="bg-white"
+                    className="bg-background"
                   />
                 </div>
 
@@ -228,7 +228,7 @@ export function ContactForm() {
                 <Button
                   type="submit"
                   disabled={status === "loading"}
-                  className="w-full bg-amber-500 text-slate-900 hover:bg-amber-400 disabled:opacity-50"
+                  className="w-full bg-amber-500 text-foreground hover:bg-amber-400 disabled:opacity-50"
                   size="lg"
                 >
                   {status === "loading" ? (

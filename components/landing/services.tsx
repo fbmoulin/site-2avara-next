@@ -50,7 +50,7 @@ function ServiceCard({
     (service.tutorial && service.tutorial.length > 0)
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white transition-shadow hover:shadow-md">
+    <div className="overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-md">
       <button
         onClick={hasExpandableContent ? onToggle : undefined}
         className={`flex w-full items-start gap-4 p-6 text-left ${
@@ -61,16 +61,16 @@ function ServiceCard({
           {ICON_MAP[service.icon] ?? <FileText className="size-6" />}
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-slate-900">
+          <h3 className="text-lg font-semibold text-foreground">
             {service.title}
           </h3>
-          <p className="mt-1 text-sm leading-relaxed text-slate-600">
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
             {service.description}
           </p>
         </div>
         {hasExpandableContent && (
           <ChevronDown
-            className={`mt-1 size-5 shrink-0 text-slate-400 transition-transform duration-200 ${
+            className={`mt-1 size-5 shrink-0 text-muted-foreground transition-transform duration-200 ${
               isExpanded ? "rotate-180" : ""
             }`}
           />
@@ -115,7 +115,7 @@ function ServiceCard({
                         ? undefined
                         : "noopener noreferrer"
                     }
-                    className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-amber-100 hover:text-amber-700"
+                    className="inline-flex items-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-amber-100 hover:text-amber-700"
                   >
                     {getLinkIcon(link.icon)}
                     {link.label}
@@ -127,12 +127,12 @@ function ServiceCard({
             {/* Tutorial steps */}
             {service.tutorial && service.tutorial.length > 0 && (
               <div className="mt-4">
-                <p className="mb-3 text-sm font-semibold text-slate-700">
+                <p className="mb-3 text-sm font-semibold text-muted-foreground">
                   Passo a passo:
                 </p>
                 <ol className="space-y-2">
                   {service.tutorial.map((step, i) => (
-                    <li key={i} className="flex gap-3 text-sm text-slate-600">
+                    <li key={i} className="flex gap-3 text-sm text-muted-foreground">
                       <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
                         {i + 1}
                       </span>
@@ -158,16 +158,16 @@ export function Services() {
   const [expandedService, setExpandedService] = useState<string | null>(null)
 
   return (
-    <section id="servicos" className="bg-slate-50 py-20">
+    <section id="servicos" className="bg-muted py-20">
       <div className="mx-auto max-w-4xl px-4 md:px-6">
         <div className="mb-12 text-center">
           <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
             Atendimento
           </p>
-          <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">
+          <h2 className="text-3xl font-bold text-foreground md:text-4xl">
             Serviços Disponíveis
           </h2>
-          <p className="mt-4 text-slate-600">
+          <p className="mt-4 text-muted-foreground">
             Conheça os serviços oferecidos pela 2ª Vara Cível de Cariacica.
           </p>
         </div>

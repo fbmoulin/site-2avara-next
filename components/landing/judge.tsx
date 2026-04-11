@@ -11,12 +11,12 @@ const TEAM = [
 
 export function Judge() {
   return (
-    <section id="magistrado" className="bg-white py-20">
+    <section id="magistrado" className="bg-background py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         {/* Judge profile */}
         <div className="grid items-center gap-12 md:grid-cols-2">
           {/* Image */}
-          <div className="relative mx-auto aspect-[3/4] w-full max-w-md overflow-hidden rounded-2xl bg-slate-100">
+          <div className="relative mx-auto aspect-[3/4] w-full max-w-md overflow-hidden rounded-2xl bg-muted">
             <Image
               src="/images/forum_1764897995940.jpg"
               alt={`Foto do ${JUDGE_INFO.name}`}
@@ -32,13 +32,13 @@ export function Judge() {
             <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
               Magistrado
             </p>
-            <h2 className="mb-2 text-3xl font-bold text-slate-900 md:text-4xl">
+            <h2 className="mb-2 text-3xl font-bold text-foreground md:text-4xl">
               {JUDGE_INFO.name}
             </h2>
             <p className="mb-6 text-lg font-medium text-amber-600">
               {JUDGE_INFO.role}
             </p>
-            <p className="text-base leading-relaxed text-slate-600">
+            <p className="text-base leading-relaxed text-muted-foreground">
               {JUDGE_INFO.bio}
             </p>
           </div>
@@ -46,14 +46,14 @@ export function Judge() {
 
         {/* Mission and Vision cards */}
         <div className="mt-16 grid gap-6 md:grid-cols-2">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-8">
+          <div className="rounded-xl border border-border bg-muted p-8">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-lg bg-amber-100">
                 <Target className="size-5 text-amber-600" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900">Missão</h3>
+              <h3 className="text-xl font-bold text-foreground">Missão</h3>
             </div>
-            <p className="text-sm leading-relaxed text-slate-600">
+            <p className="text-sm leading-relaxed text-muted-foreground">
               Prestar jurisdição com celeridade, qualidade e humanização,
               utilizando ferramentas tecnológicas e de inteligência artificial
               para garantir o acesso efetivo à justiça e a resolução adequada
@@ -61,14 +61,14 @@ export function Judge() {
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-8">
+          <div className="rounded-xl border border-border bg-muted p-8">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-lg bg-amber-100">
                 <Lightbulb className="size-5 text-amber-600" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900">Visão</h3>
+              <h3 className="text-xl font-bold text-foreground">Visão</h3>
             </div>
-            <p className="text-sm leading-relaxed text-slate-600">
+            <p className="text-sm leading-relaxed text-muted-foreground">
               Ser referência na modernização do Poder Judiciário, promovendo uma
               Justiça mais ágil, transparente e acessível por meio da inovação e
               do compromisso com a excelência.
@@ -78,20 +78,20 @@ export function Judge() {
 
         {/* Team */}
         <div className="mt-16">
-          <h3 className="mb-8 text-center text-2xl font-bold text-slate-900">
+          <h3 className="mb-8 text-center text-2xl font-bold text-foreground">
             Equipe do Gabinete
           </h3>
           <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
             {TEAM.map((person) => (
               <div
                 key={person.name}
-                className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 text-center"
+                className="flex flex-col items-center gap-3 rounded-xl border border-border bg-background p-6 text-center"
               >
-                <div className="flex size-16 items-center justify-center rounded-full bg-slate-100">
-                  <User className="size-8 text-slate-400" />
+                <div className="flex size-16 items-center justify-center rounded-full bg-muted">
+                  <User className="size-8 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-900">{person.name}</p>
+                  <p className="font-semibold text-foreground">{person.name}</p>
                   <p className="text-sm text-amber-600">{person.role}</p>
                 </div>
               </div>

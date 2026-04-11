@@ -35,16 +35,16 @@ export async function BlogPreview() {
   }
 
   return (
-    <section id="blog" className="bg-white py-20">
+    <section id="blog" className="bg-background py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="mb-12 text-center">
           <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
             Blog
           </p>
-          <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">
+          <h2 className="text-3xl font-bold text-foreground md:text-4xl">
             Artigos e Publicações
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-slate-600">
+          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
             Conteúdos sobre Direito, inovação no Judiciário e informações
             relevantes para advogados e cidadãos.
           </p>
@@ -56,37 +56,37 @@ export async function BlogPreview() {
               <Link
                 key={article.id}
                 href={`/artigos/${article.slug}`}
-                className="group rounded-xl border border-slate-200 bg-white p-6 transition-all hover:border-amber-300 hover:shadow-lg"
+                className="group rounded-xl border border-border bg-background p-6 transition-all hover:border-amber-300 hover:shadow-lg"
               >
                 <div className="mb-3 flex items-center gap-2">
                   <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-600">
                     {article.category}
                   </span>
                   {article.publishedAt && (
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-muted-foreground">
                       {new Date(article.publishedAt).toLocaleDateString("pt-BR")}
                     </span>
                   )}
                 </div>
-                <h3 className="mb-2 text-lg font-bold text-slate-900 group-hover:text-amber-600 transition-colors line-clamp-2">
+                <h3 className="mb-2 text-lg font-bold text-foreground group-hover:text-amber-600 transition-colors line-clamp-2">
                   {article.title}
                 </h3>
                 {article.excerpt && (
-                  <p className="mb-4 text-sm text-slate-600 line-clamp-3">
+                  <p className="mb-4 text-sm text-muted-foreground line-clamp-3">
                     {article.excerpt}
                   </p>
                 )}
-                <p className="text-xs text-slate-400">Por {article.author}</p>
+                <p className="text-xs text-muted-foreground">Por {article.author}</p>
               </Link>
             ))}
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-12 text-center">
+          <div className="rounded-xl border border-dashed border-border bg-muted p-12 text-center">
             <BookOpen className="mx-auto mb-4 size-12 text-slate-300" />
-            <h3 className="mb-2 text-lg font-semibold text-slate-700">
+            <h3 className="mb-2 text-lg font-semibold text-muted-foreground">
               Em breve
             </h3>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">
               Novos artigos e publicações serão disponibilizados em breve.
               Acompanhe esta seção para atualizações.
             </p>

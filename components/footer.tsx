@@ -55,6 +55,17 @@ export function Footer() {
             &copy; 2026 2ª Vara Cível de Cariacica. Todos os direitos
             reservados.
           </p>
+          <p className="mt-2 text-slate-600">
+            Desenvolvido por{" "}
+            <a
+              href="https://lexintelligentia.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-amber-500/70 transition-colors hover:text-amber-400"
+            >
+              Lex Intelligentia
+            </a>
+          </p>
         </div>
       </div>
     </footer>

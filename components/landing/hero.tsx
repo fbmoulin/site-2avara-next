@@ -27,13 +27,13 @@ export function Hero() {
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
           <a
             href="#servicos"
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-amber-500 px-8 text-base font-semibold text-slate-900 transition-colors hover:bg-amber-400"
+            className="inline-flex h-12 items-center justify-center rounded-lg bg-amber-500 px-8 text-base font-semibold text-foreground transition-colors hover:bg-amber-400"
           >
             Nossos Serviços
           </a>
           <a
             href="#contato"
-            className="inline-flex h-12 items-center justify-center rounded-lg border border-white px-8 text-base font-semibold text-white transition-colors hover:bg-white/10"
+            className="inline-flex h-12 items-center justify-center rounded-lg border border-white px-8 text-base font-semibold text-white transition-colors hover:bg-background/10"
           >
             Fale Conosco
           </a>
