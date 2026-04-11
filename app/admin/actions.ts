@@ -262,6 +262,8 @@ export async function createArticle(data: {
   })
 
   revalidatePath("/admin/artigos")
+  revalidatePath("/artigos")
+  revalidatePath("/")
 }
 
 export async function updateArticle(
@@ -282,6 +284,8 @@ export async function updateArticle(
     .where(eq(articles.id, id))
 
   revalidatePath("/admin/artigos")
+  revalidatePath("/artigos")
+  revalidatePath("/")
 }
 
 export async function toggleArticlePublish(id: string, isPublished: boolean) {
@@ -295,6 +299,8 @@ export async function toggleArticlePublish(id: string, isPublished: boolean) {
     .where(eq(articles.id, id))
 
   revalidatePath("/admin/artigos")
+  revalidatePath("/artigos")
+  revalidatePath("/")
 }
 
 // ---------------------------------------------------------------------------
@@ -312,4 +318,6 @@ export async function toggleNewsActive(id: string, isActive: boolean) {
     .where(eq(news.id, id))
 
   revalidatePath("/admin/noticias")
+  revalidatePath("/noticias")
+  revalidatePath("/")
 }
