@@ -61,6 +61,16 @@ export default async function ArtigoPage({
         Voltar aos artigos
       </Link>
 
+      {article.imageUrl && (
+        <div className="mb-8 overflow-hidden rounded-xl">
+          <img
+            src={article.imageUrl}
+            alt={article.title}
+            className="h-64 w-full object-cover md:h-96"
+          />
+        </div>
+      )}
+
       <header className="mb-8">
         <span className="mb-3 inline-block rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-500">
           {article.category}

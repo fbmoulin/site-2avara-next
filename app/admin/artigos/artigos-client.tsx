@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Plus, Pencil } from "lucide-react"
+import { Plus, Pencil, Upload, ImageIcon, X } from "lucide-react"
 import {
   createArticle,
   updateArticle,
@@ -77,11 +77,14 @@ export function ArtigosClient({ articles }: { articles: Article[] }) {
   const [editing, setEditing] = useState<Article | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const router = useRouter()
 
   function openCreate() {
     setEditing(null)
     setForm(emptyForm)
+    setImagePreview(null)
     setSheetOpen(true)
   }
 
@@ -96,7 +99,38 @@ export function ArtigosClient({ articles }: { articles: Article[] }) {
       category: article.category,
       imageUrl: article.imageUrl ?? "",
     })
+    setImagePreview(article.imageUrl)
     setSheetOpen(true)
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    const formData = new FormData()
+    formData.append("file", file)
+
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: formData })
+      const data = await res.json()
+
+      if (res.ok) {
+        setForm((prev) => ({ ...prev, imageUrl: data.url }))
+        setImagePreview(data.url)
+      } else {
+        alert(data.error || "Erro no upload")
+      }
+    } catch {
+      alert("Erro ao enviar imagem")
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function removeImage() {
+    setForm((prev) => ({ ...prev, imageUrl: "" }))
+    setImagePreview(null)
   }
 
   function handleTitleChange(title: string) {
@@ -306,17 +340,50 @@ export function ArtigosClient({ articles }: { articles: Article[] }) {
             </div>
 
             <div>
-              <Label htmlFor="imageUrl">URL da Imagem (opcional)</Label>
-              <Input
-                id="imageUrl"
-                type="url"
-                value={form.imageUrl}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, imageUrl: e.target.value }))
-                }
-                placeholder="https://..."
-                className="mt-1"
-              />
+              <Label>Imagem (opcional, JPG/PNG/WebP, máx. 5MB)</Label>
+              {imagePreview ? (
+                <div className="mt-2 relative">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-40 object-cover rounded-lg border border-border"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 rounded-full bg-destructive p-1 text-white hover:bg-destructive/80"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+              ) : (
+                <label
+                  htmlFor="image-upload"
+                  className="mt-2 flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-border p-6 transition-colors hover:border-amber-500/50 hover:bg-muted"
+                >
+                  {uploading ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Upload className="size-5 animate-pulse" />
+                      Enviando...
+                    </div>
+                  ) : (
+                    <>
+                      <ImageIcon className="size-8 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        Clique para selecionar uma imagem
+                      </span>
+                    </>
+                  )}
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                    className="hidden"
+                  />
+                </label>
+              )}
             </div>
 
             <Button
