@@ -1,0 +1,117 @@
+import { db } from "@/lib/db"
+import { news } from "@/lib/db/schema"
+import { eq, desc } from "drizzle-orm"
+import { ExternalLink, Newspaper } from "lucide-react"
+import { FALLBACK_NEWS } from "@/lib/constants"
+import Link from "next/link"
+
+export async function NewsPreview() {
+  let articles: {
+    id: string
+    title: string
+    link: string
+    description: string | null
+    category: string | null
+    publishedAt: Date | null
+  }[] = []
+
+  try {
+    articles = await db
+      .select()
+      .from(news)
+      .where(eq(news.isActive, true))
+      .orderBy(desc(news.publishedAt))
+      .limit(6)
+  } catch {
+    // DB unavailable - will use fallback
+  }
+
+  const hasArticles = articles.length > 0
+
+  return (
+    <section className="bg-slate-50 py-20">
+      <div className="mx-auto max-w-7xl px-4 md:px-6">
+        <div className="mb-12 text-center">
+          <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
+            Informativo
+          </p>
+          <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">
+            Notícias e Avisos
+          </h2>
+          <p className="mt-4 text-slate-600">
+            Fique por dentro das últimas novidades do TJES e desta vara.
+          </p>
+        </div>
+
+        {hasArticles ? (
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {articles.map((article) => (
+              <a
+                key={article.id}
+                href={article.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex flex-col rounded-xl border border-slate-200 bg-white p-6 transition-shadow hover:shadow-md"
+              >
+                {article.category && (
+                  <span className="mb-3 inline-block w-fit rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                    {article.category}
+                  </span>
+                )}
+                <h3 className="mb-3 text-base font-semibold text-slate-900 line-clamp-2 group-hover:text-amber-600 transition-colors">
+                  {article.title}
+                </h3>
+                {article.publishedAt && (
+                  <p className="mt-auto text-xs text-slate-400">
+                    {new Date(article.publishedAt).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                )}
+                <div className="mt-3 flex items-center gap-1 text-sm font-medium text-amber-600">
+                  Ler mais
+                  <ExternalLink className="size-3.5" />
+                </div>
+              </a>
+            ))}
+          </div>
+        ) : (
+          /* Fallback state */
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {FALLBACK_NEWS.map((item) => (
+              <div
+                key={item.id}
+                className="flex flex-col rounded-xl border border-slate-200 bg-white p-6"
+              >
+                <span className="mb-3 inline-block w-fit rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                  {item.category}
+                </span>
+                <h3 className="mb-2 text-base font-semibold text-slate-900 line-clamp-2">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-slate-500 line-clamp-2">
+                  {item.summary}
+                </p>
+                <p className="mt-auto pt-3 text-xs text-slate-400">
+                  {item.date}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-10 text-center">
+          <Link
+            href="/noticias"
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+          >
+            <Newspaper className="size-4" />
+            Ver todas as notícias
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
