@@ -1,5 +1,7 @@
-import { PageTransition } from "@/components/motion/page-transition"
-
 export default function Template({ children }: { children: React.ReactNode }) {
-  return <PageTransition>{children}</PageTransition>
+  return (
+    <div className="animate-in fade-in duration-300">
+      {children}
+    </div>
+  )
 }

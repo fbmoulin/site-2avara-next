@@ -21,12 +21,15 @@ const getItemVariants = (direction: Direction) => {
 interface StaggerContainerProps {
   children: ReactNode
   staggerDelay?: number
+  direction?: Direction
   className?: string
 }
 
 export function StaggerContainer({
   children,
   staggerDelay = 0.1,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  direction,
   className,
 }: StaggerContainerProps) {
   const prefersReduced = useReducedMotion()
