@@ -5,8 +5,8 @@ import { JUDGE_INFO } from "@/lib/constants"
 const TEAM = [
   { name: "Andreza", role: "Assessora" },
   { name: "Scarllety", role: "Assessora" },
-  { name: "Mariana", role: "Estagiária" },
-  { name: "Juliana", role: "Estagiária" },
+  { name: "Ana Clara", role: "Estagiária" },
+  { name: "Isla", role: "Estagiária" },
 ]
 
 export function Judge() {

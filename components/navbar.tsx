@@ -7,9 +7,9 @@ const NAV_LINKS = [
   { label: "Início", href: "inicio" },
   { label: "Magistrado", href: "magistrado" },
   { label: "Serviços", href: "servicos" },
+  { label: "Blog", href: "blog" },
   { label: "Dúvidas", href: "duvidas" },
   { label: "Contato", href: "contato" },
-  { label: "Localização", href: "localizacao" },
 ]
 
 export function Navbar() {

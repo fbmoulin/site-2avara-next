@@ -1,6 +1,7 @@
 import { Hero } from "@/components/landing/hero"
 import { Judge } from "@/components/landing/judge"
 import { Services } from "@/components/landing/services"
+import { BlogPreview } from "@/components/landing/blog-preview"
 import { NewsPreview } from "@/components/landing/news-preview"
 import { Faq } from "@/components/landing/faq"
 import { ContactForm } from "@/components/landing/contact-form"
@@ -11,6 +12,7 @@ export default function Home() {
       <Hero />
       <Judge />
       <Services />
+      <BlogPreview />
       <NewsPreview />
       <Faq />
       <ContactForm />
