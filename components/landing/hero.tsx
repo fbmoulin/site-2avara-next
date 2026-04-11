@@ -1,3 +1,5 @@
+import { ScrollReveal } from "@/components/motion/scroll-reveal"
+
 export function Hero() {
   return (
     <section
@@ -10,7 +12,7 @@ export function Hero() {
       {/* Subtle pattern */}
       <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_1px_1px,_white_1px,_transparent_0)] bg-[size:40px_40px]" />
 
-      <div className="relative z-10 mx-auto max-w-4xl px-4 py-20 text-center md:px-6">
+      <ScrollReveal variant="scale-blur" duration={0.8} className="relative z-10 mx-auto max-w-4xl px-4 py-20 text-center md:px-6">
         <p className="mb-6 text-sm font-semibold tracking-[0.2em] text-amber-400 uppercase">
           2ª Vara Cível &mdash; Comarca de Cariacica - ES
         </p>
@@ -24,21 +26,23 @@ export function Hero() {
           uma prestação jurisdicional mais eficiente e acessível.
         </p>
 
-        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <a
-            href="#servicos"
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-amber-500 px-8 text-base font-semibold text-foreground transition-colors hover:bg-amber-400"
-          >
-            Nossos Serviços
-          </a>
-          <a
-            href="#contato"
-            className="inline-flex h-12 items-center justify-center rounded-lg border border-white px-8 text-base font-semibold text-white transition-colors hover:bg-background/10"
-          >
-            Fale Conosco
-          </a>
-        </div>
-      </div>
+        <ScrollReveal variant="fade-up" delay={0.4}>
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <a
+              href="#servicos"
+              className="inline-flex h-12 items-center justify-center rounded-lg bg-amber-500 px-8 text-base font-semibold text-foreground transition-colors hover:bg-amber-400"
+            >
+              Nossos Serviços
+            </a>
+            <a
+              href="#contato"
+              className="inline-flex h-12 items-center justify-center rounded-lg border border-white px-8 text-base font-semibold text-white transition-colors hover:bg-background/10"
+            >
+              Fale Conosco
+            </a>
+          </div>
+        </ScrollReveal>
+      </ScrollReveal>
     </section>
   )
 }

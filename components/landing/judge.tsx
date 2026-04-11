@@ -1,6 +1,8 @@
 import Image from "next/image"
-import { User, Target, Lightbulb } from "lucide-react"
+import { User, Users, Target, Lightbulb } from "lucide-react"
 import { JUDGE_INFO } from "@/lib/constants"
+import { ScrollReveal } from "@/components/motion/scroll-reveal"
+import { StaggerContainer, StaggerItem } from "@/components/motion/stagger-container"
 
 const TEAM = [
   { name: "Andreza", role: "Assessora" },
@@ -16,6 +18,7 @@ export function Judge() {
         {/* Judge profile */}
         <div className="grid items-center gap-12 md:grid-cols-2">
           {/* Image */}
+          <ScrollReveal variant="fade-up" delay={0.1}>
           <div className="relative mx-auto aspect-[3/4] w-full max-w-md overflow-hidden rounded-2xl bg-muted">
             <Image
               src="/images/forum_1764897995940.jpg"
@@ -26,9 +29,10 @@ export function Judge() {
               priority
             />
           </div>
+          </ScrollReveal>
 
           {/* Text */}
-          <div>
+          <ScrollReveal variant="fade-up" delay={0.2}>
             <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
               Magistrado
             </p>
@@ -41,12 +45,12 @@ export function Judge() {
             <p className="text-base leading-relaxed text-muted-foreground">
               {JUDGE_INFO.bio}
             </p>
-          </div>
+          </ScrollReveal>
         </div>
 
         {/* Mission and Vision cards */}
-        <div className="mt-16 grid gap-6 md:grid-cols-2">
-          <div className="rounded-xl border border-border bg-muted p-8">
+        <StaggerContainer direction="up" className="mt-16 grid gap-6 md:grid-cols-2">
+          <StaggerItem><div className="rounded-xl border border-border bg-muted p-8">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-lg bg-amber-100">
                 <Target className="size-5 text-amber-600" />
@@ -59,9 +63,9 @@ export function Judge() {
               para garantir o acesso efetivo à justiça e a resolução adequada
               dos conflitos.
             </p>
-          </div>
+          </div></StaggerItem>
 
-          <div className="rounded-xl border border-border bg-muted p-8">
+          <StaggerItem><div className="rounded-xl border border-border bg-muted p-8">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-lg bg-amber-100">
                 <Lightbulb className="size-5 text-amber-600" />
@@ -73,30 +77,32 @@ export function Judge() {
               Justiça mais ágil, transparente e acessível por meio da inovação e
               do compromisso com a excelência.
             </p>
-          </div>
-        </div>
+          </div></StaggerItem>
+        </StaggerContainer>
 
         {/* Team */}
         <div className="mt-16">
-          <h3 className="mb-8 text-center text-2xl font-bold text-foreground">
-            Equipe do Gabinete
-          </h3>
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+          <ScrollReveal variant="fade-up">
+            <h3 className="mb-8 flex items-center justify-center gap-3 text-center text-2xl font-bold text-foreground">
+              <Users className="size-7 text-amber-500" />
+              Equipe do Gabinete
+            </h3>
+          </ScrollReveal>
+          <StaggerContainer direction="left" className="grid grid-cols-2 gap-6 md:grid-cols-4">
             {TEAM.map((person) => (
-              <div
-                key={person.name}
-                className="flex flex-col items-center gap-3 rounded-xl border border-border bg-background p-6 text-center"
-              >
-                <div className="flex size-16 items-center justify-center rounded-full bg-muted">
-                  <User className="size-8 text-muted-foreground" />
+              <StaggerItem key={person.name} direction="left">
+                <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-background p-6 text-center">
+                  <div className="flex size-16 items-center justify-center rounded-full bg-muted">
+                    <User className="size-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">{person.name}</p>
+                    <p className="text-sm text-amber-600">{person.role}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-foreground">{person.name}</p>
-                  <p className="text-sm text-amber-600">{person.role}</p>
-                </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </div>
     </section>

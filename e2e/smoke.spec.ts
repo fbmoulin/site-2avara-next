@@ -65,3 +65,21 @@ test.describe("API Routes — Health Checks", () => {
     expect(response.status()).toBe(401)
   })
 })
+
+test.describe("Accessibility — Reduced Motion", () => {
+  test("landing page renders immediately with reduced motion", async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({ reducedMotion: "reduce" })
+    const page = await context.newPage()
+    await page.goto("/")
+
+    // All section headings should be visible immediately (not hidden by pending animations)
+    await expect(page.locator("h1")).toBeVisible()
+    await expect(page.getByText("Serviços Disponíveis")).toBeVisible()
+    await expect(page.getByText("Perguntas Frequentes")).toBeVisible()
+    await expect(page.getByText("Entre em Contato")).toBeVisible()
+
+    await context.close()
+  })
+})

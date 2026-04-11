@@ -1,5 +1,7 @@
 import Link from "next/link"
 import { BookOpen, ArrowRight } from "lucide-react"
+import { ScrollReveal } from "@/components/motion/scroll-reveal"
+import { StaggerContainer, StaggerItem } from "@/components/motion/stagger-container"
 import { db } from "@/lib/db"
 import { articles } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
@@ -37,22 +39,26 @@ export async function BlogPreview() {
   return (
     <section id="blog" className="bg-background py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="mb-12 text-center">
-          <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
-            Blog
-          </p>
-          <h2 className="text-3xl font-bold text-foreground md:text-4xl">
-            Artigos e Publicações
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Conteúdos sobre Direito, inovação no Judiciário e informações
-            relevantes para advogados e cidadãos.
-          </p>
-        </div>
+        <ScrollReveal variant="fade-up">
+          <div className="mb-12 text-center">
+            <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
+              Blog
+            </p>
+            <h2 className="flex items-center justify-center gap-3 text-3xl font-bold text-foreground md:text-4xl">
+              <BookOpen className="size-8 text-amber-500" />
+              Artigos e Publicações
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
+              Conteúdos sobre Direito, inovação no Judiciário e informações
+              relevantes para advogados e cidadãos.
+            </p>
+          </div>
+        </ScrollReveal>
 
         {recentArticles.length > 0 ? (
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <StaggerContainer direction="left" className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {recentArticles.map((article) => (
+              <StaggerItem key={article.id} direction="left">
               <Link
                 key={article.id}
                 href={`/artigos/${article.slug}`}
@@ -78,8 +84,9 @@ export async function BlogPreview() {
                 )}
                 <p className="text-xs text-muted-foreground">Por {article.author}</p>
               </Link>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         ) : (
           <div className="rounded-xl border border-dashed border-border bg-muted p-12 text-center">
             <BookOpen className="mx-auto mb-4 size-12 text-slate-300" />

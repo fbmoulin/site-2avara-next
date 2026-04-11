@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, type FormEvent } from "react"
 import { MessageSquare, Send, X, Trash2 } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface Message {
   role: "user" | "assistant"
@@ -127,15 +128,25 @@ export function Chatbot() {
       {/* Floating toggle button */}
       <button
         onClick={() => setIsOpen((o) => !o)}
-        className="fixed bottom-6 right-6 z-40 flex size-14 items-center justify-center rounded-full bg-amber-500 text-slate-900 shadow-lg transition-transform hover:scale-105 active:scale-95"
+        className="fixed bottom-6 right-6 z-40 flex size-14 items-center justify-center rounded-full bg-amber-500 text-slate-900 shadow-lg transition-transform hover:scale-105 active:scale-95 relative"
         aria-label={isOpen ? "Fechar chat" : "Abrir chat"}
       >
-        <MessageSquare className="size-6" />
+        {!isOpen && (
+          <span className="absolute inset-0 rounded-full bg-amber-500/40 animate-pulse-ring" />
+        )}
+        <MessageSquare className="size-6 relative z-10" />
       </button>
 
       {/* Chat panel */}
+      <AnimatePresence>
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-40 flex h-[500px] w-[380px] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-xl border bg-card shadow-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="fixed bottom-24 right-6 z-40 flex h-[500px] w-[380px] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-xl border bg-card shadow-2xl"
+        >
           {/* Header */}
           <div className="flex items-center justify-between border-b bg-amber-500/5 px-4 py-3">
             <div>
@@ -166,8 +177,11 @@ export function Chatbot() {
           <div className="flex-1 overflow-y-auto p-4">
             <div className="flex flex-col gap-3">
               {messages.map((msg, i) => (
-                <div
+                <motion.div
                   key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
@@ -179,7 +193,7 @@ export function Chatbot() {
                   >
                     {msg.content}
                   </div>
-                </div>
+                </motion.div>
               ))}
 
               {isLoading &&
@@ -220,8 +234,9 @@ export function Chatbot() {
               <Send className="size-4" />
             </button>
           </form>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </>
   )
 }

@@ -9,11 +9,25 @@ import {
   ExternalLink,
   ChevronDown,
   MessageSquare,
+  Scale,
 } from "lucide-react"
+import { motion } from "framer-motion"
 import { SERVICES } from "@/lib/constants"
 import type { ServiceItem } from "@/lib/constants"
+import { ScrollReveal } from "@/components/motion/scroll-reveal"
+import { StaggerContainer, StaggerItem } from "@/components/motion/stagger-container"
 
-const ICON_MAP: Record<string, React.ReactNode> = {
+import type { TargetAndTransition, Transition } from "framer-motion"
+
+const HOVER_ANIMATIONS: Record<string, { whileHover: TargetAndTransition; transition: Transition }> = {
+  search: { whileHover: { scale: [1, 1.15, 1] }, transition: { duration: 0.4 } },
+  video: { whileHover: { rotate: [0, 10, 0] }, transition: { duration: 0.3 } },
+  calendar: { whileHover: { y: [0, -4, 0] }, transition: { duration: 0.3 } },
+  "file-text": { whileHover: { rotateY: [0, 180, 360] }, transition: { duration: 0.5 } },
+  "message-square": { whileHover: { rotate: [-5, 5, 0] }, transition: { duration: 0.3 } },
+}
+
+const ICON_COMPONENTS: Record<string, React.ReactNode> = {
   search: <Search className="size-6" />,
   video: <Video className="size-6" />,
   calendar: <Calendar className="size-6" />,
@@ -57,9 +71,13 @@ function ServiceCard({
           hasExpandableContent ? "cursor-pointer" : "cursor-default"
         }`}
       >
-        <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
-          {ICON_MAP[service.icon] ?? <FileText className="size-6" />}
-        </div>
+        <motion.div
+          className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600"
+          whileHover={HOVER_ANIMATIONS[service.icon]?.whileHover}
+          transition={HOVER_ANIMATIONS[service.icon]?.transition}
+        >
+          {ICON_COMPONENTS[service.icon] ?? <FileText className="size-6" />}
+        </motion.div>
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-foreground">
             {service.title}
@@ -160,20 +178,24 @@ export function Services() {
   return (
     <section id="servicos" className="bg-muted py-20">
       <div className="mx-auto max-w-4xl px-4 md:px-6">
-        <div className="mb-12 text-center">
-          <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
-            Atendimento
-          </p>
-          <h2 className="text-3xl font-bold text-foreground md:text-4xl">
-            Serviços Disponíveis
-          </h2>
-          <p className="mt-4 text-muted-foreground">
-            Conheça os serviços oferecidos pela 2ª Vara Cível de Cariacica.
-          </p>
-        </div>
+        <ScrollReveal variant="fade-up">
+          <div className="mb-12 text-center">
+            <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
+              Atendimento
+            </p>
+            <h2 className="flex items-center justify-center gap-3 text-3xl font-bold text-foreground md:text-4xl">
+              <Scale className="size-8 text-amber-500" />
+              Serviços Disponíveis
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Conheça os serviços oferecidos pela 2ª Vara Cível de Cariacica.
+            </p>
+          </div>
+        </ScrollReveal>
 
-        <div className="space-y-4">
+        <StaggerContainer direction="up" className="space-y-4">
           {SERVICES.map((service) => (
+            <StaggerItem key={service.id}>
             <ServiceCard
               key={service.id}
               service={service}
@@ -184,8 +206,9 @@ export function Services() {
                 )
               }
             />
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </div>
     </section>
   )

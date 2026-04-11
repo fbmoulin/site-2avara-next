@@ -1,8 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, HelpCircle } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import { FAQS } from "@/lib/constants"
+import { ScrollReveal } from "@/components/motion/scroll-reveal"
 
 export function Faq() {
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null)
@@ -10,11 +12,13 @@ export function Faq() {
   return (
     <section id="duvidas" className="bg-background py-20">
       <div className="mx-auto max-w-3xl px-4 md:px-6">
+        <ScrollReveal variant="fade-up">
         <div className="mb-12 text-center">
           <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
             Ajuda
           </p>
-          <h2 className="text-3xl font-bold text-foreground md:text-4xl">
+          <h2 className="flex items-center justify-center gap-3 text-3xl font-bold text-foreground md:text-4xl">
+            <HelpCircle className="size-8 text-amber-500" />
             Perguntas Frequentes
           </h2>
           <p className="mt-4 text-muted-foreground">
@@ -22,6 +26,7 @@ export function Faq() {
             vara.
           </p>
         </div>
+        </ScrollReveal>
 
         <div className="space-y-3">
           {FAQS.map((faq) => {
@@ -45,26 +50,31 @@ export function Faq() {
                       {faq.question}
                     </p>
                   </div>
-                  <ChevronDown
-                    className={`size-5 shrink-0 text-muted-foreground transition-transform duration-200 ${
-                      isExpanded ? "rotate-180" : ""
-                    }`}
-                  />
+                  <motion.div
+                    animate={{ rotate: isExpanded ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown className="size-5 shrink-0 text-muted-foreground" />
+                  </motion.div>
                 </button>
 
-                <div
-                  className={`transition-all duration-300 ease-in-out ${
-                    isExpanded
-                      ? "max-h-96 opacity-100"
-                      : "max-h-0 overflow-hidden opacity-0"
-                  }`}
-                >
-                  <div className="border-t border-slate-100 px-5 py-4">
-                    <p className="text-sm leading-relaxed text-muted-foreground">
-                      {faq.answer}
-                    </p>
-                  </div>
-                </div>
+                <AnimatePresence initial={false}>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      style={{ overflow: "hidden" }}
+                    >
+                      <div className="border-t border-slate-100 px-5 py-4">
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          {faq.answer}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )
           })}

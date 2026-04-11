@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from "react"
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle } from "lucide-react"
+import { motion } from "framer-motion"
+import { ScrollReveal } from "@/components/motion/scroll-reveal"
 import { CONTACT_INFO } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -59,21 +61,24 @@ export function ContactForm() {
   return (
     <section id="contato" className="bg-background py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="mb-12 text-center">
-          <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
-            Atendimento
-          </p>
-          <h2 className="text-3xl font-bold text-foreground md:text-4xl">
-            Entre em Contato
-          </h2>
-          <p className="mt-4 text-muted-foreground">
-            Envie sua mensagem ou dúvida. Nossa equipe retornará em breve.
-          </p>
-        </div>
+        <ScrollReveal variant="fade-up">
+          <div className="mb-12 text-center">
+            <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
+              Atendimento
+            </p>
+            <h2 className="flex items-center justify-center gap-3 text-3xl font-bold text-foreground md:text-4xl">
+              <Mail className="size-8 text-amber-500" />
+              Entre em Contato
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Envie sua mensagem ou dúvida. Nossa equipe retornará em breve.
+            </p>
+          </div>
+        </ScrollReveal>
 
         <div id="localizacao" className="grid gap-12 lg:grid-cols-2">
           {/* Left: contact info + map */}
-          <div className="space-y-8">
+          <ScrollReveal variant="fade-up" delay={0.1} className="space-y-8">
             <div className="space-y-5">
               <div className="flex items-start gap-4">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-100">
@@ -129,13 +134,19 @@ export function ContactForm() {
                 title="Localização da 2ª Vara Cível de Cariacica"
               />
             </div>
-          </div>
+          </ScrollReveal>
 
           {/* Right: form */}
-          <div className="rounded-xl border border-border bg-muted p-6 md:p-8">
+          <ScrollReveal variant="fade-up" delay={0.2} className="rounded-xl border border-border bg-muted p-6 md:p-8">
             {status === "success" ? (
               <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-                <CheckCircle className="size-16 text-green-500" />
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <CheckCircle className="size-16 text-green-500" />
+                </motion.div>
                 <h3 className="text-xl font-bold text-foreground">
                   Mensagem enviada!
                 </h3>
@@ -245,7 +256,7 @@ export function ContactForm() {
                 </Button>
               </form>
             )}
-          </div>
+          </ScrollReveal>
         </div>
       </div>
     </section>

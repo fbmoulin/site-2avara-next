@@ -43,7 +43,7 @@ export function Navbar() {
   }, [])
 
   return (
-    <header className="sticky top-9 z-40 bg-slate-900 shadow-lg">
+    <header className="sticky top-9 z-40 bg-slate-900/75 backdrop-blur-xl shadow-lg relative">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
         {/* Logo */}
         <button
@@ -67,16 +67,22 @@ export function Navbar() {
             <button
               key={link.href}
               onClick={() => scrollTo(link.href)}
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              className={`relative rounded-md px-3 py-2 text-sm font-medium transition-all duration-300 ${
                 activeSection === link.href
                   ? "bg-amber-500/20 text-amber-400"
-                  : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                  : "text-slate-300 hover:bg-slate-800/50 hover:text-white"
               }`}
             >
               {link.label}
+              {activeSection === link.href && (
+                <span className="absolute bottom-0 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-amber-400 transition-all duration-300" />
+              )}
             </button>
           ))}
         </nav>
+
+        {/* Amber gradient border */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
 
         {/* Mobile hamburger */}
         <button
@@ -90,7 +96,7 @@ export function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <nav className="border-t border-slate-800 bg-slate-900 px-4 pb-4 md:hidden">
+        <nav className="border-t border-slate-700/50 bg-slate-900/75 backdrop-blur-xl px-4 pb-4 md:hidden">
           {NAV_LINKS.map((link) => (
             <button
               key={link.href}

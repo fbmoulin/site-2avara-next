@@ -2,6 +2,8 @@ import { db } from "@/lib/db"
 import { news } from "@/lib/db/schema"
 import { eq, desc } from "drizzle-orm"
 import { ExternalLink, Newspaper } from "lucide-react"
+import { ScrollReveal } from "@/components/motion/scroll-reveal"
+import { StaggerContainer, StaggerItem } from "@/components/motion/stagger-container"
 import { FALLBACK_NEWS } from "@/lib/constants"
 import Link from "next/link"
 
@@ -31,23 +33,26 @@ export async function NewsPreview() {
   return (
     <section className="bg-muted py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="mb-12 text-center">
-          <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
-            Informativo
-          </p>
-          <h2 className="text-3xl font-bold text-foreground md:text-4xl">
-            Notícias e Avisos
-          </h2>
-          <p className="mt-4 text-muted-foreground">
-            Fique por dentro das últimas novidades do TJES e desta vara.
-          </p>
-        </div>
+        <ScrollReveal variant="fade-up">
+          <div className="mb-12 text-center">
+            <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
+              Informativo
+            </p>
+            <h2 className="flex items-center justify-center gap-3 text-3xl font-bold text-foreground md:text-4xl">
+              <Newspaper className="size-8 text-amber-500" />
+              Notícias e Avisos
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Fique por dentro das últimas novidades do TJES e desta vara.
+            </p>
+          </div>
+        </ScrollReveal>
 
         {hasArticles ? (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          <StaggerContainer direction="up" className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {articles.map((article) => (
+              <StaggerItem key={article.id}>
               <a
-                key={article.id}
                 href={article.link}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -75,16 +80,15 @@ export async function NewsPreview() {
                   <ExternalLink className="size-3.5" />
                 </div>
               </a>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         ) : (
           /* Fallback state */
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          <StaggerContainer direction="up" className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {FALLBACK_NEWS.map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-col rounded-xl border border-border bg-background p-6"
-              >
+              <StaggerItem key={item.id}>
+              <div className="flex flex-col rounded-xl border border-border bg-background p-6">
                 <span className="mb-3 inline-block w-fit rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
                   {item.category}
                 </span>
@@ -98,8 +102,9 @@ export async function NewsPreview() {
                   {item.date}
                 </p>
               </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         )}
 
         <div className="mt-10 text-center">
