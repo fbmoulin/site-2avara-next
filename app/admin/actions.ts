@@ -1,5 +1,6 @@
 "use server"
 
+import { z } from "zod/v4"
 import { db } from "@/lib/db"
 import {
   contactMessages,
@@ -17,6 +18,21 @@ async function requireAdmin() {
   if (!user) throw new Error("Não autorizado")
   return user
 }
+
+const uuidSchema = z.string().uuid()
+const CONTACT_STATUSES = ["pending", "answered", "archived"] as const
+const APPOINTMENT_STATUSES = ["pre_reserved", "confirmed", "completed", "cancelled"] as const
+const DEMAND_STATUSES = ["pending", "in_analysis", "resolved", "archived"] as const
+
+const updateArticleSchema = z.object({
+  title: z.string().max(255).optional(),
+  slug: z.string().max(255).regex(/^[a-z0-9-]+$/).optional(),
+  excerpt: z.string().max(2000).optional(),
+  content: z.string().optional(),
+  author: z.string().max(255).optional(),
+  category: z.string().max(100).optional(),
+  imageUrl: z.string().max(500).optional(),
+})
 
 // ---------------------------------------------------------------------------
 // Dashboard
@@ -142,6 +158,8 @@ export async function updateContactStatus(
   notes: string
 ) {
   await requireAdmin()
+  uuidSchema.parse(id)
+  if (!(CONTACT_STATUSES as readonly string[]).includes(status)) throw new Error("Status inválido")
 
   await db
     .update(contactMessages)
@@ -184,6 +202,7 @@ export async function confirmAppointment(
   confirmedBy: string
 ) {
   await requireAdmin()
+  uuidSchema.parse(id)
 
   await db
     .update(appointments)
@@ -202,6 +221,7 @@ export async function confirmAppointment(
 
 export async function rejectAppointment(id: string, notes: string) {
   await requireAdmin()
+  uuidSchema.parse(id)
 
   await db
     .update(appointments)
@@ -241,6 +261,7 @@ export async function resolveDemand(
   resolutionNotes: string
 ) {
   await requireAdmin()
+  uuidSchema.parse(id)
 
   await db
     .update(demands)
@@ -307,10 +328,12 @@ export async function updateArticle(
   }
 ) {
   await requireAdmin()
+  uuidSchema.parse(id)
+  const validated = updateArticleSchema.parse(data)
 
   await db
     .update(articles)
-    .set({ ...data, updatedAt: new Date() })
+    .set({ ...validated, updatedAt: new Date() })
     .where(eq(articles.id, id))
 
   revalidatePath("/admin/artigos")
@@ -320,6 +343,7 @@ export async function updateArticle(
 
 export async function toggleArticlePublish(id: string, isPublished: boolean) {
   await requireAdmin()
+  uuidSchema.parse(id)
 
   await db
     .update(articles)
@@ -347,6 +371,7 @@ export async function getNewsItems() {
 
 export async function toggleNewsActive(id: string, isActive: boolean) {
   await requireAdmin()
+  uuidSchema.parse(id)
 
   await db
     .update(news)

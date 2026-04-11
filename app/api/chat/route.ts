@@ -1,6 +1,15 @@
+import { z } from "zod/v4"
 import { NextRequest } from "next/server"
 import { streamChatResponse, type ChatMessage } from "@/lib/openai"
 import { chatRateLimit, checkRateLimit } from "@/lib/rate-limit"
+
+const chatSchema = z.object({
+  message: z.string().min(1).max(2000),
+  history: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string().max(2000),
+  })).max(20).default([]),
+})
 
 export async function POST(request: NextRequest) {
   const forwardedFor = request.headers.get("x-forwarded-for")
@@ -13,25 +22,17 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { message, history } = (await request.json()) as {
-    message: string
-    history: ChatMessage[]
+  let body
+  try { body = await request.json() } catch {
+    return Response.json({ error: "JSON inválido." }, { status: 400 })
   }
 
-  if (!message || typeof message !== "string" || message.length > 2000) {
-    return Response.json(
-      { error: "Mensagem inválida (máx. 2000 caracteres)." },
-      { status: 400 }
-    )
+  const result = chatSchema.safeParse(body)
+  if (!result.success) {
+    return Response.json({ error: "Dados inválidos." }, { status: 400 })
   }
 
-  const safeHistory = (Array.isArray(history) ? history : [])
-    .filter((h: ChatMessage) => h.role === "user" || h.role === "assistant")
-    .slice(-20)
-    .map((h: ChatMessage) => ({
-      role: h.role as "user" | "assistant",
-      content: typeof h.content === "string" ? h.content.slice(0, 2000) : "",
-    }))
+  const { message, history: safeHistory } = result.data
 
   const stream = await streamChatResponse(message, safeHistory)
 

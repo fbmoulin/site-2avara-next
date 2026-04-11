@@ -75,14 +75,16 @@ export async function POST(request: NextRequest) {
         })
 
       if (retryError) {
+        console.error("[upload]", retryError)
         return NextResponse.json(
-          { error: `Erro no upload: ${retryError.message}` },
+          { error: "Erro interno no upload. Tente novamente." },
           { status: 500 }
         )
       }
     } else {
+      console.error("[upload]", error)
       return NextResponse.json(
-        { error: `Erro no upload: ${error.message}` },
+        { error: "Erro interno no upload. Tente novamente." },
         { status: 500 }
       )
     }

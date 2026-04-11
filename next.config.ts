@@ -25,6 +25,18 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vlibras.gov.br",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' https://images.unsplash.com https://*.supabase.co data: blob:",
+              "font-src 'self' data:",
+              "frame-src https://www.google.com https://vlibras.gov.br",
+              "connect-src 'self' https://*.supabase.co https://api.openai.com https://vlibras.gov.br",
+            ].join("; "),
+          },
         ],
       },
     ]
