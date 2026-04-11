@@ -43,7 +43,7 @@ export function Navbar() {
   }, [])
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-900 shadow-lg">
+    <header className="sticky top-9 z-40 bg-slate-900 shadow-lg">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
         {/* Logo */}
         <button
