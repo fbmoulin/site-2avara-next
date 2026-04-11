@@ -6,7 +6,8 @@ import { sendContactNotification } from "@/lib/email"
 import { contactRateLimit, checkRateLimit } from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
-  const ip = request.headers.get("x-forwarded-for") ?? "anonymous"
+  const forwardedFor = request.headers.get("x-forwarded-for")
+  const ip = forwardedFor?.split(",")[0].trim() ?? "anonymous"
   const { success } = await checkRateLimit(contactRateLimit, ip)
   if (!success) {
     return NextResponse.json(

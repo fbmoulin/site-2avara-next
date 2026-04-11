@@ -13,21 +13,20 @@ function createLimiter(requests: number, window: string, prefix: string) {
   })
 }
 
-export const contactRateLimit = {
-  get instance() { return createLimiter(3, "15 m", "rl:contact") },
+function lazyLimiter(requests: number, window: string, prefix: string) {
+  let cached: Ratelimit | null = null
+  return {
+    get instance() {
+      if (!cached) cached = createLimiter(requests, window, prefix)
+      return cached
+    },
+  }
 }
 
-export const appointmentRateLimit = {
-  get instance() { return createLimiter(5, "15 m", "rl:appointment") },
-}
-
-export const demandRateLimit = {
-  get instance() { return createLimiter(10, "15 m", "rl:demand") },
-}
-
-export const chatRateLimit = {
-  get instance() { return createLimiter(20, "15 m", "rl:chat") },
-}
+export const contactRateLimit = lazyLimiter(3, "15 m", "rl:contact")
+export const appointmentRateLimit = lazyLimiter(5, "15 m", "rl:appointment")
+export const demandRateLimit = lazyLimiter(10, "15 m", "rl:demand")
+export const chatRateLimit = lazyLimiter(20, "15 m", "rl:chat")
 
 export async function checkRateLimit(
   limiter: { instance: Ratelimit },
