@@ -1,7 +1,7 @@
 "use client"
 
-import { type ReactNode } from "react"
-import { motion, useReducedMotion } from "framer-motion"
+import { type ReactNode, useRef } from "react"
+import { motion, useInView } from "framer-motion"
 
 type Direction = "up" | "left" | "right"
 
@@ -28,21 +28,20 @@ interface StaggerContainerProps {
 export function StaggerContainer({
   children,
   staggerDelay = 0.1,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  direction,
   className,
 }: StaggerContainerProps) {
-  const prefersReduced = useReducedMotion()
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, amount: 0.1 })
 
   return (
     <motion.div
-      initial={prefersReduced ? "visible" : "hidden"}
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.1 }}
+      ref={ref}
+      initial={false}
+      animate={isInView ? "visible" : "hidden"}
       variants={{
         hidden: {},
         visible: {
-          transition: { staggerChildren: prefersReduced ? 0 : staggerDelay },
+          transition: { staggerChildren: staggerDelay },
         },
       }}
       className={className}

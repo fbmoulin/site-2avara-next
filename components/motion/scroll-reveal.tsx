@@ -1,26 +1,26 @@
 "use client"
 
-import { type ReactNode } from "react"
-import { motion, useReducedMotion, type TargetAndTransition } from "framer-motion"
+import { type ReactNode, useRef } from "react"
+import { motion, useInView, type TargetAndTransition } from "framer-motion"
 
 type Variant = "fade-up" | "fade-left" | "fade-right" | "scale-blur"
 
-const variants: Record<Variant, { initial: TargetAndTransition; animate: TargetAndTransition }> = {
+const variants: Record<Variant, { hidden: TargetAndTransition; visible: TargetAndTransition }> = {
   "fade-up": {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
   },
   "fade-left": {
-    initial: { opacity: 0, x: -40 },
-    animate: { opacity: 1, x: 0 },
+    hidden: { opacity: 0, x: -40 },
+    visible: { opacity: 1, x: 0 },
   },
   "fade-right": {
-    initial: { opacity: 0, x: 40 },
-    animate: { opacity: 1, x: 0 },
+    hidden: { opacity: 0, x: 40 },
+    visible: { opacity: 1, x: 0 },
   },
   "scale-blur": {
-    initial: { opacity: 0, scale: 1.05, filter: "blur(10px)" },
-    animate: { opacity: 1, scale: 1, filter: "blur(0px)" },
+    hidden: { opacity: 0, scale: 1.05, filter: "blur(10px)" },
+    visible: { opacity: 1, scale: 1, filter: "blur(0px)" },
   },
 }
 
@@ -41,14 +41,16 @@ export function ScrollReveal({
   once = true,
   className,
 }: ScrollRevealProps) {
-  const prefersReduced = useReducedMotion()
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once, amount: 0.2 })
   const v = variants[variant]
 
   return (
     <motion.div
-      initial={prefersReduced ? v.animate : v.initial}
-      whileInView={v.animate}
-      viewport={{ once, amount: 0.2 }}
+      ref={ref}
+      initial={false}
+      animate={isInView ? "visible" : "hidden"}
+      variants={{ hidden: v.hidden, visible: v.visible }}
       transition={{ duration, delay, ease: "easeOut" }}
       className={className}
     >
