@@ -1,11 +1,11 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
-import Script from "next/script"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { AccessibilityBar } from "@/components/accessibility-bar"
 import { Chatbot } from "@/components/chatbot"
 import { LoggerInit } from "@/components/logger-init"
+import { VLibrasInit } from "@/components/vlibras-init"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -54,13 +54,7 @@ export default function RootLayout({
             <div className="vw-plugin-top-wrapper" />
           </div>
         </div>
-        <Script
-          src="https://vlibras.gov.br/app/vlibras-plugin.js"
-          strategy="lazyOnload"
-        />
-        <Script id="vlibras-init" strategy="lazyOnload">
-          {`new window.VLibras.Widget("https://vlibras.gov.br/app");`}
-        </Script>
+        <VLibrasInit />
         <style>{`
           [vw] .active { position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 9999 !important; }
           [vw-plugin-wrapper] { position: fixed !important; z-index: 9998 !important; }
