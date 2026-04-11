@@ -128,7 +128,7 @@ export function Chatbot() {
       {/* Floating toggle button */}
       <button
         onClick={() => setIsOpen((o) => !o)}
-        className="fixed bottom-6 right-6 z-40 flex size-14 items-center justify-center rounded-full bg-amber-500 text-slate-900 shadow-lg transition-transform hover:scale-105 active:scale-95 relative"
+        className="fixed bottom-6 right-6 z-40 flex size-14 items-center justify-center rounded-full bg-amber-500 text-slate-900 shadow-lg transition-transform hover:scale-105 active:scale-95"
         aria-label={isOpen ? "Fechar chat" : "Abrir chat"}
       >
         {!isOpen && (
