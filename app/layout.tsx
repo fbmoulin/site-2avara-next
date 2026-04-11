@@ -42,6 +42,18 @@ export default function RootLayout({
         <Chatbot />
 
         {/* VLibras - acessibilidade em Libras */}
+        <div className="enabled" id="vlibras-container">
+          <div
+            // @ts-expect-error — VLibras uses non-standard vw attribute
+            vw="true"
+            className="enabled"
+          >
+            <div vw-access-button="true" className="active" />
+            <div vw-plugin-wrapper="true">
+              <div className="vw-plugin-top-wrapper" />
+            </div>
+          </div>
+        </div>
         <Script
           src="https://vlibras.gov.br/app/vlibras-plugin.js"
           strategy="lazyOnload"
