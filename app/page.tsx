@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { Hero } from "@/components/landing/hero"
 import { Judge } from "@/components/landing/judge"
 import { Services } from "@/components/landing/services"
@@ -12,8 +13,12 @@ export default function Home() {
       <Hero />
       <Judge />
       <Services />
-      <BlogPreview />
-      <NewsPreview />
+      <Suspense>
+        <BlogPreview />
+      </Suspense>
+      <Suspense>
+        <NewsPreview />
+      </Suspense>
       <Faq />
       <ContactForm />
     </main>
