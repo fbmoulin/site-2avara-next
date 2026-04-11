@@ -11,16 +11,18 @@ export function AccessibilityBar() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem("a11y")
-      if (saved) {
-        const { fontSize: fs, highContrast: hc, darkMode: dm } = JSON.parse(saved)
-        if (fs === 1) document.documentElement.classList.add("font-lg")
-        if (fs === 2) document.documentElement.classList.add("font-xl")
-        if (hc) document.documentElement.classList.add("high-contrast")
-        if (dm) document.documentElement.classList.add("dark")
+      if (!saved) return
+      const { fontSize: fs, highContrast: hc, darkMode: dm } = JSON.parse(saved)
+      if (fs === 1) document.documentElement.classList.add("font-lg")
+      if (fs === 2) document.documentElement.classList.add("font-xl")
+      if (hc) document.documentElement.classList.add("high-contrast")
+      if (dm) document.documentElement.classList.add("dark")
+      // Batch state updates in rAF to avoid cascading renders
+      requestAnimationFrame(() => {
         setFontSize(fs || 0)
         setHighContrast(!!hc)
         setDarkMode(!!dm)
-      }
+      })
     } catch {}
   }, [])
 

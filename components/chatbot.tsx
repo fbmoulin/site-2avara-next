@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, type FormEvent } from "react"
 import { MessageSquare, Send, X, Trash2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { log } from "@/lib/logger"
 
 interface Message {
   role: "user" | "assistant"
@@ -53,6 +54,7 @@ export function Chatbot() {
     setInput("")
     setIsLoading(true)
 
+    const startTime = Date.now()
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -64,7 +66,13 @@ export function Chatbot() {
       })
 
       if (!response.ok || !response.body) {
+        log.error("chat_api_error", { status: response.status })
         throw new Error("Erro na resposta do servidor.")
+      }
+
+      const durationMs = Date.now() - startTime
+      if (durationMs > 5000) {
+        log.warn("chat_api_slow", { durationMs })
       }
 
       const reader = response.body.getReader()
@@ -110,7 +118,10 @@ export function Chatbot() {
           }
         }
       }
-    } catch {
+    } catch (err) {
+      log.error("chat_stream_error", {
+        error: err instanceof Error ? err.message : String(err),
+      })
       setMessages((prev) => [
         ...prev,
         {

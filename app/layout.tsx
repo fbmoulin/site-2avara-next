@@ -5,6 +5,7 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { AccessibilityBar } from "@/components/accessibility-bar"
 import { Chatbot } from "@/components/chatbot"
+import { LoggerInit } from "@/components/logger-init"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -39,6 +40,7 @@ export default function RootLayout({
         <main className="flex-1">{children}</main>
         <Footer />
 
+        <LoggerInit />
         <Chatbot />
 
         {/* VLibras - acessibilidade em Libras */}

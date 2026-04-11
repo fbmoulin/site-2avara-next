@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react"
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle } from "lucide-react"
 import { motion } from "framer-motion"
 import { ScrollReveal } from "@/components/motion/scroll-reveal"
+import { log } from "@/lib/logger"
 import { CONTACT_INFO } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -49,11 +50,17 @@ export function ContactForm() {
         body: JSON.stringify(body),
       })
 
-      if (!res.ok) throw new Error("Erro ao enviar mensagem")
+      if (!res.ok) {
+        log.error("contact_form_error", { status: res.status })
+        throw new Error("Erro ao enviar mensagem")
+      }
       setStatus("success")
       e.currentTarget.reset()
       setSubject(null)
-    } catch {
+    } catch (err) {
+      log.error("contact_form_submit_failed", {
+        error: err instanceof Error ? err.message : String(err),
+      })
       setStatus("error")
     }
   }

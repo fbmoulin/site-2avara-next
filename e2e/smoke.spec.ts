@@ -83,3 +83,51 @@ test.describe("Accessibility — Reduced Motion", () => {
     await context.close()
   })
 })
+
+test.describe("Client Error Logging — /api/client-errors", () => {
+  test("valid batch returns 204", async ({ request }) => {
+    const response = await request.post("/api/client-errors", {
+      data: {
+        errors: [
+          {
+            level: "error",
+            event: "test_error",
+            timestamp: new Date().toISOString(),
+            url: "http://localhost:3099/",
+            session_id: "test-session-123",
+            data: { message: "test" },
+          },
+        ],
+      },
+    })
+    expect(response.status()).toBe(204)
+  })
+
+  test("empty errors array returns 204", async ({ request }) => {
+    const response = await request.post("/api/client-errors", {
+      data: { errors: [] },
+    })
+    expect(response.status()).toBe(204)
+  })
+
+  test("malformed payload returns 422", async ({ request }) => {
+    const response = await request.post("/api/client-errors", {
+      data: { errors: [{ bad: "data" }] },
+    })
+    expect(response.status()).toBe(422)
+  })
+
+  test("batch over 10 entries returns 422", async ({ request }) => {
+    const entries = Array.from({ length: 11 }, (_, i) => ({
+      level: "warn",
+      event: `event_${i}`,
+      timestamp: new Date().toISOString(),
+      url: "http://localhost/",
+      session_id: "overflow-test",
+    }))
+    const response = await request.post("/api/client-errors", {
+      data: { errors: entries },
+    })
+    expect(response.status()).toBe(422)
+  })
+})
