@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result)
   }
 
-  const limit = Number(request.nextUrl.searchParams.get("limit")) || 10
+  const limit = Math.min(Number(request.nextUrl.searchParams.get("limit")) || 10, 50)
 
   const items = await db
     .select()

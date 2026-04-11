@@ -10,12 +10,20 @@ import {
 } from "@/lib/db/schema"
 import { eq, desc, count } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
+import { getUser } from "@/lib/auth"
+
+async function requireAdmin() {
+  const user = await getUser()
+  if (!user) throw new Error("Não autorizado")
+  return user
+}
 
 // ---------------------------------------------------------------------------
 // Dashboard
 // ---------------------------------------------------------------------------
 
 export async function getDashboardStats() {
+  await requireAdmin()
   const [pendingContacts] = await db
     .select({ count: count() })
     .from(contactMessages)
@@ -44,6 +52,8 @@ export async function getDashboardStats() {
 }
 
 export async function getRecentActivity() {
+  await requireAdmin()
+
   const recentContacts = await db
     .select({
       id: contactMessages.id,
@@ -110,6 +120,8 @@ export async function getRecentActivity() {
 // ---------------------------------------------------------------------------
 
 export async function getContacts(status?: string) {
+  await requireAdmin()
+
   const query = db
     .select()
     .from(contactMessages)
@@ -129,6 +141,8 @@ export async function updateContactStatus(
   answeredBy: string,
   notes: string
 ) {
+  await requireAdmin()
+
   await db
     .update(contactMessages)
     .set({
@@ -148,6 +162,8 @@ export async function updateContactStatus(
 // ---------------------------------------------------------------------------
 
 export async function getAppointments(status?: string) {
+  await requireAdmin()
+
   const query = db
     .select()
     .from(appointments)
@@ -167,6 +183,8 @@ export async function confirmAppointment(
   zoomLink: string,
   confirmedBy: string
 ) {
+  await requireAdmin()
+
   await db
     .update(appointments)
     .set({
@@ -183,6 +201,8 @@ export async function confirmAppointment(
 }
 
 export async function rejectAppointment(id: string, notes: string) {
+  await requireAdmin()
+
   await db
     .update(appointments)
     .set({
@@ -200,6 +220,8 @@ export async function rejectAppointment(id: string, notes: string) {
 // ---------------------------------------------------------------------------
 
 export async function getDemands(status?: string) {
+  await requireAdmin()
+
   const query = db
     .select()
     .from(demands)
@@ -218,6 +240,8 @@ export async function resolveDemand(
   resolvedBy: string,
   resolutionNotes: string
 ) {
+  await requireAdmin()
+
   await db
     .update(demands)
     .set({
@@ -237,6 +261,8 @@ export async function resolveDemand(
 // ---------------------------------------------------------------------------
 
 export async function getArticles() {
+  await requireAdmin()
+
   return db.select().from(articles).orderBy(desc(articles.createdAt))
 }
 
@@ -249,6 +275,8 @@ export async function createArticle(data: {
   category: string
   imageUrl?: string
 }) {
+  await requireAdmin()
+
   await db.insert(articles).values({
     title: data.title,
     slug: data.slug,
@@ -278,6 +306,8 @@ export async function updateArticle(
     imageUrl?: string
   }
 ) {
+  await requireAdmin()
+
   await db
     .update(articles)
     .set({ ...data, updatedAt: new Date() })
@@ -289,6 +319,8 @@ export async function updateArticle(
 }
 
 export async function toggleArticlePublish(id: string, isPublished: boolean) {
+  await requireAdmin()
+
   await db
     .update(articles)
     .set({
@@ -308,10 +340,14 @@ export async function toggleArticlePublish(id: string, isPublished: boolean) {
 // ---------------------------------------------------------------------------
 
 export async function getNewsItems() {
+  await requireAdmin()
+
   return db.select().from(news).orderBy(desc(news.publishedAt))
 }
 
 export async function toggleNewsActive(id: string, isActive: boolean) {
+  await requireAdmin()
+
   await db
     .update(news)
     .set({ isActive })

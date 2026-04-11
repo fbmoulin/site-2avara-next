@@ -1,17 +1,38 @@
 import { NextRequest } from "next/server"
 import { streamChatResponse, type ChatMessage } from "@/lib/openai"
+import { chatRateLimit, checkRateLimit } from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for") ?? "anonymous"
+  const { success } = await checkRateLimit(chatRateLimit, ip)
+  if (!success) {
+    return Response.json(
+      { error: "Muitas solicitações. Aguarde alguns minutos." },
+      { status: 429 }
+    )
+  }
+
   const { message, history } = (await request.json()) as {
     message: string
     history: ChatMessage[]
   }
 
-  if (!message || typeof message !== "string") {
-    return Response.json({ error: "Mensagem é obrigatória." }, { status: 400 })
+  if (!message || typeof message !== "string" || message.length > 2000) {
+    return Response.json(
+      { error: "Mensagem inválida (máx. 2000 caracteres)." },
+      { status: 400 }
+    )
   }
 
-  const stream = await streamChatResponse(message, history || [])
+  const safeHistory = (Array.isArray(history) ? history : [])
+    .filter((h: ChatMessage) => h.role === "user" || h.role === "assistant")
+    .slice(-20)
+    .map((h: ChatMessage) => ({
+      role: h.role as "user" | "assistant",
+      content: typeof h.content === "string" ? h.content.slice(0, 2000) : "",
+    }))
+
+  const stream = await streamChatResponse(message, safeHistory)
 
   const encoder = new TextEncoder()
   const readable = new ReadableStream({

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { Sun, Moon, Eye } from "lucide-react"
 
 export function AccessibilityBar() {
@@ -8,23 +8,48 @@ export function AccessibilityBar() {
   const [highContrast, setHighContrast] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("a11y")
+      if (saved) {
+        const { fontSize: fs, highContrast: hc, darkMode: dm } = JSON.parse(saved)
+        if (fs === 1) document.documentElement.classList.add("font-lg")
+        if (fs === 2) document.documentElement.classList.add("font-xl")
+        if (hc) document.documentElement.classList.add("high-contrast")
+        if (dm) document.documentElement.classList.add("dark")
+        setFontSize(fs || 0)
+        setHighContrast(!!hc)
+        setDarkMode(!!dm)
+      }
+    } catch {}
+  }, [])
+
+  function persistA11y(fs: number, hc: boolean, dm: boolean) {
+    try { localStorage.setItem("a11y", JSON.stringify({ fontSize: fs, highContrast: hc, darkMode: dm })) } catch {}
+  }
+
   const changeFontSize = useCallback((size: number) => {
     const html = document.documentElement
     html.classList.remove("font-lg", "font-xl")
     if (size === 1) html.classList.add("font-lg")
     if (size === 2) html.classList.add("font-xl")
     setFontSize(size)
-  }, [])
+    persistA11y(size, highContrast, darkMode)
+  }, [highContrast, darkMode])
 
   const toggleContrast = useCallback(() => {
     document.documentElement.classList.toggle("high-contrast")
-    setHighContrast((prev) => !prev)
-  }, [])
+    const newHc = !highContrast
+    setHighContrast(newHc)
+    persistA11y(fontSize, newHc, darkMode)
+  }, [fontSize, highContrast, darkMode])
 
   const toggleDark = useCallback(() => {
     document.documentElement.classList.toggle("dark")
-    setDarkMode((prev) => !prev)
-  }, [])
+    const newDm = !darkMode
+    setDarkMode(newDm)
+    persistA11y(fontSize, highContrast, newDm)
+  }, [fontSize, highContrast, darkMode])
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-slate-950 text-xs text-slate-300">

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { getUser } from "@/lib/auth"
 
 function getSupabaseAdmin() {
   return createClient(
@@ -9,6 +10,11 @@ function getSupabaseAdmin() {
 }
 
 export async function POST(request: NextRequest) {
+  const user = await getUser()
+  if (!user) {
+    return NextResponse.json({ error: "Não autorizado." }, { status: 401 })
+  }
+
   const formData = await request.formData()
   const file = formData.get("file") as File | null
 
@@ -37,6 +43,13 @@ export async function POST(request: NextRequest) {
   const fileName = `artigos/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`
 
   const buffer = await file.arrayBuffer()
+  const bytes = new Uint8Array(buffer).slice(0, 4)
+  const isJpeg = bytes[0] === 0xFF && bytes[1] === 0xD8
+  const isPng = bytes[0] === 0x89 && bytes[1] === 0x50
+  const isWebp = bytes[0] === 0x52 && bytes[1] === 0x49
+  if (!isJpeg && !isPng && !isWebp) {
+    return NextResponse.json({ error: "Conteúdo do arquivo não corresponde ao tipo." }, { status: 400 })
+  }
 
   const { error } = await supabase.storage
     .from("images")

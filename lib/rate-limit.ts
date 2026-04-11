@@ -25,11 +25,18 @@ export const demandRateLimit = {
   get instance() { return createLimiter(10, "15 m", "rl:demand") },
 }
 
+export const chatRateLimit = {
+  get instance() { return createLimiter(20, "15 m", "rl:chat") },
+}
+
 export async function checkRateLimit(
   limiter: { instance: Ratelimit },
   identifier: string
 ): Promise<{ success: boolean; remaining: number }> {
   if (!process.env.UPSTASH_REDIS_REST_URL) {
+    if (process.env.NODE_ENV === "production") {
+      console.warn("[rate-limit] UPSTASH_REDIS_REST_URL not set — rate limiting DISABLED")
+    }
     return { success: true, remaining: 999 }
   }
   const { success, remaining } = await limiter.instance.limit(identifier)
