@@ -343,6 +343,7 @@ export function ArtigosClient({ articles }: { articles: Article[] }) {
               <Label>Imagem (opcional, JPG/PNG/WebP, máx. 5MB)</Label>
               {imagePreview ? (
                 <div className="mt-2 relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- blob URL preview, next/image incompatible */}
                   <img
                     src={imagePreview}
                     alt={form.title || "Preview da imagem do artigo"}

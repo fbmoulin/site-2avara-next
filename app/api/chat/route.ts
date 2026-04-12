@@ -1,6 +1,6 @@
 import { z } from "zod/v4"
 import { NextRequest } from "next/server"
-import { streamChatResponse, type ChatMessage } from "@/lib/openai"
+import { streamChatResponse } from "@/lib/openai"
 import { chatRateLimit, checkRateLimit } from "@/lib/rate-limit"
 
 const chatSchema = z.object({

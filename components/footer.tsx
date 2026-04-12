@@ -35,18 +35,12 @@ export function Footer() {
             <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
               Institucional
             </h3>
-            <a
-              href="#"
-              className="text-sm transition-colors hover:text-white"
-            >
+            <span className="text-sm text-slate-500">
               Política de Privacidade
-            </a>
-            <a
-              href="#"
-              className="text-sm transition-colors hover:text-white"
-            >
+            </span>
+            <span className="text-sm text-slate-500">
               Termos de Uso
-            </a>
+            </span>
           </div>
         </div>
 
