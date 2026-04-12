@@ -40,10 +40,37 @@
 
 | Provider | Model | Pricing | Latency | Key Feature |
 |----------|-------|---------|---------|-------------|
-| **OpenAI Realtime API** | gpt-realtime | $0.06/min input + $0.24/min output | <500ms | Native speech-to-speech. WebSocket. Function calling mid-conversation. Non-verbal cue detection. |
+| **xAI Grok Voice** | grok-voice-agent | $0.05/min (all-in) | <1s TTFA | #1 Big Bench Audio. OpenAI Realtime compatible. Legal terminology trained. 6x cheaper than OpenAI. |
+| **OpenAI Realtime API** | gpt-realtime | $0.06/min input + $0.24/min output (~$0.30/min) | <500ms | Native speech-to-speech. WebSocket. Function calling mid-conversation. Non-verbal cue detection. |
 | **ElevenLabs Agents** | Conversational AI | $99/mo (Pro) | <300ms | Full voice agent platform. Next.js SDK. Built-in tool calling. |
 
 ### Not recommended for Phase 1 — overkill for 5-10 users. Consider after usage validation.
+
+## xAI Grok Voice Agent API (NEW — April 2026)
+
+| Feature | Detail |
+|---------|--------|
+| **Pricing** | $0.05/min (voice), text: $0.20/1M input + $0.50/1M output (Grok 4.1 Fast) |
+| **Latency** | <1 sec time-to-first-audio (5x faster than nearest competitor) |
+| **Quality** | #1 on Big Bench Audio benchmark. In-house VAD + tokenizer + audio models |
+| **Voices** | Ara, Eve, Leo — natural, domain-specific pronunciation (healthcare, finance, legal) |
+| **Languages** | 100+ languages (Portuguese not explicitly confirmed but likely included) |
+| **Protocol** | OpenAI Realtime API compatible — `wss://api.x.ai/v1/realtime` (just change base URL) |
+| **Integration** | Works with OpenAI client SDKs, LiveKit plugin, LiteLLM. Max 30 min/session, 100 concurrent. |
+| **Upcoming** | Standalone STT + TTS endpoints coming soon |
+
+### Why Grok Voice is interesting for this project:
+1. **OpenAI compatible** — swap base URL to `wss://api.x.ai/v1/realtime`, use same SDK
+2. **Legal domain pronunciation** — explicitly trained for healthcare/finance/legal terminology
+3. **Cheapest voice agent** — $0.05/min vs OpenAI Realtime's $0.30/min (6x cheaper)
+4. **LiteLLM compatible** — already in the broader stack (kratos projects use LiteLLM)
+5. **Performance** — fastest time-to-first-audio in market
+
+### Consideration:
+- PT-BR not explicitly confirmed (but 100+ languages, high likelihood)
+- Realtime API approach (Option C) — more complex than Option B
+- 30 min session limit (fine for chatbot conversations)
+- Need to test PT-BR voice quality before committing
 
 ## Architecture Recommendation: Option B (Voice Input + TTS Output)
 
@@ -75,6 +102,21 @@ User clicks 🎤 → MediaRecorder captures WebM
 | **Total** | | **~$2.25/mo** |
 
 Realistic upper bound (20 conv/day): ~$10-15/mo
+
+### Option C alternative cost (xAI Grok Voice Agent):
+| Component | Calculation | Monthly Cost |
+|-----------|-------------|-------------|
+| Grok Voice Agent | ~5 conv/day × 3 min avg = 15 min/day × 30 = 450 min/mo | $22.50 |
+
+More expensive than Option B but delivers real-time bidirectional voice with zero latency gap.
+
+## Strategy Summary
+
+| Phase | Approach | Cost/mo | Complexity |
+|-------|----------|---------|------------|
+| **Phase 1 (now)** | Option B: Whisper + TTS (OpenAI only) | ~$2-15 | Low — 6 files, 0 new deps |
+| **Phase 2 (if latency complaint)** | Option C: xAI Grok Voice Agent | ~$22-45 | Medium — WebSocket, new API key |
+| **Phase 3 (if quality complaint)** | Upgrade TTS to ElevenLabs | +$99/mo | Low — swap TTS provider |
 
 ## WCAG Accessibility Requirements
 
@@ -116,6 +158,15 @@ Realistic upper bound (20 conv/day): ~$10-15/mo
 - [OpenAI gpt-realtime Announcement](https://openai.com/index/introducing-gpt-realtime/)
 - [OpenAI Pricing](https://developers.openai.com/api/docs/pricing)
 - [Inworld Best Speech-to-Speech 2026](https://inworld.ai/resources/best-speech-to-speech)
+
+### xAI Grok Voice
+- [Grok Voice Agent API Announcement](https://x.ai/news/grok-voice-agent-api)
+- [Voice Agent API Docs](https://docs.x.ai/developers/model-capabilities/audio/voice-agent)
+- [Voice API Guide](https://docs.x.ai/docs/guides/voice)
+- [xAI Models & Pricing](https://docs.x.ai/developers/models)
+- [LiteLLM xAI Realtime Support](https://docs.litellm.ai/docs/providers/xai_realtime)
+- [LiveKit xAI Plugin](https://docs.livekit.io/agents/models/realtime/plugins/xai/)
+- [xAI Pricing Comparison](https://intuitionlabs.ai/articles/ai-api-pricing-comparison-grok-gemini-openai-claude)
 
 ### Accessibility
 - [SiteLint Accessible Chatbots](https://www.sitelint.com/blog/making-chatbots-accessible-a-guide-to-enhance-usability-for-users-with-disabilities)
