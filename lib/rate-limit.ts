@@ -38,6 +38,11 @@ export async function checkRateLimit(
     }
     return { success: true, remaining: 999 }
   }
-  const { success, remaining } = await limiter.instance.limit(identifier)
-  return { success, remaining }
+  try {
+    const { success, remaining } = await limiter.instance.limit(identifier)
+    return { success, remaining }
+  } catch (err) {
+    console.error("[rate-limit] Redis error — failing closed", err)
+    return { success: false, remaining: 0 }
+  }
 }

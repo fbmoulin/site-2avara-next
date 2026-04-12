@@ -34,7 +34,15 @@ export async function POST(request: NextRequest) {
 
   const { message, history: safeHistory } = result.data
 
-  const stream = await streamChatResponse(message, safeHistory)
+  let stream
+  try {
+    stream = await streamChatResponse(message, safeHistory)
+  } catch {
+    return Response.json(
+      { error: "Serviço de chat temporariamente indisponível." },
+      { status: 503 }
+    )
+  }
 
   const encoder = new TextEncoder()
   const readable = new ReadableStream({

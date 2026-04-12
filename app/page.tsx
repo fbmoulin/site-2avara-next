@@ -13,10 +13,10 @@ export default function Home() {
       <Hero />
       <Judge />
       <Services />
-      <Suspense>
+      <Suspense fallback={<div className="bg-background py-20"><div className="mx-auto max-w-7xl px-4"><div className="h-64 animate-pulse rounded-xl bg-muted" /></div></div>}>
         <BlogPreview />
       </Suspense>
-      <Suspense>
+      <Suspense fallback={<div className="bg-muted py-20"><div className="mx-auto max-w-7xl px-4"><div className="h-64 animate-pulse rounded-xl bg-background" /></div></div>}>
         <NewsPreview />
       </Suspense>
       <Faq />

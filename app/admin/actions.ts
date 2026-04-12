@@ -24,6 +24,16 @@ const CONTACT_STATUSES = ["pending", "answered", "archived"] as const
 const APPOINTMENT_STATUSES = ["pre_reserved", "confirmed", "completed", "cancelled"] as const
 const DEMAND_STATUSES = ["pending", "in_analysis", "resolved", "archived"] as const
 
+const createArticleSchema = z.object({
+  title: z.string().min(1).max(255),
+  slug: z.string().min(1).max(255).regex(/^[a-z0-9-]+$/),
+  excerpt: z.string().max(2000),
+  content: z.string().min(1),
+  author: z.string().min(1).max(255),
+  category: z.string().min(1).max(100),
+  imageUrl: z.string().max(500).optional(),
+})
+
 const updateArticleSchema = z.object({
   title: z.string().max(255).optional(),
   slug: z.string().max(255).regex(/^[a-z0-9-]+$/).optional(),
@@ -208,7 +218,11 @@ export async function confirmAppointment(
     .update(appointments)
     .set({
       status: "confirmed",
-      confirmedDate: new Date(confirmedDate),
+      confirmedDate: (() => {
+        const d = new Date(confirmedDate)
+        if (isNaN(d.getTime())) throw new Error("Data de confirmação inválida")
+        return d
+      })(),
       zoomLink,
       confirmedBy,
       confirmedAt: new Date(),
@@ -297,15 +311,16 @@ export async function createArticle(data: {
   imageUrl?: string
 }) {
   await requireAdmin()
+  const validated = createArticleSchema.parse(data)
 
   await db.insert(articles).values({
-    title: data.title,
-    slug: data.slug,
-    excerpt: data.excerpt,
-    content: data.content,
-    author: data.author,
-    category: data.category,
-    imageUrl: data.imageUrl || null,
+    title: validated.title,
+    slug: validated.slug,
+    excerpt: validated.excerpt,
+    content: validated.content,
+    author: validated.author,
+    category: validated.category,
+    imageUrl: validated.imageUrl || null,
     isPublished: false,
     isFeatured: false,
   })

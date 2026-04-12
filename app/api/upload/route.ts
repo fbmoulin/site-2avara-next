@@ -43,10 +43,10 @@ export async function POST(request: NextRequest) {
   const fileName = `artigos/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`
 
   const buffer = await file.arrayBuffer()
-  const bytes = new Uint8Array(buffer).slice(0, 4)
+  const bytes = new Uint8Array(buffer)
   const isJpeg = bytes[0] === 0xFF && bytes[1] === 0xD8
   const isPng = bytes[0] === 0x89 && bytes[1] === 0x50
-  const isWebp = bytes[0] === 0x52 && bytes[1] === 0x49
+  const isWebp = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
   if (!isJpeg && !isPng && !isWebp) {
     return NextResponse.json({ error: "Conteúdo do arquivo não corresponde ao tipo." }, { status: 400 })
   }

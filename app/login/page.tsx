@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState } from "react"
+import { Suspense, useState, useMemo } from "react"
 import { createBrowserClient } from "@supabase/ssr"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -25,8 +25,12 @@ function LoginForm() {
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabase = useMemo(
+    () => supabaseUrl && supabaseKey ? createBrowserClient(supabaseUrl, supabaseKey) : null,
+    [supabaseUrl, supabaseKey]
+  )
 
-  if (!supabaseUrl || !supabaseKey) {
+  if (!supabase) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="w-full max-w-sm rounded-lg border border-border bg-card p-8 shadow-sm text-center">
@@ -38,14 +42,12 @@ function LoginForm() {
     )
   }
 
-  const supabase = createBrowserClient(supabaseUrl, supabaseKey)
-
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setError("")
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase!.auth.signInWithPassword({
       email,
       password,
     })

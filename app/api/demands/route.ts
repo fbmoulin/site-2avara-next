@@ -16,7 +16,12 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const body = await request.json()
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Corpo da requisição inválido" }, { status: 400 })
+  }
   const result = demandSchema.safeParse(body)
 
   if (!result.success) {

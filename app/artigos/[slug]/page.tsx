@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { db } from "@/lib/db"
@@ -21,7 +22,11 @@ export async function generateMetadata({
 }) {
   const { slug } = await params
   const [article] = await db
-    .select({ title: articles.title })
+    .select({
+      title: articles.title,
+      excerpt: articles.excerpt,
+      imageUrl: articles.imageUrl,
+    })
     .from(articles)
     .where(eq(articles.slug, slug))
     .limit(1)
@@ -30,7 +35,16 @@ export async function generateMetadata({
     return { title: "Artigo não encontrado" }
   }
 
-  return { title: article.title }
+  return {
+    title: article.title,
+    description: article.excerpt ?? undefined,
+    openGraph: {
+      title: article.title,
+      description: article.excerpt ?? undefined,
+      images: article.imageUrl ? [article.imageUrl] : [],
+      type: "article" as const,
+    },
+  }
 }
 
 export default async function ArtigoPage({
@@ -62,11 +76,14 @@ export default async function ArtigoPage({
       </Link>
 
       {article.imageUrl && (
-        <div className="mb-8 overflow-hidden rounded-xl">
-          <img
+        <div className="relative mb-8 h-64 overflow-hidden rounded-xl md:h-96">
+          <Image
             src={article.imageUrl}
             alt={article.title}
-            className="h-64 w-full object-cover md:h-96"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 768px"
+            priority
           />
         </div>
       )}
