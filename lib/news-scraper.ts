@@ -103,16 +103,19 @@ export async function scrapeNews(): Promise<{
     return { inserted: 0, updated: 0, errors }
   }
 
-  // Upsert into database
+  // Batch-fetch all existing news to avoid N+1 queries (max: 1 connection pool)
+  const existingRows = await db
+    .select({ externalId: news.externalId, title: news.title })
+    .from(news)
+  const existingMap = new Map(existingRows.map((r) => [r.externalId, r.title]))
+
   let inserted = 0
   let updated = 0
 
   for (const item of items) {
-    const existing = await db.query.news.findFirst({
-      where: eq(news.externalId, item.externalId),
-    })
+    const existingTitle = existingMap.get(item.externalId)
 
-    if (!existing) {
+    if (existingTitle === undefined) {
       await db.insert(news).values({
         externalId: item.externalId,
         title: item.title,
@@ -122,7 +125,7 @@ export async function scrapeNews(): Promise<{
         publishedAt: item.publishedAt,
       })
       inserted++
-    } else if (existing.title !== item.title) {
+    } else if (existingTitle !== item.title) {
       await db
         .update(news)
         .set({ title: item.title, description: item.description })

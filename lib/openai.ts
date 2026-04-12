@@ -1,7 +1,9 @@
 import OpenAI from "openai"
 
+let cachedClient: OpenAI | null = null
 function getOpenAI() {
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  if (!cachedClient) cachedClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  return cachedClient
 }
 
 export const SYSTEM_PROMPT = `Você é o assistente virtual oficial da 2ª Vara Cível de Cariacica — ES.

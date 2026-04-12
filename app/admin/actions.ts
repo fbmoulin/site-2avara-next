@@ -147,6 +147,9 @@ export async function getRecentActivity() {
 
 export async function getContacts(status?: string) {
   await requireAdmin()
+  if (status && status !== "all" && !(CONTACT_STATUSES as readonly string[]).includes(status)) {
+    throw new Error("Status inválido")
+  }
 
   const query = db
     .select()
@@ -191,6 +194,9 @@ export async function updateContactStatus(
 
 export async function getAppointments(status?: string) {
   await requireAdmin()
+  if (status && status !== "all" && !(APPOINTMENT_STATUSES as readonly string[]).includes(status)) {
+    throw new Error("Status inválido")
+  }
 
   const query = db
     .select()
@@ -255,6 +261,9 @@ export async function rejectAppointment(id: string, notes: string) {
 
 export async function getDemands(status?: string) {
   await requireAdmin()
+  if (status && status !== "all" && !(DEMAND_STATUSES as readonly string[]).includes(status)) {
+    throw new Error("Status inválido")
+  }
 
   const query = db
     .select()

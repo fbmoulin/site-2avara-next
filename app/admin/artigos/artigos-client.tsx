@@ -345,7 +345,7 @@ export function ArtigosClient({ articles }: { articles: Article[] }) {
                 <div className="mt-2 relative">
                   <img
                     src={imagePreview}
-                    alt="Preview"
+                    alt={form.title || "Preview da imagem do artigo"}
                     className="w-full h-40 object-cover rounded-lg border border-border"
                   />
                   <button
