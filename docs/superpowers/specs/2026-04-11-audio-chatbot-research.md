@@ -46,6 +46,49 @@
 
 ### Not recommended for Phase 1 — overkill for 5-10 users. Consider after usage validation.
 
+## Maritaca AI — Sabiá / Sabiazinho (Brazilian LLM, text-only)
+
+**Important:** Maritaca is a **text LLM** provider, NOT an audio/voice API. They specialize in Portuguese-Brazilian language models only. No STT, no TTS, no voice agent.
+
+However, for the **text generation layer** (the core chatbot brain), Maritaca could replace GPT-4o-mini with superior PT-BR understanding.
+
+| Model | Pricing (BRL) | Context | Best for |
+|-------|---------------|---------|----------|
+| **Sabiá 3.1** | R$5/1M input, R$10/1M output | 128K | Most updated. Best for math, code, complex reasoning |
+| **Sabiá 3.0** | R$5/1M input, R$10/1M output | 128K | Previous gen, complex reasoning |
+| **Sabiazinho-4** | TBD (cost/latency focus) | TBD | NEW — next-gen, optimized for cost + latency |
+| **Sabiazinho 3.0** | R$1/1M input, R$3/1M output | 32K | Cheapest. Translations, summaries, simple generation |
+
+**Free tier:** R$20 initial credits on signup.
+
+### Cost comparison for chatbot (~5 conversations/day × 5 msgs × ~500 tokens each)
+
+| Model | Monthly cost | Notes |
+|-------|-------------|-------|
+| **GPT-4o-mini (current)** | ~$0.50-1.50 USD | Current choice, strong Portuguese |
+| **Sabiazinho 3.0** | ~R$0.30-1.00 (~$0.06-0.20 USD) | 5-10x cheaper, native PT-BR |
+| **Sabiá 3.1** | ~R$1.50-5.00 (~$0.30-1.00 USD) | Comparable price, better Brazilian context |
+
+### Why Maritaca matters for a Brazilian judicial portal:
+1. **Native PT-BR training** — understands regional expressions, legal Brazilian terminology, ENADE/OAB exam-level reasoning
+2. **Brazilian legal context** — trained on Brazilian exams including OAB (bar), matches GPT-4o on 36/54 ENADE subjects
+3. **Drop-in replacement** — uses OpenAI SDK, just change base URL to `https://chat.maritaca.ai/api`
+4. **Price** — 3-4x cheaper per token than frontier models
+5. **Data sovereignty** — Brazilian company, Brazilian data residency (potential LGPD advantage)
+
+### Weaknesses:
+- **No audio API** — would still need OpenAI Whisper + TTS for voice features
+- **Weaker on English instruction-following** — GPT-4o-mini beats Sabiá on IFeval benchmark
+- **BRL pricing** — currency fluctuation risk
+
+### Architecture implication:
+Sabiá is orthogonal to the audio question — you'd layer it **under** the voice stack:
+```
+Voice in (Whisper) → text
+  → Maritaca Sabiá (PT-BR optimized brain) ← swap from GPT-4o-mini
+  → text out → TTS (OpenAI) → voice out
+```
+
 ## xAI Grok Voice Agent API (NEW — April 2026)
 
 | Feature | Detail |
@@ -115,8 +158,16 @@ More expensive than Option B but delivers real-time bidirectional voice with zer
 | Phase | Approach | Cost/mo | Complexity |
 |-------|----------|---------|------------|
 | **Phase 1 (now)** | Option B: Whisper + TTS (OpenAI only) | ~$2-15 | Low — 6 files, 0 new deps |
-| **Phase 2 (if latency complaint)** | Option C: xAI Grok Voice Agent | ~$22-45 | Medium — WebSocket, new API key |
-| **Phase 3 (if quality complaint)** | Upgrade TTS to ElevenLabs | +$99/mo | Low — swap TTS provider |
+| **Phase 2a (PT-BR quality)** | Swap brain: GPT-4o-mini → Maritaca Sabiazinho-4 | Save ~$1/mo | Low — base URL + API key |
+| **Phase 2b (latency complaint)** | Option C: xAI Grok Voice Agent | ~$22-45 | Medium — WebSocket, new API key |
+| **Phase 3 (voice quality complaint)** | Upgrade TTS to ElevenLabs (native PT-BR voices) | +$99/mo | Low — swap TTS provider |
+
+### Note: Maritaca + Whisper + TTS stack (hybrid Brazilian/OpenAI)
+A compelling hybrid for a judicial portal — use the Brazilian LLM for the "brain" (legal reasoning in Portuguese), keep OpenAI only for audio pipeline:
+- Voice in → OpenAI Whisper (~$1.50/mo)
+- Brain → Maritaca Sabiazinho-4 (~R$1/mo ≈ $0.20 USD)
+- Voice out → OpenAI TTS (~$0.75/mo)
+- **Total: ~$2.50/mo** with Brazilian legal context advantage
 
 ## WCAG Accessibility Requirements
 
@@ -158,6 +209,15 @@ More expensive than Option B but delivers real-time bidirectional voice with zer
 - [OpenAI gpt-realtime Announcement](https://openai.com/index/introducing-gpt-realtime/)
 - [OpenAI Pricing](https://developers.openai.com/api/docs/pricing)
 - [Inworld Best Speech-to-Speech 2026](https://inworld.ai/resources/best-speech-to-speech)
+
+### Maritaca AI (Brazilian LLM, text-only)
+- [Maritaca API Page](https://www.maritaca.ai/api)
+- [MariTalk API GitHub](https://github.com/maritaca-ai/maritalk-api)
+- [Official Docs (Portuguese)](https://docs.maritaca.ai/pt/introducao)
+- [Models & Pricing](https://docs.maritaca.ai/pt/modelos)
+- [Sabiazinho-4 Announcement](https://www.maritaca.ai/post/sabiazinho-4)
+- [Sabiá-3 Technical Report (arXiv)](https://arxiv.org/abs/2410.12049)
+- [Sabiá-4 Technical Report (arXiv)](https://arxiv.org/html/2603.10213)
 
 ### xAI Grok Voice
 - [Grok Voice Agent API Announcement](https://x.ai/news/grok-voice-agent-api)
