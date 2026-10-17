@@ -2,22 +2,10 @@
 
 import { z } from "zod/v4"
 import { db } from "@/lib/db"
-import {
-  contactMessages,
-  appointments,
-  demands,
-  articles,
-  news,
-} from "@/lib/db/schema"
+import { contactMessages, appointments, demands, articles, news } from "@/lib/db/schema"
 import { eq, desc, count } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
-import { getUser } from "@/lib/auth"
-
-async function requireAdmin() {
-  const user = await getUser()
-  if (!user) throw new Error("Não autorizado")
-  return user
-}
+import { requireAdmin } from "@/lib/auth"
 
 const uuidSchema = z.string().uuid()
 const CONTACT_STATUSES = ["pending", "answered", "archived"] as const
@@ -26,7 +14,11 @@ const DEMAND_STATUSES = ["pending", "in_analysis", "resolved", "archived"] as co
 
 const createArticleSchema = z.object({
   title: z.string().min(1).max(255),
-  slug: z.string().min(1).max(255).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(1)
+    .max(255)
+    .regex(/^[a-z0-9-]+$/),
   excerpt: z.string().max(2000),
   content: z.string().min(1),
   author: z.string().min(1).max(255),
@@ -36,7 +28,11 @@ const createArticleSchema = z.object({
 
 const updateArticleSchema = z.object({
   title: z.string().max(255).optional(),
-  slug: z.string().max(255).regex(/^[a-z0-9-]+$/).optional(),
+  slug: z
+    .string()
+    .max(255)
+    .regex(/^[a-z0-9-]+$/)
+    .optional(),
   excerpt: z.string().max(2000).optional(),
   content: z.string().optional(),
   author: z.string().max(255).optional(),
@@ -65,9 +61,7 @@ export async function getDashboardStats() {
     .from(demands)
     .where(eq(demands.status, "pending"))
 
-  const [totalArticles] = await db
-    .select({ count: count() })
-    .from(articles)
+  const [totalArticles] = await db.select({ count: count() }).from(articles)
 
   return {
     pendingContacts: pendingContacts.count,
@@ -134,9 +128,7 @@ export async function getRecentActivity() {
     })),
   ]
 
-  activity.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
+  activity.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   return activity.slice(0, 10)
 }
@@ -151,11 +143,7 @@ export async function getContacts(status?: string) {
     throw new Error("Status inválido")
   }
 
-  const query = db
-    .select()
-    .from(contactMessages)
-    .orderBy(desc(contactMessages.createdAt))
-    .limit(50)
+  const query = db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt)).limit(50)
 
   if (status && status !== "all") {
     return query.where(eq(contactMessages.status, status))
@@ -198,11 +186,7 @@ export async function getAppointments(status?: string) {
     throw new Error("Status inválido")
   }
 
-  const query = db
-    .select()
-    .from(appointments)
-    .orderBy(desc(appointments.createdAt))
-    .limit(50)
+  const query = db.select().from(appointments).orderBy(desc(appointments.createdAt)).limit(50)
 
   if (status && status !== "all") {
     return query.where(eq(appointments.status, status))
@@ -265,11 +249,7 @@ export async function getDemands(status?: string) {
     throw new Error("Status inválido")
   }
 
-  const query = db
-    .select()
-    .from(demands)
-    .orderBy(desc(demands.createdAt))
-    .limit(50)
+  const query = db.select().from(demands).orderBy(desc(demands.createdAt)).limit(50)
 
   if (status && status !== "all") {
     return query.where(eq(demands.status, status))
@@ -278,11 +258,7 @@ export async function getDemands(status?: string) {
   return query
 }
 
-export async function resolveDemand(
-  id: string,
-  resolvedBy: string,
-  resolutionNotes: string
-) {
+export async function resolveDemand(id: string, resolvedBy: string, resolutionNotes: string) {
   await requireAdmin()
   uuidSchema.parse(id)
 
@@ -397,10 +373,7 @@ export async function toggleNewsActive(id: string, isActive: boolean) {
   await requireAdmin()
   uuidSchema.parse(id)
 
-  await db
-    .update(news)
-    .set({ isActive })
-    .where(eq(news.id, id))
+  await db.update(news).set({ isActive }).where(eq(news.id, id))
 
   revalidatePath("/admin/noticias")
   revalidatePath("/noticias")

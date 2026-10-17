@@ -8,11 +8,15 @@ import { appointmentRateLimit, checkRateLimit } from "@/lib/rate-limit"
 export async function POST(request: NextRequest) {
   const forwardedFor = request.headers.get("x-forwarded-for")
   const ip = forwardedFor?.split(",")[0].trim() ?? "anonymous"
-  const { success } = await checkRateLimit(appointmentRateLimit, ip)
-  if (!success) {
+  const limit = await checkRateLimit(appointmentRateLimit, ip)
+  if (!limit.success) {
     return NextResponse.json(
-      { error: "Muitas solicitações. Aguarde alguns minutos." },
-      { status: 429 }
+      {
+        error: limit.unavailable
+          ? "Serviço temporariamente indisponível."
+          : "Muitas solicitações. Aguarde alguns minutos.",
+      },
+      { status: limit.unavailable ? 503 : 429 }
     )
   }
 
@@ -44,8 +48,5 @@ export async function POST(request: NextRequest) {
 
   await sendAppointmentNotification(data)
 
-  return NextResponse.json(
-    { message: "Agendamento pré-reservado com sucesso." },
-    { status: 201 }
-  )
+  return NextResponse.json({ message: "Agendamento pré-reservado com sucesso." }, { status: 201 })
 }

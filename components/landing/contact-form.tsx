@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useRef, useState, type FormEvent } from "react"
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle } from "lucide-react"
 import { motion } from "framer-motion"
 import { ScrollReveal } from "@/components/motion/scroll-reveal"
@@ -30,11 +30,18 @@ export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [subject, setSubject] = useState<string | null>(null)
 
+  const [errorMessage, setErrorMessage] = useState("")
+  const submitting = useRef(false)
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (submitting.current) return
+    const form = e.currentTarget
+    submitting.current = true
     setStatus("loading")
+    setErrorMessage("")
 
-    const formData = new FormData(e.currentTarget)
+    const formData = new FormData(form)
     const body = {
       name: formData.get("name") as string,
       phone: formData.get("phone") as string,
@@ -50,18 +57,49 @@ export function ContactForm() {
         body: JSON.stringify(body),
       })
 
-      if (!res.ok) {
+      if (res.status !== 201) {
         log.error("contact_form_error", { status: res.status })
-        throw new Error("Erro ao enviar mensagem")
+        const message =
+          res.status === 400 || res.status === 422
+            ? "Confira os dados: nome com pelo menos 3 caracteres, telefone com DDD, e-mail válido e mensagem com pelo menos 10 caracteres."
+            : res.status === 429
+              ? "Você atingiu o limite de envios. Aguarde alguns minutos antes de tentar novamente."
+              : "O serviço está temporariamente indisponível. Seus dados foram preservados. Tente novamente mais tarde."
+        setErrorMessage(message)
+        setStatus("error")
+        return
       }
-      setStatus("success")
-      e.currentTarget.reset()
+      const receipt: unknown = await res.json()
+      if (
+        !receipt ||
+        typeof receipt !== "object" ||
+        !("message" in receipt) ||
+        typeof receipt.message !== "string" ||
+        !("id" in receipt) ||
+        typeof receipt.id !== "string"
+      ) {
+        setErrorMessage(
+          "Não foi possível confirmar o recebimento. Antes de reenviar, consulte a equipe pelos canais de contato."
+        )
+        setStatus("error")
+        return
+      }
+      // The server confirmed persistence. A UI reset must not turn that into a send failure.
+      try {
+        form.reset()
+      } catch {
+        log.warn("contact_form_reset_failed")
+      }
       setSubject(null)
-    } catch (err) {
-      log.error("contact_form_submit_failed", {
-        error: err instanceof Error ? err.message : String(err),
-      })
+      setStatus("success")
+    } catch {
+      log.error("contact_form_network_error")
+      setErrorMessage(
+        "Não foi possível confirmar o recebimento. Antes de reenviar, consulte a equipe pelos canais de contato."
+      )
       setStatus("error")
+    } finally {
+      submitting.current = false
     }
   }
 
@@ -144,9 +182,17 @@ export function ContactForm() {
           </ScrollReveal>
 
           {/* Right: form */}
-          <ScrollReveal variant="fade-up" delay={0.2} className="rounded-xl border border-border bg-muted p-6 md:p-8">
+          <ScrollReveal
+            variant="fade-up"
+            delay={0.2}
+            className="rounded-xl border border-border bg-muted p-6 md:p-8"
+          >
             {status === "success" ? (
-              <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex flex-col items-center justify-center gap-4 py-12 text-center"
+              >
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -154,11 +200,10 @@ export function ContactForm() {
                 >
                   <CheckCircle className="size-16 text-green-500" />
                 </motion.div>
-                <h3 className="text-xl font-bold text-foreground">
-                  Mensagem enviada!
-                </h3>
+                <h3 className="text-xl font-bold text-foreground">Mensagem enviada!</h3>
                 <p className="text-sm text-muted-foreground">
-                  Recebemos sua mensagem e retornaremos em breve.
+                  Sua mensagem de contato foi recebida para análise da equipe. O envio não confirma
+                  data ou horário de atendimento.
                 </p>
                 <Button
                   onClick={() => setStatus("idle")}
@@ -168,12 +213,14 @@ export function ContactForm() {
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} aria-busy={status === "loading"} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome completo</Label>
                   <Input
                     id="name"
                     name="name"
+                    minLength={3}
+                    maxLength={255}
                     placeholder="Seu nome"
                     required
                     className="bg-background"
@@ -187,6 +234,8 @@ export function ContactForm() {
                       id="phone"
                       name="phone"
                       type="tel"
+                      minLength={10}
+                      maxLength={20}
                       placeholder="(27) 99999-0000"
                       required
                       className="bg-background"
@@ -206,12 +255,9 @@ export function ContactForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Assunto</Label>
-                  <Select
-                    value={subject}
-                    onValueChange={(val) => setSubject(val)}
-                  >
-                    <SelectTrigger className="w-full bg-background">
+                  <Label id="subject-label">Assunto</Label>
+                  <Select value={subject} onValueChange={(val) => setSubject(val)}>
+                    <SelectTrigger aria-labelledby="subject-label" className="w-full bg-background">
                       <SelectValue placeholder="Selecione o assunto" />
                     </SelectTrigger>
                     <SelectContent>
@@ -231,15 +277,20 @@ export function ContactForm() {
                     name="message"
                     placeholder="Descreva sua solicitação..."
                     rows={5}
+                    minLength={10}
+                    maxLength={5000}
                     required
                     className="bg-background"
                   />
                 </div>
 
                 {status === "error" && (
-                  <div className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+                  <div
+                    role="alert"
+                    className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
+                  >
                     <AlertCircle className="size-4 shrink-0" />
-                    Erro ao enviar mensagem. Tente novamente.
+                    {errorMessage}
                   </div>
                 )}
 

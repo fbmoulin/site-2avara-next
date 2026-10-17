@@ -1,13 +1,16 @@
 import { Resend } from "resend"
 
 function esc(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
 }
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY)
 }
-
 
 interface SendEmailOptions {
   subject: string
@@ -17,23 +20,26 @@ interface SendEmailOptions {
 
 async function sendEmail({ subject, html, text }: SendEmailOptions) {
   if (!process.env.RESEND_API_KEY) {
-    console.log("[email-dev] Would send:", { subject, to: process.env.EMAIL_TO || "2acivelcariacica@gmail.com" })
-    console.log("[email-dev] Text preview:", text.slice(0, 200))
-    return true
+    console.warn("[email] notification_not_configured")
+    return false
   }
   try {
     const emailFrom = process.env.EMAIL_FROM || "noreply@2avaraciveldecariacica.org"
     const emailTo = process.env.EMAIL_TO || "2acivelcariacica@gmail.com"
-    await getResend().emails.send({
+    const { data, error } = await getResend().emails.send({
       from: `2ª Vara Cível de Cariacica <${emailFrom}>`,
       to: emailTo,
       subject,
       html,
       text,
     })
+    if (error || !data?.id) {
+      console.error("[email] notification_failed")
+      return false
+    }
     return true
-  } catch (error) {
-    console.error("Email send error:", error)
+  } catch {
+    console.error("[email] notification_failed")
     return false
   }
 }
@@ -115,7 +121,8 @@ export async function sendDemandNotification(demand: {
     peticao_urgente: "Petição Urgente",
   }
   const typeLabel = typeLabels[demand.demandType] || demand.demandType
-  const priorityEmoji = demand.priority === "urgent" ? "🔴" : demand.priority === "high" ? "🟠" : "🟢"
+  const priorityEmoji =
+    demand.priority === "urgent" ? "🔴" : demand.priority === "high" ? "🟠" : "🟢"
 
   const text = `${priorityEmoji} Nova demanda:\n\nTipo: ${typeLabel}\nProcesso: ${demand.processNumber}\nPrioridade: ${demand.priority}\n\nDescrição:\n${demand.description}\n\n---\nAcesse o painel administrativo para analisar.`
 

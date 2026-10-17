@@ -1,114 +1,62 @@
-# 2a Vara Civel de Cariacica — Portal Oficial
+# Portal da 2ª Vara Cível de Cariacica
 
-Portal institucional da 2a Vara Civel de Cariacica (TJES) com chatbot IA, painel administrativo, blog e sistema de agendamentos.
+Portal de informações, contato com a equipe, artigos e notícias. O guia de atendimento apresenta orientações previamente definidas: não registra demandas, não reserva horários e não chama modelos de IA.
 
-## Stack
+## Requisitos
 
-- **Frontend**: Next.js 16 (App Router, SSR/SSG/ISR)
-- **Styling**: Tailwind CSS 4 + shadcn/ui
-- **Database**: Supabase PostgreSQL + Drizzle ORM
-- **Storage**: Supabase Storage (image uploads)
-- **Auth**: Supabase Auth (admin only)
-- **Chatbot**: OpenAI GPT-4o-mini (streaming SSE)
-- **Email**: Resend (notifications)
-- **Rate Limiting**: Upstash Redis
-- **Deploy**: Vercel
-- **Domain**: 2avaraciveldecariacica.org
-
-## Getting Started
+- Node.js 24.x (compatível com a configuração consultada da Vercel).
+- Bun 1.4.3, fixado em `packageManager`.
+- Next.js 16.4.2, React/React DOM 19.3.1.
 
 ```bash
-bun install
+bun install --frozen-lockfile
 cp .env.example .env.local
-# Fill in credentials (see Environment Variables below)
-source <(grep -v '^#' .env.local | grep -v '^$' | sed 's/^/export /') && bunx drizzle-kit push
+# Configure o Supabase, o banco, os administradores e as proteções de produção.
 bun run dev
 ```
 
-## Project Structure
+## Configuração e acesso administrativo
 
-```
-app/
-  page.tsx              # Landing page (SSG) — hero, judge, services, blog, FAQ, contact
-  layout.tsx            # Root layout (navbar, footer, chatbot, VLibras, accessibility)
-  login/                # Admin login (Supabase Auth)
-  admin/                # Admin panel (dashboard + 5 CRUD pages)
-    actions.ts          # Server Actions with auth + Zod validation
-  noticias/             # News list (ISR 1h)
-  artigos/              # Articles list + [slug] detail (ISR 60s)
-  api/
-    contact/            # POST — contact form (rate limited)
-    appointments/       # POST — booking (rate limited)
-    demands/            # POST — demand registration (rate limited)
-    chat/               # POST — OpenAI streaming SSE (rate limited, Zod validated)
-    news/               # GET — news list + Cron scraper
-    upload/             # POST — image upload (auth + magic byte validation)
-components/
-  landing/              # Landing sections (hero, judge, services, blog-preview, faq, etc.)
-  admin/                # Admin sidebar
-  chatbot.tsx           # Floating OpenAI chat widget
-  navbar.tsx            # Responsive navigation with scroll-spy
-  footer.tsx            # Institutional footer + Lex Intelligentia credit
-  accessibility-bar.tsx # Font size, contrast, dark mode (persisted to localStorage)
-lib/
-  db/schema.ts          # Drizzle schema (5 tables, 7 indexes)
-  db/index.ts           # Drizzle client (Supavisor pooler, max:1)
-  auth.ts               # Supabase server auth (getUser only, no insecure getSession)
-  email.ts              # Resend notifications with XSS-escaped HTML templates
-  openai.ts             # OpenAI client + legal triage system prompt
-  news-scraper.ts       # TJES RSS multi-strategy scraper
-  rate-limit.ts         # Upstash Redis lazy singleton rate limiters
-  validators.ts         # Zod v4 schemas (contact, appointment, demand)
-  constants.ts          # Services, FAQs, judge info, contact info
-```
+`ADMIN_USER_IDS` é uma lista de UUIDs das contas administrativas existentes no Supabase, separados por vírgulas. É uma variável exclusiva do servidor. Não use e-mails, `user_metadata` ou variáveis `NEXT_PUBLIC_` para conceder permissão. Lista ausente, vazia ou inválida nega o acesso. Somente atribua UUIDs cuja identidade e autorização tenham sido verificadas.
 
-## Environment Variables
+As ações administrativas, o layout, o Proxy e o upload verificam a autorização. As APIs diferenciam ausência de sessão (401), usuário sem permissão (403) e dependência/configuração indisponível (503). As páginas usam login ou telas de acesso negado/indisponibilidade. `proxy.ts` preserva os cookies renovados; sua proteção não substitui a guarda em cada operação.
 
-See `.env.example`. Required:
+`UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` são obrigatórios em produção. A falta da proteção ou sua indisponibilidade resulta em 503 nas rotas públicas protegidas; esgotamento da cota resulta em 429. Em desenvolvimento e nos testes locais, a proteção pode ser omitida.
 
-| Variable | Description |
-|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
-| `DATABASE_URL` | Supabase pooler connection (port 6543) |
-| `OPENAI_API_KEY` | OpenAI API key |
-| `CRON_SECRET` | Secret for Vercel Cron jobs |
+`RESEND_API_KEY` habilita notificações. Contatos são confirmados após persistência; a notificação ocorre depois da resposta com `after()`. Falhas são sinalizadas por evento e ID, sem copiar a mensagem aos logs. Não há fila durável de retentativas neste lote.
 
-Optional (graceful fallback without):
+## Fluxos públicos
 
-| Variable | Description |
-|----------|-------------|
-| `RESEND_API_KEY` | Resend email (logs to console without) |
-| `UPSTASH_REDIS_REST_URL` | Rate limiting (disabled in dev without) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Required for image uploads |
+- `POST /api/contact`: valida entrada, persiste em `contact_messages` e retorna 201 com `message` e `id`. Esse identificador é de contato, não protocolo de petição ou confirmação de agendamento.
+- `POST /api/chat`: recebe `{ "option": "services" | "contact" | "virtual" }` e retorna orientação JSON. Clientes antigos com `message/history` recebem orientação fixa em SSE, sem reflexão do conteúdo e sem chamada a provedor.
+- `/api/appointments` e `/api/demands` mantêm seus contratos existentes; o guia não chama essas rotas.
+- `/api/news?cron=true`: mantém a autenticação por `CRON_SECRET`.
 
-## Testing
+## Validação reproduzível
 
 ```bash
-bunx playwright test
-# 14 tests: smoke (pages, validation, auth) + integration (DB, OpenAI streaming)
+bun run audit:production
+bun run lint
+bun run typecheck
+bun test tests
+bun x playwright install --with-deps chromium
+bun run verify:local
 ```
 
-## Security
+`verify:local` cria PostgreSQL descartável em memória com PGlite, gera o esquema a partir do Drizzle, insere conteúdo fictício, executa o build de produção e a suíte Playwright. Sobrescreve `DATABASE_URL` e credenciais dos serviços: não usa o banco fornecido pelo ambiente, não envia e-mails e não chama IA. Para apenas o build: `bun scripts/verify-local.ts build`. Para apenas E2E: `bun run test:e2e`.
 
-- Server Actions protected by `requireAdmin()` + Zod input validation (UUID, status allow-lists)
-- Image upload: auth required + MIME + magic byte + file size validation
-- Chat: Zod schema (message 1-2000 chars, history max 20, role enum prevents prompt injection)
-- CSP header restricts script/frame/connect/img sources
-- HSTS, X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy
-- Email templates XSS-escaped via `esc()` helper
-- Rate limiting: Upstash Redis with x-forwarded-for first IP extraction
-- CRON_SECRET fails closed when env var undefined
-- Login redirect validated against open redirect attacks
+PGlite valida SQL, persistência e renderização, mas não reproduz as políticas RLS/Storage/Auth do Supabase. Os testes de autorização de funções/rotas usam identidades simuladas. Antes de publicar, é necessária validação em homologação com as configurações reais de acesso.
 
-## Database
+Opcionalmente, `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` informa um Chromium já instalado no ambiente de teste. O padrão usa o navegador instalado pelo Playwright.
 
-5 tables managed by Drizzle ORM: `contact_messages`, `appointments`, `demands`, `news`, `articles`. Admin users via Supabase Auth.
+O workflow `.github/workflows/ci.yml` executa as verificações com Node 24 e Bun 1.4.3, sem segredos de produção.
 
-## Accessibility
+`bun run audit:production` consulta os avisos do lockfile e bloqueia os que atingem o grafo de dependências de produção. O total de avisos do lockfile, inclusive ferramentas de desenvolvimento, continua visível; este comando não declara o conjunto completo livre de vulnerabilidades.
 
-Font size controls (A/A+/A++), high contrast mode, dark mode (persisted to localStorage), VLibras (LIBRAS translation), keyboard navigation. WCAG 2.2 AA compliant.
+## Publicação
 
-## License
+Veja [docs/STABILIZATION.md](docs/STABILIZATION.md) para os requisitos, evidências e pendências. Esta branch não deve ser promovida sem configurar os UUIDs autorizados, verificar a proteção de volume e revisar permissões das tabelas e do bucket de imagens. A configuração do host Supabase restringe imagens ao projeto informado e ao bucket público `images`.
 
-Copyright 2026 2a Vara Civel de Cariacica. Developed by [Lex Intelligentia](https://lexintelligentia.com).
+## Licença
+
+Copyright 2026 2ª Vara Cível de Cariacica. Desenvolvido por Lex Intelligentia.

@@ -26,8 +26,7 @@ export const SERVICES: ServiceItem[] = [
   {
     id: "1",
     title: "Consulta Processual",
-    description:
-      "Acesse o andamento atualizado dos seus processos judiciais.",
+    description: "Acesse o andamento atualizado dos seus processos judiciais.",
     icon: "search",
     url: "https://sso.cloud.pje.jus.br/auth/realms/pje/protocol/openid-connect/auth?client_id=portalexterno-frontend&redirect_uri=https%3A%2F%2Fportaldeservicos.pdpj.jus.br%2Fconsulta&state=843bfcd9-02b7-4103-8046-614b7d4f4258&response_mode=fragment&response_type=code&scope=openid&nonce=37a449bc-09a8-4d96-8b22-2ec1e7df8c34",
   },
@@ -74,8 +73,8 @@ export const SERVICES: ServiceItem[] = [
       "Você pode registrar sua demanda ou fazer uma solicitação por meio de um dos canais disponíveis nesta página. Nossa equipe analisará sua solicitação e entrará em contato o mais breve possível.",
     icon: "calendar",
     links: [
-      { label: "Preencher Formulário", url: "#contact", icon: "file-text" },
-      { label: "Agendar via Chat", url: "#chatbot", icon: "message-square" },
+      { label: "Preencher Formulário", url: "/#contato", icon: "file-text" },
+      { label: "Orientações de atendimento", url: "#assistant-panel", icon: "message-square" },
     ],
   },
 ]
@@ -105,18 +104,16 @@ export const FAQS: FaqItem[] = [
   {
     id: "4",
     category: "Contato",
-    question:
-      "Como entro em contato com a Assessoria do Gabinete ou com o Juiz?",
+    question: "Como entro em contato com a Assessoria do Gabinete ou com o Juiz?",
     answer:
-      "O atendimento com a Assessoria do Gabinete da 2ª Vara Cível ou com o Juiz Titular pode ser previamente agendado por meio de um dos canais disponíveis nesta página: preenchendo um formulário, enviando um e-mail ou por meio do Chat.",
+      "O atendimento com a Assessoria do Gabinete da 2ª Vara Cível ou com o Juiz Titular pode ser previamente agendado por meio de um dos canais disponíveis nesta página: preenchendo o formulário de contato ou enviando um e-mail à equipe. O guia deste site apenas orienta sobre esses canais e não reserva horários.",
   },
   {
     id: "5",
     category: "Solicitações",
-    question:
-      "Como faço para registrar minha demanda ou fazer uma solicitação?",
+    question: "Como faço para registrar minha demanda ou fazer uma solicitação?",
     answer:
-      "Você pode registrar sua demanda ou fazer uma solicitação por meio de um dos canais disponíveis nesta página: preenchendo o formulário de contato, enviando um e-mail para a secretaria ou utilizando o Chat. Nossa equipe analisará sua solicitação e entrará em contato o mais breve possível.",
+      "Você pode registrar sua demanda ou fazer uma solicitação por meio de um dos canais disponíveis nesta página: preenchendo o formulário de contato, enviando um e-mail para a secretaria ou utilizando o telefone da equipe. O guia deste site não registra solicitações. Nossa equipe analisará sua solicitação e entrará em contato o mais breve possível.",
   },
 ]
 
@@ -139,26 +136,21 @@ export const FALLBACK_NEWS = [
     id: "1",
     title: "TJES publica novo edital de Leilão Eletrônico Unificado",
     date: "Atualizado",
-    summary:
-      "Bens penhorados vão a leilão eletrônico conforme determinação do tribunal.",
+    summary: "Bens penhorados vão a leilão eletrônico conforme determinação do tribunal.",
     category: "Editais",
   },
   {
     id: "2",
-    title:
-      "PJe: Sistema passará por manutenção programada neste fim de semana",
+    title: "PJe: Sistema passará por manutenção programada neste fim de semana",
     date: "Aviso",
-    summary:
-      "Indisponibilidade prevista para atualização de segurança e novas funcionalidades.",
+    summary: "Indisponibilidade prevista para atualização de segurança e novas funcionalidades.",
     category: "Tecnologia",
   },
   {
     id: "3",
-    title:
-      "Corregedoria Geral da Justiça divulga calendário de correições",
+    title: "Corregedoria Geral da Justiça divulga calendário de correições",
     date: "Institucional",
-    summary:
-      "Confira as datas das correições ordinárias nas comarcas do estado.",
+    summary: "Confira as datas das correições ordinárias nas comarcas do estado.",
     category: "Corregedoria",
   },
 ]
