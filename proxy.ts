@@ -29,7 +29,8 @@ export async function proxy(request: NextRequest) {
       data: { user },
       error,
     } = await supabase.auth.getUser()
-    if (error && (!error.status || error.status >= 500)) throw new AdminAccessError(503)
+    if (error && (!error.status || error.status === 429 || error.status >= 500))
+      throw new AdminAccessError(503)
     authorizeAdmin(error ? null : user, process.env.ADMIN_USER_IDS)
     // Forward any cookies refreshed in this request to Server Components as well.
     const next = NextResponse.next({ request })

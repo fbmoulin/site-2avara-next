@@ -43,7 +43,12 @@ export async function checkRateLimit(
     return { success: true, remaining: 999 }
   }
   try {
-    const { success, remaining } = await limiter.instance.limit(identifier)
+    const { success, remaining, reason } = await limiter.instance.limit(identifier)
+    // The SDK resolves timeouts as success; an unverified quota must still deny access.
+    if (reason === "timeout") {
+      console.error("[rate-limit] Protection timed out — failing closed")
+      return { success: false, remaining: 0, unavailable: true }
+    }
     return { success, remaining }
   } catch {
     console.error("[rate-limit] Protection unavailable — failing closed")

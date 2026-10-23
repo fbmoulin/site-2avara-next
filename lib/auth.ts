@@ -44,7 +44,8 @@ export async function getUser() {
       data: { user },
       error,
     } = await supabase.auth.getUser()
-    if (error && (!error.status || error.status >= 500)) throw new AdminAccessError(503)
+    if (error && (!error.status || error.status === 429 || error.status >= 500))
+      throw new AdminAccessError(503)
     return error ? null : user
   } catch (error) {
     if (error instanceof AdminAccessError) throw error

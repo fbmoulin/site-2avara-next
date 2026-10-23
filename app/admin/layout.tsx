@@ -5,7 +5,11 @@ import { AdminSidebar } from "@/components/admin/sidebar"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAdmin().catch((error: unknown) => {
-    if (error instanceof AdminAccessError && error.status === 401) redirect("/login")
+    if (error instanceof AdminAccessError) {
+      if (error.status === 401) redirect("/login")
+      if (error.status === 403) redirect("/acesso-negado")
+      if (error.status === 503) redirect("/servico-indisponivel")
+    }
     throw error
   })
 

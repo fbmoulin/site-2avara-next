@@ -1,5 +1,7 @@
 # Estabilização inicial
 
+Revisão dos cinco apontamentos do Copilot em 23/10/2026: [correções, reprodução e evidências](PR1-REVIEW-2026-10-23.md). As contagens abaixo descrevem a validação inicial; o relatório da revisão registra a suíte ampliada e o bloqueio do preview.
+
 ## Escopo e resultado
 
 Este lote atualiza Next.js para 16.4.2, React/React DOM para 19.3.1 e mantém Node 24.x e Bun 1.4.3. Remove o provedor de IA do guia, centraliza a autorização administrativa por UUID verificado e corrige o ciclo de envio do contato. Não altera o esquema das tabelas nem executa migrações em ambientes externos.

@@ -37,7 +37,7 @@ for (const status of [400, 422, 429, 503]) {
         status,
         contentType: "application/json",
         body: JSON.stringify({ error: "fixture" }),
-      })
+      }),
     )
     await page.goto("/")
     await fillContact(page)
@@ -65,8 +65,13 @@ test("rapid submissions send one request while pending", async ({ page }) => {
   const wait = new Promise<void>((resolve) => {
     release = resolve
   })
+  let intercepted!: () => void
+  const firstRequest = new Promise<void>((resolve) => {
+    intercepted = resolve
+  })
   await page.route("**/api/contact", async (route) => {
     count++
+    intercepted()
     await wait
     await route.fulfill({
       status: 201,
@@ -76,12 +81,27 @@ test("rapid submissions send one request while pending", async ({ page }) => {
   })
   await page.goto("/")
   await fillContact(page)
-  const button = page.getByRole("button", { name: "Enviar Mensagem", exact: true })
-  await button.press("Enter")
-  await expect(page.getByRole("button", { name: "Enviando..." })).toBeDisabled()
-  expect(count).toBe(1)
-  release()
+  const form = page.locator("#contato form")
+  try {
+    // Two native submit events in one browser task exercise the ref guard before
+    // React has rendered the disabled button. A click alone only tests the button.
+    await form.evaluate((element) => {
+      const contact = element as HTMLFormElement
+      contact.requestSubmit()
+      contact.requestSubmit()
+    })
+    await firstRequest
+    await expect(page.getByRole("button", { name: "Enviando..." })).toBeDisabled()
+    // Try again while the HTTP response is still held by the interceptor.
+    await form.evaluate((element) => (element as HTMLFormElement).requestSubmit())
+    expect(count).toBe(1)
+  } finally {
+    release()
+  }
   await expect(page.getByRole("heading", { name: "Mensagem enviada!" })).toBeVisible()
+  // Flush browser fetches before checking the final count, including queued duplicates.
+  await page.waitForLoadState("networkidle")
+  expect(count).toBe(1)
 })
 
 test("service shortcut opens informative guide with keyboard support", async ({ page }) => {
@@ -94,12 +114,12 @@ test("service shortcut opens informative guide with keyboard support", async ({ 
   await dialog.getByRole("button", { name: "Solicitar atendimento", exact: true }).click()
   await expect(dialog.getByRole("link", { name: "Abrir formulário de contato" })).toHaveAttribute(
     "href",
-    "/#contato"
+    "/#contato",
   )
   await dialog.press("Escape")
   await expect(dialog).toHaveCount(0)
   await expect(
-    page.getByRole("button", { name: "Abrir guia de atendimento", exact: true })
+    page.getByRole("button", { name: "Abrir guia de atendimento", exact: true }),
   ).toBeFocused()
 })
 
