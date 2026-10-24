@@ -4,28 +4,23 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { createBrowserClient } from "@supabase/ssr"
 import { useRouter } from "next/navigation"
-import {
-  LayoutDashboard,
-  Mail,
-  Calendar,
-  FileText,
-  Newspaper,
-  Globe,
-  LogOut,
-} from "lucide-react"
+import { LayoutDashboard, Mail, Calendar, FileText, Newspaper, Globe, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import type { StaffRole } from "@/lib/staff-access"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/contatos", label: "Contatos", icon: Mail },
   { href: "/admin/agendamentos", label: "Agendamentos", icon: Calendar },
+  { href: "/admin/pauta", label: "Pauta de audiências", icon: Calendar },
   { href: "/admin/demandas", label: "Demandas", icon: FileText },
   { href: "/admin/artigos", label: "Artigos", icon: Newspaper },
   { href: "/admin/noticias", label: "Notícias", icon: Globe },
+  { href: "/admin/usuarios", label: "Usuários", icon: LayoutDashboard },
 ]
 
-export function AdminSidebar({ email }: { email: string }) {
+export function AdminSidebar({ email, role }: { email: string; role: StaffRole }) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -55,32 +50,35 @@ export function AdminSidebar({ email }: { email: string }) {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-3">
-        {navItems.map((item) => {
-          const active = isActive(item.href, item.exact)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                active
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              <item.icon className="size-4" />
-              {item.label}
-            </Link>
+        {navItems
+          .filter((item) =>
+            role === "estagiario"
+              ? item.href === "/admin/pauta"
+              : item.href !== "/admin/usuarios" || role === "responsavel",
           )
-        })}
+          .map((item) => {
+            const active = isActive(item.href, item.exact)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  active
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <item.icon className="size-4" />
+                {item.label}
+              </Link>
+            )
+          })}
       </nav>
 
       {/* User section */}
       <div className="border-t border-border p-4">
-        <p
-          className="mb-2 truncate text-xs text-muted-foreground"
-          title={email}
-        >
+        <p className="mb-2 truncate text-xs text-muted-foreground" title={email}>
           {email}
         </p>
         <Button

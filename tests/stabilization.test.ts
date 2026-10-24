@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test"
+import { staffUsers } from "../lib/db/schema"
 
 const ADMIN = "11111111-1111-4111-8111-111111111111"
 const MEMBER = "22222222-2222-4222-8222-222222222222"
 let user: { id: string; app_metadata?: object; user_metadata?: object } | null = null
 let authError: { status?: number } | null = null
 let authThrows = false
+let staffRecord: { role: string; active: boolean } | undefined
+let staffLookupFails = false
 let refreshCookie = false
 let writes = 0
 let dbFails = false
@@ -80,9 +83,17 @@ mock.module("../lib/db", () => ({
         return { returning: async () => [{ id: ADMIN }] }
       },
     }),
-    select: () => {
-      throw new Error("Protected data was accessed")
-    },
+    select: () => ({
+      from: (table: unknown) => {
+        if (table !== staffUsers) throw new Error("Protected data was accessed")
+        return {
+          where: async () => {
+            if (staffLookupFails) throw new Error("database unavailable")
+            return staffRecord ? [staffRecord] : []
+          },
+        }
+      },
+    }),
     update: () => {
       throw new Error("Protected data was updated")
     },
@@ -92,6 +103,8 @@ mock.module("../lib/db", () => ({
 const { authorizeAdmin, AdminAccessError } = await import("../lib/admin-policy")
 const { requireAdmin } = await import("../lib/auth")
 const actions = await import("../app/admin/actions")
+const scheduleActions = await import("../app/admin/pauta/actions")
+const userActions = await import("../app/admin/usuarios/actions")
 const { POST: chat } = await import("../app/api/chat/route")
 const { POST: contact } = await import("../app/api/contact/route")
 const { POST: upload } = await import("../app/api/upload/route")
@@ -108,6 +121,8 @@ beforeEach(() => {
   user = null
   authError = null
   authThrows = false
+  staffRecord = undefined
+  staffLookupFails = false
   refreshCookie = false
   writes = 0
   dbFails = false
@@ -143,6 +158,35 @@ const contactData = {
 }
 
 describe("Administrative authorization", () => {
+  test("intern cannot call protected actions or visit other administrative sections", async () => {
+    user = { id: MEMBER }
+    staffRecord = { role: "estagiario", active: true }
+    for (const operation of [...Object.values(actions), ...Object.values(userActions)]) {
+      await expect((operation as () => Promise<unknown>)()).rejects.toMatchObject({ status: 403 })
+    }
+    for (const path of ["/admin/contatos", "/admin/usuarios", "/admin/artigos"]) {
+      expect((await proxy(new NextRequest(`http://localhost${path}`))).status).toBe(403)
+    }
+    expect((await proxy(new NextRequest("http://localhost/admin/pauta"))).status).toBe(200)
+    expect(writes).toBe(0)
+  })
+  test("assessor can use administrative features but cannot manage accounts; revocation is immediate", async () => {
+    user = { id: MEMBER }
+    staffRecord = { role: "assessor", active: true }
+    expect((await requireAdmin()).id).toBe(MEMBER)
+    for (const operation of Object.values(userActions))
+      await expect((operation as () => Promise<unknown>)()).rejects.toMatchObject({ status: 403 })
+    staffRecord.active = false
+    await expect(requireAdmin()).rejects.toMatchObject({ status: 403 })
+  })
+  test("staff lookup outage and unknown stored roles never grant access", async () => {
+    user = { id: MEMBER }
+    staffLookupFails = true
+    await expect(requireAdmin()).rejects.toMatchObject({ status: 503 })
+    staffLookupFails = false
+    staffRecord = { role: "responsavel", active: true }
+    await expect(requireAdmin()).rejects.toMatchObject({ status: 403 })
+  })
   test("anonymous is rejected and allowed UUID succeeds", async () => {
     await expect(requireAdmin()).rejects.toMatchObject({ status: 401 })
     user = { id: ADMIN }
@@ -163,10 +207,14 @@ describe("Administrative authorization", () => {
     user = { id: MEMBER, app_metadata: { role: "admin" }, user_metadata: { role: "admin" } }
     await expect(requireAdmin()).rejects.toMatchObject({ status: 403 })
   })
-  test("all 15 server actions reject a direct call before accessing protected data", async () => {
+  test("all 19 server actions reject a direct call before accessing protected data", async () => {
     user = { id: MEMBER }
-    const operations = Object.values(actions)
-    expect(operations.length).toBe(15)
+    const operations = [
+      ...Object.values(actions),
+      ...Object.values(scheduleActions),
+      ...Object.values(userActions),
+    ]
+    expect(operations.length).toBe(19)
     for (const operation of operations) {
       await expect((operation as (...args: unknown[]) => Promise<unknown>)()).rejects.toMatchObject(
         { status: 403 },
@@ -197,7 +245,11 @@ describe("Administrative authorization", () => {
       authError = { status }
       refreshCookie = true
       await expect(requireAdmin()).rejects.toMatchObject({ status: 503 })
-      for (const operation of Object.values(actions)) {
+      for (const operation of [
+        ...Object.values(actions),
+        ...Object.values(scheduleActions),
+        ...Object.values(userActions),
+      ]) {
         await expect((operation as () => Promise<unknown>)()).rejects.toMatchObject({ status: 503 })
       }
       const response = await upload(

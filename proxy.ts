@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
-import { AdminAccessError, authorizeAdmin } from "@/lib/admin-policy"
+import { AdminAccessError } from "@/lib/admin-policy"
+import { authorizeStaff, canAccessAdminPath } from "@/lib/staff-access"
 
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request })
@@ -31,7 +32,8 @@ export async function proxy(request: NextRequest) {
     } = await supabase.auth.getUser()
     if (error && (!error.status || error.status === 429 || error.status >= 500))
       throw new AdminAccessError(503)
-    authorizeAdmin(error ? null : user, process.env.ADMIN_USER_IDS)
+    const staff = await authorizeStaff(error ? null : user)
+    if (!canAccessAdminPath(staff.role, request.nextUrl.pathname)) throw new AdminAccessError(403)
     // Forward any cookies refreshed in this request to Server Components as well.
     const next = NextResponse.next({ request })
     return carrySession(next)
@@ -44,7 +46,7 @@ export async function proxy(request: NextRequest) {
     }
     const destination = new URL(
       denied.status === 403 ? "/acesso-negado" : "/servico-indisponivel",
-      request.url
+      request.url,
     )
     return carrySession(NextResponse.rewrite(destination, { status: denied.status }))
   }

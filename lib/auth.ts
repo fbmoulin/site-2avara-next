@@ -2,6 +2,7 @@ import "server-only"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { AdminAccessError, authorizeAdmin } from "./admin-policy"
+import { authorizeStaff } from "./staff-access"
 
 export async function createSupabaseServer() {
   const cookieStore = await cookies()
@@ -32,7 +33,7 @@ export async function createSupabaseServer() {
           }
         },
       },
-    }
+    },
   )
 }
 
@@ -54,5 +55,15 @@ export async function getUser() {
 }
 
 export async function requireAdmin() {
+  const user = await requirePanelUser()
+  if (user.role === "estagiario") throw new AdminAccessError(403)
+  return user
+}
+
+export async function requirePanelUser() {
+  return authorizeStaff(await getUser())
+}
+
+export async function requireOwner() {
   return authorizeAdmin(await getUser(), process.env.ADMIN_USER_IDS)
 }
