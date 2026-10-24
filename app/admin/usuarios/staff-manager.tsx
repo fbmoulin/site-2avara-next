@@ -2,7 +2,7 @@
 import { useActionState } from "react"
 import { registerStaff, linkStaff, updateStaff } from "./actions"
 
-const field = "block w-full rounded border bg-background p-2"
+const field = "block min-w-0 w-full rounded border bg-background p-2"
 function RoleField({ value = "estagiario" }: { value?: string }) {
   return (
     <label>
@@ -24,7 +24,7 @@ function ExistingStaff({
     <form action={action} className="space-y-3 rounded border p-4">
       <h3 className="font-semibold">{user.email}</h3>
       <input type="hidden" name="id" value={user.id} />
-      <fieldset disabled={pending} className="flex flex-wrap items-end gap-3">
+      <fieldset disabled={pending} className="grid gap-3 sm:grid-cols-3 sm:items-end">
         <RoleField value={user.role} />
         <label>
           Acesso

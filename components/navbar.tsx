@@ -2,7 +2,7 @@ import { NavbarClient } from "./navbar-client"
 
 export function Navbar() {
   return (
-    <header className="sticky top-9 z-40 bg-slate-900/75 backdrop-blur-xl shadow-lg relative">
+    <header className="sticky top-11 z-40 bg-slate-900/75 backdrop-blur-xl shadow-lg md:top-9">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6">
         <NavbarClient />
       </div>

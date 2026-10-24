@@ -19,7 +19,7 @@ export function ScheduleEditor({
 }) {
   const [rows, setRows] = useState(hearings)
   const [state, action, pending] = useActionState(saveSchedule, { message: "" })
-  const field = "block w-full rounded border bg-background p-2"
+  const field = "block min-w-0 w-full rounded border bg-background p-2"
   function change(index: number, key: keyof Hearing, value: string) {
     setRows(rows.map((row, i) => (i === index ? { ...row, [key]: value } : row)))
   }
@@ -125,7 +125,7 @@ export function ScheduleEditor({
         {rows.length === 0 && (
           <p>Uma semana vazia só será divulgada como “sem audiências” após a liberação.</p>
         )}
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           {canPublish && published && (
             <button className="rounded border px-4 py-2" name="intent" value="withdraw">
               Retirar publicação

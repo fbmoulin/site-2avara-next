@@ -27,17 +27,22 @@ export function AccessibilityBar() {
   }, [])
 
   function persistA11y(fs: number, hc: boolean, dm: boolean) {
-    try { localStorage.setItem("a11y", JSON.stringify({ fontSize: fs, highContrast: hc, darkMode: dm })) } catch {}
+    try {
+      localStorage.setItem("a11y", JSON.stringify({ fontSize: fs, highContrast: hc, darkMode: dm }))
+    } catch {}
   }
 
-  const changeFontSize = useCallback((size: number) => {
-    const html = document.documentElement
-    html.classList.remove("font-lg", "font-xl")
-    if (size === 1) html.classList.add("font-lg")
-    if (size === 2) html.classList.add("font-xl")
-    setFontSize(size)
-    persistA11y(size, highContrast, darkMode)
-  }, [highContrast, darkMode])
+  const changeFontSize = useCallback(
+    (size: number) => {
+      const html = document.documentElement
+      html.classList.remove("font-lg", "font-xl")
+      if (size === 1) html.classList.add("font-lg")
+      if (size === 2) html.classList.add("font-xl")
+      setFontSize(size)
+      persistA11y(size, highContrast, darkMode)
+    },
+    [highContrast, darkMode],
+  )
 
   const toggleContrast = useCallback(() => {
     document.documentElement.classList.toggle("high-contrast")
@@ -55,8 +60,8 @@ export function AccessibilityBar() {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-slate-950 text-xs text-slate-300">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-1 md:px-6">
-        <div className="flex items-center gap-3">
+      <div className="mx-auto flex min-h-11 max-w-7xl items-center justify-between px-2 md:min-h-9 md:px-6 md:py-1">
+        <div className="flex items-center gap-1 sm:gap-3 [&_button]:min-h-11 [&_button]:min-w-11 md:[&_button]:min-h-0 md:[&_button]:min-w-0">
           <span className="hidden font-medium sm:inline">Acessibilidade</span>
 
           {/* Font size buttons */}
@@ -64,9 +69,7 @@ export function AccessibilityBar() {
             <button
               onClick={() => changeFontSize(0)}
               className={`rounded px-1.5 py-0.5 transition-colors ${
-                fontSize === 0
-                  ? "bg-amber-500 text-slate-900"
-                  : "hover:bg-slate-800"
+                fontSize === 0 ? "bg-amber-500 text-slate-900" : "hover:bg-slate-800"
               }`}
               aria-label="Tamanho de fonte padrão"
               title="Tamanho padrão"
@@ -76,9 +79,7 @@ export function AccessibilityBar() {
             <button
               onClick={() => changeFontSize(1)}
               className={`rounded px-1.5 py-0.5 text-sm transition-colors ${
-                fontSize === 1
-                  ? "bg-amber-500 text-slate-900"
-                  : "hover:bg-slate-800"
+                fontSize === 1 ? "bg-amber-500 text-slate-900" : "hover:bg-slate-800"
               }`}
               aria-label="Aumentar fonte"
               title="Fonte grande"
@@ -88,9 +89,7 @@ export function AccessibilityBar() {
             <button
               onClick={() => changeFontSize(2)}
               className={`rounded px-1.5 py-0.5 text-base transition-colors ${
-                fontSize === 2
-                  ? "bg-amber-500 text-slate-900"
-                  : "hover:bg-slate-800"
+                fontSize === 2 ? "bg-amber-500 text-slate-900" : "hover:bg-slate-800"
               }`}
               aria-label="Fonte extra grande"
               title="Fonte extra grande"
@@ -103,9 +102,7 @@ export function AccessibilityBar() {
           <button
             onClick={toggleContrast}
             className={`flex items-center gap-1 rounded px-1.5 py-0.5 transition-colors ${
-              highContrast
-                ? "bg-amber-500 text-slate-900"
-                : "hover:bg-slate-800"
+              highContrast ? "bg-amber-500 text-slate-900" : "hover:bg-slate-800"
             }`}
             aria-label="Alternar alto contraste"
             title="Alto Contraste"
@@ -123,21 +120,15 @@ export function AccessibilityBar() {
             aria-label="Alternar modo escuro"
             title="Modo Escuro"
           >
-            {darkMode ? (
-              <Sun className="size-3" />
-            ) : (
-              <Moon className="size-3" />
-            )}
-            <span className="hidden sm:inline">
-              {darkMode ? "Claro" : "Escuro"}
-            </span>
+            {darkMode ? <Sun className="size-3" /> : <Moon className="size-3" />}
+            <span className="hidden sm:inline">{darkMode ? "Claro" : "Escuro"}</span>
           </button>
         </div>
 
         {/* Skip to content */}
         <a
           href="#main-content"
-          className="rounded px-2 py-0.5 transition-colors hover:bg-slate-800 focus:bg-amber-500 focus:text-slate-900 focus:outline-none"
+          className="sr-only rounded px-2 py-0.5 transition-colors hover:bg-slate-800 focus:not-sr-only focus:absolute focus:left-2 focus:bg-amber-500 focus:text-slate-900 focus:outline-none md:not-sr-only md:focus:static"
         >
           Ir para conteúdo
         </a>

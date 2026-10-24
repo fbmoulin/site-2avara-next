@@ -30,11 +30,15 @@ export default async function ScheduleAdminPage({
         Cadastre apenas informações destinadas à divulgação pública, sem nomes das partes, dados
         sigilosos ou credenciais do Zoom.
       </p>
-      <form className="flex flex-wrap items-end gap-3" action="/admin/pauta" method="get">
+      <form
+        className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
+        action="/admin/pauta"
+        method="get"
+      >
         <label>
           Segunda-feira da semana
           <input
-            className="block rounded border p-2"
+            className="block min-w-0 w-full rounded border p-2"
             type="date"
             name="week"
             defaultValue={week.data}
