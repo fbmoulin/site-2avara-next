@@ -8,13 +8,19 @@ export default defineConfig({
   workers: 1,
   reporter: "list",
   use: {
-    baseURL: "http://localhost:3099",
-    trace: "on-first-retry",
+    baseURL: "http://127.0.0.1:3099",
+    trace: "retain-on-failure",
+    launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+      ? {
+          executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+          args: ["--disable-gpu", "--disable-dev-shm-usage"],
+        }
+      : undefined,
   },
   webServer: {
-    command: "bun run dev -- -p 3099",
-    url: "http://localhost:3099",
-    reuseExistingServer: !process.env.CI,
+    command: "bun run dev -- --hostname 127.0.0.1 -p 3099",
+    url: "http://127.0.0.1:3099",
+    reuseExistingServer: false,
     timeout: 60000,
   },
   projects: [

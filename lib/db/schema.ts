@@ -7,7 +7,35 @@ import {
   timestamp,
   index,
   uniqueIndex,
+  date,
+  jsonb,
+  integer,
 } from "drizzle-orm/pg-core"
+import type { Hearing } from "../hearing-schedule"
+
+export const staffUsers = pgTable(
+  "staff_users",
+  {
+    id: uuid("id").primaryKey(),
+    email: varchar("email", { length: 255 }).notNull(),
+    role: varchar("role", { length: 20 }).notNull(),
+    active: boolean("active").notNull().default(true),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedBy: uuid("updated_by").notNull(),
+  },
+  (table) => [uniqueIndex("staff_email_idx").on(table.email)],
+)
+
+export const hearingSchedules = pgTable("hearing_schedules", {
+  weekStart: date("week_start").primaryKey(),
+  hearings: jsonb("hearings").$type<Hearing[]>().notNull(),
+  publishedHearings: jsonb("published_hearings").$type<Hearing[]>(),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  isPublished: boolean("is_published").notNull().default(false),
+  version: integer("version").notNull().default(1),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedBy: uuid("updated_by").notNull(),
+})
 
 export const contactMessages = pgTable(
   "contact_messages",
@@ -27,7 +55,7 @@ export const contactMessages = pgTable(
   (table) => [
     index("contact_status_idx").on(table.status),
     index("contact_created_idx").on(table.createdAt),
-  ]
+  ],
 )
 
 export const appointments = pgTable(
@@ -52,7 +80,7 @@ export const appointments = pgTable(
   (table) => [
     index("appointment_status_idx").on(table.status),
     index("appointment_process_idx").on(table.processNumber),
-  ]
+  ],
 )
 
 export const demands = pgTable(
@@ -72,7 +100,7 @@ export const demands = pgTable(
   (table) => [
     index("demand_status_idx").on(table.status),
     index("demand_process_idx").on(table.processNumber),
-  ]
+  ],
 )
 
 export const news = pgTable(
@@ -88,7 +116,7 @@ export const news = pgTable(
     fetchedAt: timestamp("fetched_at").defaultNow().notNull(),
     isActive: boolean("is_active").notNull().default(true),
   },
-  (table) => [uniqueIndex("news_external_id_idx").on(table.externalId)]
+  (table) => [uniqueIndex("news_external_id_idx").on(table.externalId)],
 )
 
 export const articles = pgTable(
@@ -99,12 +127,8 @@ export const articles = pgTable(
     slug: varchar("slug", { length: 255 }).notNull(),
     excerpt: text("excerpt"),
     content: text("content").notNull(),
-    author: varchar("author", { length: 255 })
-      .notNull()
-      .default("2ª Vara Cível de Cariacica"),
-    category: varchar("category", { length: 100 })
-      .notNull()
-      .default("Artigo Jurídico"),
+    author: varchar("author", { length: 255 }).notNull().default("2ª Vara Cível de Cariacica"),
+    category: varchar("category", { length: 100 }).notNull().default("Artigo Jurídico"),
     imageUrl: varchar("image_url", { length: 500 }),
     isPublished: boolean("is_published").notNull().default(false),
     isFeatured: boolean("is_featured").notNull().default(false),
@@ -112,5 +136,5 @@ export const articles = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (table) => [uniqueIndex("articles_slug_idx").on(table.slug)]
+  (table) => [uniqueIndex("articles_slug_idx").on(table.slug)],
 )

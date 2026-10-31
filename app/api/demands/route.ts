@@ -8,11 +8,15 @@ import { demandRateLimit, checkRateLimit } from "@/lib/rate-limit"
 export async function POST(request: NextRequest) {
   const forwardedFor = request.headers.get("x-forwarded-for")
   const ip = forwardedFor?.split(",")[0].trim() ?? "anonymous"
-  const { success } = await checkRateLimit(demandRateLimit, ip)
-  if (!success) {
+  const limit = await checkRateLimit(demandRateLimit, ip)
+  if (!limit.success) {
     return NextResponse.json(
-      { error: "Muitas solicitações. Aguarde alguns minutos." },
-      { status: 429 }
+      {
+        error: limit.unavailable
+          ? "Serviço temporariamente indisponível."
+          : "Muitas solicitações. Aguarde alguns minutos.",
+      },
+      { status: limit.unavailable ? 503 : 429 }
     )
   }
 
@@ -42,8 +46,5 @@ export async function POST(request: NextRequest) {
 
   await sendDemandNotification(data)
 
-  return NextResponse.json(
-    { message: "Demanda registrada com sucesso." },
-    { status: 201 }
-  )
+  return NextResponse.json({ message: "Demanda registrada com sucesso." }, { status: 201 })
 }

@@ -1,9 +1,4 @@
-import {
-  Mail,
-  Calendar,
-  FileText,
-  Newspaper,
-} from "lucide-react"
+import { Mail, Calendar, FileText, Newspaper } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -15,6 +10,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { getDashboardStats, getRecentActivity } from "./actions"
+import { requirePanelUser } from "@/lib/auth"
+import { redirect } from "next/navigation"
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("pt-BR", {
@@ -57,6 +54,8 @@ const typeVariants: Record<string, "default" | "secondary" | "destructive" | "ou
 }
 
 export default async function AdminDashboard() {
+  const user = await requirePanelUser()
+  if (user.role === "estagiario") redirect("/admin/pauta")
   const stats = await getDashboardStats()
   const recentActivity = await getRecentActivity()
 
@@ -87,9 +86,7 @@ export default async function AdminDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Visão geral do painel administrativo
-        </p>
+        <p className="text-sm text-muted-foreground">Visão geral do painel administrativo</p>
       </div>
 
       {/* Stat cards */}
@@ -103,9 +100,7 @@ export default async function AdminDashboard() {
               <stat.icon className="size-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-foreground">
-                {stat.value}
-              </div>
+              <div className="text-3xl font-bold text-foreground">{stat.value}</div>
             </CardContent>
           </Card>
         ))}
@@ -113,9 +108,7 @@ export default async function AdminDashboard() {
 
       {/* Recent activity */}
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">
-          Atividade Recente
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Atividade Recente</h2>
         <Card>
           <CardContent className="p-0">
             <Table>
@@ -142,9 +135,7 @@ export default async function AdminDashboard() {
                           {typeLabels[item.type] ?? item.type}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-medium">
-                        {item.description}
-                      </TableCell>
+                      <TableCell className="font-medium">{item.description}</TableCell>
                       <TableCell>
                         <Badge variant={statusVariants[item.status] ?? "outline"}>
                           {statusLabels[item.status] ?? item.status}

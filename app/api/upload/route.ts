@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { getUser } from "@/lib/auth"
+import { requireAdmin } from "@/lib/auth"
+import { AdminAccessError } from "@/lib/admin-policy"
 
 function getSupabaseAdmin() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 }
 
 export async function POST(request: NextRequest) {
-  const user = await getUser()
-  if (!user) {
-    return NextResponse.json({ error: "Não autorizado." }, { status: 401 })
+  try {
+    await requireAdmin()
+  } catch (error) {
+    const denied = error instanceof AdminAccessError ? error : new AdminAccessError(503)
+    return NextResponse.json({ error: denied.message }, { status: denied.status })
   }
 
   const formData = await request.formData()
@@ -31,10 +31,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (file.size > 5 * 1024 * 1024) {
-    return NextResponse.json(
-      { error: "Arquivo muito grande. Máximo 5MB." },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: "Arquivo muito grande. Máximo 5MB." }, { status: 400 })
   }
 
   const supabase = getSupabaseAdmin()
@@ -44,19 +41,26 @@ export async function POST(request: NextRequest) {
 
   const buffer = await file.arrayBuffer()
   const bytes = new Uint8Array(buffer)
-  const isJpeg = bytes[0] === 0xFF && bytes[1] === 0xD8
+  const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8
   const isPng = bytes[0] === 0x89 && bytes[1] === 0x50
-  const isWebp = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  const isWebp =
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
   if (!isJpeg && !isPng && !isWebp) {
-    return NextResponse.json({ error: "Conteúdo do arquivo não corresponde ao tipo." }, { status: 400 })
+    return NextResponse.json(
+      { error: "Conteúdo do arquivo não corresponde ao tipo." },
+      { status: 400 }
+    )
   }
 
-  const { error } = await supabase.storage
-    .from("images")
-    .upload(fileName, buffer, {
-      contentType: file.type,
-      upsert: false,
-    })
+  const { error } = await supabase.storage.from("images").upload(fileName, buffer, {
+    contentType: file.type,
+    upsert: false,
+  })
 
   if (error) {
     // Bucket may not exist — try to create it
@@ -67,12 +71,10 @@ export async function POST(request: NextRequest) {
         fileSizeLimit: 5 * 1024 * 1024,
       })
 
-      const { error: retryError } = await supabase.storage
-        .from("images")
-        .upload(fileName, buffer, {
-          contentType: file.type,
-          upsert: false,
-        })
+      const { error: retryError } = await supabase.storage.from("images").upload(fileName, buffer, {
+        contentType: file.type,
+        upsert: false,
+      })
 
       if (retryError) {
         console.error("[upload]", retryError)
@@ -90,9 +92,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const { data: urlData } = supabase.storage
-    .from("images")
-    .getPublicUrl(fileName)
+  const { data: urlData } = supabase.storage.from("images").getPublicUrl(fileName)
 
   return NextResponse.json({ url: urlData.publicUrl }, { status: 201 })
 }

@@ -31,7 +31,7 @@ export function NavbarClient() {
           }
         }
       },
-      { rootMargin: "-40% 0px -50% 0px", threshold: 0 }
+      { rootMargin: "-40% 0px -50% 0px", threshold: 0 },
     )
 
     for (const id of sectionIds) {
@@ -47,16 +47,14 @@ export function NavbarClient() {
       {/* Logo — interactive (scrolls to top) */}
       <button
         onClick={() => scrollTo("inicio")}
-        className="flex items-center gap-3 text-white"
+        className="flex min-w-0 items-center gap-2 text-left text-white sm:gap-3"
       >
-        <Scale className="size-8 text-amber-400" />
-        <div className="flex flex-col leading-tight">
+        <Scale className="size-7 shrink-0 text-amber-400 sm:size-8" />
+        <div className="flex min-w-0 flex-col leading-tight">
           <span className="text-xs font-medium tracking-wider text-slate-300 uppercase">
             Poder Judiciário
           </span>
-          <span className="text-sm font-bold text-white">
-            2ª Vara Cível de Cariacica
-          </span>
+          <span className="text-sm font-bold text-white">2ª Vara Cível de Cariacica</span>
         </div>
       </button>
 
@@ -83,7 +81,7 @@ export function NavbarClient() {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="rounded-md p-2 text-slate-300 hover:bg-slate-800 hover:text-white md:hidden"
+        className="min-h-11 min-w-11 shrink-0 rounded-md p-2 text-slate-300 hover:bg-slate-800 hover:text-white md:hidden"
         aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
       >
         {mobileOpen ? <X className="size-6" /> : <Menu className="size-6" />}

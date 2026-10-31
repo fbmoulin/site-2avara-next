@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test"
 
 test.describe("Integration Tests — Full Flow with DB", () => {
+  test.skip(process.env.E2E_FIXTURE !== "1", "Use bun run test:e2e with the disposable database.")
   test("POST /api/contact creates record in database", async ({ request }) => {
     const response = await request.post("/api/contact", {
       data: {
@@ -37,7 +38,8 @@ test.describe("Integration Tests — Full Flow with DB", () => {
       data: {
         processNumber: "0009876-11.2026.8.08.0012",
         demandType: "celeridade",
-        description: "Teste automatizado de demanda via Playwright. Pedido de celeridade para verificação do fluxo.",
+        description:
+          "Teste automatizado de demanda via Playwright. Pedido de celeridade para verificação do fluxo.",
         priority: "normal",
       },
     })
@@ -46,24 +48,15 @@ test.describe("Integration Tests — Full Flow with DB", () => {
     expect(body.message).toContain("sucesso")
   })
 
-  test("POST /api/chat returns streaming response from OpenAI", async ({
-    request,
-  }) => {
-    const response = await request.post("/api/chat", {
-      data: {
-        message: "Olá, gostaria de agendar um atendimento.",
-        history: [],
-      },
-    })
+  test("POST /api/chat returns approved guidance without a model", async ({ request }) => {
+    const response = await request.post("/api/chat", { data: { option: "contact" } })
     expect(response.status()).toBe(200)
-    expect(response.headers()["content-type"]).toContain("text/event-stream")
-    const text = await response.text()
-    expect(text).toContain("data:")
+    const body = await response.json()
+    expect(body.text).toContain("não realizou nenhum registro ou reserva")
+    expect(body.links[0].href).toBe("/#contato")
   })
 
-  test("GET /api/news returns array (empty or with data)", async ({
-    request,
-  }) => {
+  test("GET /api/news returns array (empty or with data)", async ({ request }) => {
     const response = await request.get("/api/news")
     expect(response.status()).toBe(200)
     const body = await response.json()

@@ -19,7 +19,10 @@ import { StaggerContainer, StaggerItem } from "@/components/motion/stagger-conta
 
 import type { TargetAndTransition, Transition } from "framer-motion"
 
-const HOVER_ANIMATIONS: Record<string, { whileHover: TargetAndTransition; transition: Transition }> = {
+const HOVER_ANIMATIONS: Record<
+  string,
+  { whileHover: TargetAndTransition; transition: Transition }
+> = {
   search: { whileHover: { scale: [1, 1.15, 1] }, transition: { duration: 0.4 } },
   video: { whileHover: { rotate: [0, 10, 0] }, transition: { duration: 0.3 } },
   calendar: { whileHover: { y: [0, -4, 0] }, transition: { duration: 0.3 } },
@@ -60,8 +63,7 @@ function ServiceCard({
   onToggle: () => void
 }) {
   const hasExpandableContent =
-    (service.links && service.links.length > 0) ||
-    (service.tutorial && service.tutorial.length > 0)
+    (service.links && service.links.length > 0) || (service.tutorial && service.tutorial.length > 0)
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-md">
@@ -79,9 +81,7 @@ function ServiceCard({
           {ICON_COMPONENTS[service.icon] ?? <FileText className="size-6" />}
         </motion.div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-foreground">
-            {service.title}
-          </h3>
+          <h3 className="text-lg font-semibold text-foreground">{service.title}</h3>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
             {service.description}
           </p>
@@ -114,9 +114,7 @@ function ServiceCard({
       {hasExpandableContent && (
         <div
           className={`transition-all duration-300 ${
-            isExpanded
-              ? "max-h-[800px] opacity-100"
-              : "max-h-0 overflow-hidden opacity-0"
+            isExpanded ? "max-h-[800px] opacity-100" : "max-h-0 overflow-hidden opacity-0"
           }`}
         >
           <div className="border-t border-slate-100 px-6 py-4">
@@ -127,12 +125,16 @@ function ServiceCard({
                   <a
                     key={link.url}
                     href={link.url}
-                    target={link.url.startsWith("#") ? undefined : "_blank"}
-                    rel={
-                      link.url.startsWith("#")
-                        ? undefined
-                        : "noopener noreferrer"
+                    onClick={
+                      link.url === "#assistant-panel"
+                        ? (event) => {
+                            event.preventDefault()
+                            window.dispatchEvent(new Event("open-assistant"))
+                          }
+                        : undefined
                     }
+                    target={link.url.startsWith("https:") ? "_blank" : undefined}
+                    rel={!link.url.startsWith("https:") ? undefined : "noopener noreferrer"}
                     className="inline-flex items-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-amber-100 hover:text-amber-700"
                   >
                     {getLinkIcon(link.icon)}
@@ -145,9 +147,7 @@ function ServiceCard({
             {/* Tutorial steps */}
             {service.tutorial && service.tutorial.length > 0 && (
               <div className="mt-4">
-                <p className="mb-3 text-sm font-semibold text-muted-foreground">
-                  Passo a passo:
-                </p>
+                <p className="mb-3 text-sm font-semibold text-muted-foreground">Passo a passo:</p>
                 <ol className="space-y-2">
                   {service.tutorial.map((step, i) => (
                     <li key={i} className="flex gap-3 text-sm text-muted-foreground">
@@ -196,16 +196,14 @@ export function Services() {
         <StaggerContainer direction="up" className="space-y-4">
           {SERVICES.map((service) => (
             <StaggerItem key={service.id}>
-            <ServiceCard
-              key={service.id}
-              service={service}
-              isExpanded={expandedService === service.id}
-              onToggle={() =>
-                setExpandedService(
-                  expandedService === service.id ? null : service.id
-                )
-              }
-            />
+              <ServiceCard
+                key={service.id}
+                service={service}
+                isExpanded={expandedService === service.id}
+                onToggle={() =>
+                  setExpandedService(expandedService === service.id ? null : service.id)
+                }
+              />
             </StaggerItem>
           ))}
         </StaggerContainer>

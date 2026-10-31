@@ -8,7 +8,10 @@ function getRedis() {
 function createLimiter(requests: number, window: string, prefix: string) {
   return new Ratelimit({
     redis: getRedis(),
-    limiter: Ratelimit.slidingWindow(requests, window as Parameters<typeof Ratelimit.slidingWindow>[1]),
+    limiter: Ratelimit.slidingWindow(
+      requests,
+      window as Parameters<typeof Ratelimit.slidingWindow>[1]
+    ),
     prefix,
   })
 }
@@ -31,18 +34,24 @@ export const chatRateLimit = lazyLimiter(20, "15 m", "rl:chat")
 export async function checkRateLimit(
   limiter: { instance: Ratelimit },
   identifier: string
-): Promise<{ success: boolean; remaining: number }> {
+): Promise<{ success: boolean; remaining: number; unavailable?: boolean }> {
   if (!process.env.UPSTASH_REDIS_REST_URL) {
     if (process.env.NODE_ENV === "production") {
-      console.warn("[rate-limit] UPSTASH_REDIS_REST_URL not set — rate limiting DISABLED")
+      console.error("[rate-limit] Required production protection is not configured")
+      return { success: false, remaining: 0, unavailable: true }
     }
     return { success: true, remaining: 999 }
   }
   try {
-    const { success, remaining } = await limiter.instance.limit(identifier)
+    const { success, remaining, reason } = await limiter.instance.limit(identifier)
+    // The SDK resolves timeouts as success; an unverified quota must still deny access.
+    if (reason === "timeout") {
+      console.error("[rate-limit] Protection timed out — failing closed")
+      return { success: false, remaining: 0, unavailable: true }
+    }
     return { success, remaining }
-  } catch (err) {
-    console.error("[rate-limit] Redis error — failing closed", err)
-    return { success: false, remaining: 0 }
+  } catch {
+    console.error("[rate-limit] Protection unavailable — failing closed")
+    return { success: false, remaining: 0, unavailable: true }
   }
 }

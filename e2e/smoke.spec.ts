@@ -29,9 +29,7 @@ test.describe("API Routes — Health Checks", () => {
     expect(body.error).toBe("Dados inválidos")
   })
 
-  test("POST /api/appointments validates required fields", async ({
-    request,
-  }) => {
+  test("POST /api/appointments validates required fields", async ({ request }) => {
     const response = await request.post("/api/appointments", {
       data: { name: "Test" }, // Missing type, withWhom, processNumber, reason
     })
@@ -52,12 +50,10 @@ test.describe("API Routes — Health Checks", () => {
     expect(response.status()).toBe(400)
   })
 
-  test("GET /api/news returns JSON (may fail without DB)", async ({
-    request,
-  }) => {
+  test("GET /api/news returns JSON from fixture database", async ({ request }) => {
     const response = await request.get("/api/news")
     // Without DB, this will error — but we check the route exists
-    expect([200, 500]).toContain(response.status())
+    expect(response.status()).toBe(200)
   })
 
   test("GET /api/news cron rejects without auth", async ({ request }) => {
@@ -67,9 +63,7 @@ test.describe("API Routes — Health Checks", () => {
 })
 
 test.describe("Accessibility — Reduced Motion", () => {
-  test("landing page renders immediately with reduced motion", async ({
-    browser,
-  }) => {
+  test("landing page renders immediately with reduced motion", async ({ browser }) => {
     const context = await browser.newContext({ reducedMotion: "reduce" })
     const page = await context.newPage()
     await page.goto("/")
