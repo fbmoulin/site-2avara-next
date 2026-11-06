@@ -12,6 +12,35 @@ function getResend() {
   return new Resend(process.env.RESEND_API_KEY)
 }
 
+const DEFAULT_EMAIL_TO = "2civelgabinetecariacica@gmail.com"
+const EMAIL_PATTERN = /^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/
+
+/** Parses a comma- or semicolon-separated list of addresses, dropping invalid and repeated ones. */
+export function parseEmailList(value: string | undefined): string[] {
+  if (!value) return []
+  const addresses = new Set<string>()
+  let invalid = 0
+  for (const part of value.split(/[,;]/)) {
+    const address = part.trim().toLowerCase()
+    if (!address) continue
+    if (EMAIL_PATTERN.test(address)) addresses.add(address)
+    else invalid++
+  }
+  if (invalid > 0) console.warn("[email] invalid_recipient_ignored", { count: invalid })
+  return [...addresses]
+}
+
+/** EMAIL_TO, EMAIL_CC and EMAIL_BCC accept lists; an address appears in only one field. */
+export function getNotificationRecipients() {
+  const parsedTo = parseEmailList(process.env.EMAIL_TO)
+  const to = parsedTo.length > 0 ? parsedTo : [DEFAULT_EMAIL_TO]
+  const cc = parseEmailList(process.env.EMAIL_CC).filter((address) => !to.includes(address))
+  const bcc = parseEmailList(process.env.EMAIL_BCC).filter(
+    (address) => !to.includes(address) && !cc.includes(address)
+  )
+  return { to, cc, bcc }
+}
+
 interface SendEmailOptions {
   subject: string
   html: string
@@ -25,10 +54,12 @@ async function sendEmail({ subject, html, text }: SendEmailOptions) {
   }
   try {
     const emailFrom = process.env.EMAIL_FROM || "noreply@2avaraciveldecariacica.org"
-    const emailTo = process.env.EMAIL_TO || "2civelgabinetecariacica@gmail.com"
+    const { to, cc, bcc } = getNotificationRecipients()
     const { data, error } = await getResend().emails.send({
       from: `2ª Vara Cível de Cariacica <${emailFrom}>`,
-      to: emailTo,
+      to,
+      ...(cc.length > 0 ? { cc } : {}),
+      ...(bcc.length > 0 ? { bcc } : {}),
       subject,
       html,
       text,

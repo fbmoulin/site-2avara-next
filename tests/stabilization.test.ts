@@ -12,7 +12,9 @@ let refreshCookie = false
 let writes = 0
 let dbFails = false
 let emailFails = false
-let sentTo: string[] = []
+type SentEmail = { to: string[]; cc?: string[]; bcc?: string[] }
+let sentTo: string[][] = []
+let sentEmails: SentEmail[] = []
 let quotaAllowed = true
 let quotaReason: "timeout" | undefined
 let quotaThrows = false
@@ -68,8 +70,8 @@ mock.module("@upstash/ratelimit", () => ({
 mock.module("resend", () => ({
   Resend: class {
     emails = {
-      send: async (message: { to: string }) =>
-        (sentTo.push(message.to), emailFails)
+      send: async (message: SentEmail) =>
+        (sentTo.push(message.to), sentEmails.push(message), emailFails)
           ? { data: null, error: { message: "provider error" } }
           : { data: { id: "local-email" }, error: null },
     }
@@ -130,6 +132,7 @@ beforeEach(() => {
   dbFails = false
   emailFails = false
   sentTo = []
+  sentEmails = []
   quotaAllowed = true
   quotaReason = undefined
   quotaThrows = false
@@ -438,10 +441,41 @@ describe("Request notifications go to the office (gabinete) e-mail", () => {
       })
     ).toBe(true)
     expect(sentTo).toEqual([
-      "2civelgabinetecariacica@gmail.com",
-      "2civelgabinetecariacica@gmail.com",
-      "2civelgabinetecariacica@gmail.com",
+      ["2civelgabinetecariacica@gmail.com"],
+      ["2civelgabinetecariacica@gmail.com"],
+      ["2civelgabinetecariacica@gmail.com"],
     ])
+    expect(sentEmails.every((email) => !("cc" in email) && !("bcc" in email))).toBe(true)
+  })
+
+  test("EMAIL_TO, EMAIL_CC and EMAIL_BCC accept lists and each address goes to one field", async () => {
+    process.env.EMAIL_TO = "2civelgabinetecariacica@gmail.com, Assessor@Example.com"
+    process.env.EMAIL_CC = "juiz@example.com; assessor@example.com"
+    process.env.EMAIL_BCC = "arquivo@example.com, juiz@example.com, nao-e-email"
+    try {
+      expect(await sendContactNotification(contactData)).toBe(true)
+      expect(sentEmails).toEqual([
+        expect.objectContaining({
+          to: ["2civelgabinetecariacica@gmail.com", "assessor@example.com"],
+          cc: ["juiz@example.com"],
+          bcc: ["arquivo@example.com"],
+        }),
+      ])
+    } finally {
+      delete process.env.EMAIL_TO
+      delete process.env.EMAIL_CC
+      delete process.env.EMAIL_BCC
+    }
+  })
+
+  test("an EMAIL_TO with no valid address falls back to the gabinete address", async () => {
+    process.env.EMAIL_TO = " ; invalido"
+    try {
+      expect(await sendContactNotification(contactData)).toBe(true)
+      expect(sentTo).toEqual([["2civelgabinetecariacica@gmail.com"]])
+    } finally {
+      delete process.env.EMAIL_TO
+    }
   })
 })
 
