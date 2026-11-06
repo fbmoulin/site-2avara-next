@@ -12,6 +12,9 @@ let refreshCookie = false
 let writes = 0
 let dbFails = false
 let emailFails = false
+type SentEmail = { to: string[]; cc?: string[]; bcc?: string[] }
+let sentTo: string[][] = []
+let sentEmails: SentEmail[] = []
 let quotaAllowed = true
 let quotaReason: "timeout" | undefined
 let quotaThrows = false
@@ -67,8 +70,8 @@ mock.module("@upstash/ratelimit", () => ({
 mock.module("resend", () => ({
   Resend: class {
     emails = {
-      send: async () =>
-        emailFails
+      send: async (message: SentEmail) =>
+        (sentTo.push(message.to), sentEmails.push(message), emailFails)
           ? { data: null, error: { message: "provider error" } }
           : { data: { id: "local-email" }, error: null },
     }
@@ -113,7 +116,8 @@ const { POST: demand } = await import("../app/api/demands/route")
 const { default: AdminLayout } = await import("../app/admin/layout")
 const { proxy } = await import("../proxy")
 const { NextRequest } = await import("next/server")
-const { sendContactNotification } = await import("../lib/email")
+const { sendContactNotification, sendAppointmentNotification, sendDemandNotification } =
+  await import("../lib/email")
 const { readJsonBody, RequestBodyError } = await import("../lib/request-body")
 const savedEnv = { ...process.env }
 
@@ -127,6 +131,8 @@ beforeEach(() => {
   writes = 0
   dbFails = false
   emailFails = false
+  sentTo = []
+  sentEmails = []
   quotaAllowed = true
   quotaReason = undefined
   quotaThrows = false
@@ -410,6 +416,66 @@ describe("Contact persistence and notification", () => {
   test("validation failure does not persist", async () => {
     expect((await contact(request("/api/contact", { name: "A" }))).status).toBe(400)
     expect(writes).toBe(0)
+  })
+})
+
+describe("Request notifications go to the office (gabinete) e-mail", () => {
+  test("contact, appointment and demand notifications default to the gabinete address", async () => {
+    delete process.env.EMAIL_TO
+    expect(await sendContactNotification(contactData)).toBe(true)
+    expect(
+      await sendAppointmentNotification({
+        type: "virtual",
+        withWhom: "assessoria",
+        name: "Pessoa Teste",
+        processNumber: "0000000-00.2026.8.08.0012",
+        reason: "Motivo fictício para teste local.",
+      })
+    ).toBe(true)
+    expect(
+      await sendDemandNotification({
+        processNumber: "0000000-00.2026.8.08.0012",
+        demandType: "celeridade",
+        description: "Descrição fictícia para teste local.",
+        priority: "normal",
+      })
+    ).toBe(true)
+    expect(sentTo).toEqual([
+      ["2civelgabinetecariacica@gmail.com"],
+      ["2civelgabinetecariacica@gmail.com"],
+      ["2civelgabinetecariacica@gmail.com"],
+    ])
+    expect(sentEmails.every((email) => !("cc" in email) && !("bcc" in email))).toBe(true)
+  })
+
+  test("EMAIL_TO, EMAIL_CC and EMAIL_BCC accept lists and each address goes to one field", async () => {
+    process.env.EMAIL_TO = "2civelgabinetecariacica@gmail.com, Assessor@Example.com"
+    process.env.EMAIL_CC = "juiz@example.com; assessor@example.com"
+    process.env.EMAIL_BCC = "arquivo@example.com, juiz@example.com, nao-e-email"
+    try {
+      expect(await sendContactNotification(contactData)).toBe(true)
+      expect(sentEmails).toEqual([
+        expect.objectContaining({
+          to: ["2civelgabinetecariacica@gmail.com", "assessor@example.com"],
+          cc: ["juiz@example.com"],
+          bcc: ["arquivo@example.com"],
+        }),
+      ])
+    } finally {
+      delete process.env.EMAIL_TO
+      delete process.env.EMAIL_CC
+      delete process.env.EMAIL_BCC
+    }
+  })
+
+  test("an EMAIL_TO with no valid address falls back to the gabinete address", async () => {
+    process.env.EMAIL_TO = " ; invalido"
+    try {
+      expect(await sendContactNotification(contactData)).toBe(true)
+      expect(sentTo).toEqual([["2civelgabinetecariacica@gmail.com"]])
+    } finally {
+      delete process.env.EMAIL_TO
+    }
   })
 })
 

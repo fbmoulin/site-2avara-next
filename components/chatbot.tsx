@@ -153,8 +153,11 @@ export function Chatbot() {
                 <button
                   key={option.id}
                   onClick={() => choose(option.id)}
-                  disabled={loading}
-                  className="rounded-md border px-3 py-2 text-left text-sm disabled:opacity-50"
+                  // aria-disabled (not disabled) keeps keyboard focus on the chosen option;
+                  // a disabled button drops focus to <body>, which also breaks Escape.
+                  // choose() already ignores clicks while a request is pending.
+                  aria-disabled={loading}
+                  className="rounded-md border px-3 py-2 text-left text-sm aria-disabled:cursor-wait aria-disabled:opacity-50"
                 >
                   {option.label}
                 </button>

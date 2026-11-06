@@ -4,7 +4,7 @@ import { eq, desc } from "drizzle-orm"
 import { ExternalLink, Newspaper } from "lucide-react"
 import { ScrollReveal } from "@/components/motion/scroll-reveal"
 import { StaggerContainer, StaggerItem } from "@/components/motion/stagger-container"
-import { FALLBACK_NEWS } from "@/lib/constants"
+import { TJES_NEWS_URL } from "@/lib/constants"
 import Link from "next/link"
 
 export async function NewsPreview() {
@@ -84,27 +84,26 @@ export async function NewsPreview() {
             ))}
           </StaggerContainer>
         ) : (
-          /* Fallback state */
-          <StaggerContainer direction="up" className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {FALLBACK_NEWS.map((item) => (
-              <StaggerItem key={item.id}>
-              <div className="flex flex-col rounded-xl border border-border bg-background p-6">
-                <span className="mb-3 inline-block w-fit rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-                  {item.category}
-                </span>
-                <h3 className="mb-2 text-base font-semibold text-foreground line-clamp-2">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {item.summary}
-                </p>
-                <p className="mt-auto pt-3 text-xs text-muted-foreground">
-                  {item.date}
-                </p>
-              </div>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
+          /* Fallback state: never show placeholder news as if it were real */
+          <div
+            role="status"
+            className="mx-auto max-w-xl rounded-xl border border-border bg-background p-8 text-center"
+          >
+            <p className="mb-4 text-muted-foreground">
+              As notícias estão temporariamente indisponíveis. Consulte as
+              publicações mais recentes diretamente no site do TJES.
+            </p>
+            <a
+              href={TJES_NEWS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm font-medium text-amber-700 hover:underline"
+            >
+              Notícias do TJES
+              <ExternalLink className="size-3.5" aria-hidden="true" />
+              <span className="sr-only">(abre em nova aba)</span>
+            </a>
+          </div>
         )}
 
         <div className="mt-10 text-center">

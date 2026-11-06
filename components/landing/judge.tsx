@@ -5,10 +5,11 @@ import { ScrollReveal } from "@/components/motion/scroll-reveal"
 import { StaggerContainer, StaggerItem } from "@/components/motion/stagger-container"
 
 const TEAM = [
-  { name: "Andreza", role: "Assessora" },
-  { name: "Scarllety", role: "Assessora" },
-  { name: "Ana Clara", role: "Estagiária" },
-  { name: "Isla", role: "Estagiária" },
+  { name: "Andreza Raimundo", role: "Assessora" },
+  { name: "Scarllety Lopes", role: "Assessora" },
+  { name: "Gabriel de Oliveira", role: "Residente Jurídico" },
+  { name: "Ana Clara Schimith", role: "Estagiária" },
+  { name: "Isla Zimerman", role: "Estagiária" },
 ]
 
 export function Judge() {
@@ -22,7 +23,7 @@ export function Judge() {
           <div className="relative mx-auto aspect-[3/4] w-full max-w-md overflow-hidden rounded-2xl bg-muted">
             <Image
               src="/images/forum_1764897995940.jpg"
-              alt={`Foto do ${JUDGE_INFO.name}`}
+              alt="Fachada do Fórum de Cariacica, sede da 2ª Vara Cível"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
@@ -88,7 +89,7 @@ export function Judge() {
               Equipe do Gabinete
             </h3>
           </ScrollReveal>
-          <StaggerContainer direction="left" className="grid grid-cols-2 gap-6 md:grid-cols-4">
+          <StaggerContainer direction="left" className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
             {TEAM.map((person) => (
               <StaggerItem key={person.name} direction="left">
                 <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-background p-6 text-center">
