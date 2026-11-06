@@ -4,6 +4,13 @@ export interface ServiceLink {
   icon: string
 }
 
+export interface TutorialVideo {
+  src: string
+  poster: string
+  title: string
+  description: string
+}
+
 export interface ServiceItem {
   id: string
   title: string
@@ -13,6 +20,7 @@ export interface ServiceItem {
   links?: ServiceLink[]
   tutorial?: string[]
   tutorialTip?: string
+  tutorialVideo?: TutorialVideo
 }
 
 export interface FaqItem {
@@ -65,6 +73,13 @@ export const SERVICES: ServiceItem[] = [
     ],
     tutorialTip:
       "Dica: Entre na sala com pelo menos 10 minutos de antecedência e teste seu áudio antes da audiência.",
+    tutorialVideo: {
+      src: "/videos/tutorial-zoom-audiencia.mp4",
+      poster: "/videos/tutorial-zoom-audiencia-poster.jpg",
+      title: "Vídeo: como participar da audiência híbrida pelo Zoom",
+      description:
+        "Vídeo de 2 minutos, com legendas na tela, mostrando no celular como instalar o Zoom, preparar o ambiente, informar o nome completo, ligar o áudio, resolver problemas comuns e se portar durante a audiência.",
+    },
   },
   {
     id: "4",
@@ -125,7 +140,7 @@ export const JUDGE_INFO = {
 
 export const CONTACT_INFO = {
   address: "R. Meridional, 1000 - Alto Lage, Cariacica - ES, 29151-230",
-  email: "2acivelcariacica@gmail.com",
+  email: "2civelgabinetecariacica@gmail.com",
   phone: "(27) 3246-5641",
 }
 

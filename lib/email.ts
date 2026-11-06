@@ -25,7 +25,7 @@ async function sendEmail({ subject, html, text }: SendEmailOptions) {
   }
   try {
     const emailFrom = process.env.EMAIL_FROM || "noreply@2avaraciveldecariacica.org"
-    const emailTo = process.env.EMAIL_TO || "2acivelcariacica@gmail.com"
+    const emailTo = process.env.EMAIL_TO || "2civelgabinetecariacica@gmail.com"
     const { data, error } = await getResend().emails.send({
       from: `2ª Vara Cível de Cariacica <${emailFrom}>`,
       to: emailTo,

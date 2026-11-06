@@ -63,7 +63,9 @@ function ServiceCard({
   onToggle: () => void
 }) {
   const hasExpandableContent =
-    (service.links && service.links.length > 0) || (service.tutorial && service.tutorial.length > 0)
+    (service.links && service.links.length > 0) ||
+    (service.tutorial && service.tutorial.length > 0) ||
+    Boolean(service.tutorialVideo)
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-md">
@@ -114,7 +116,7 @@ function ServiceCard({
       {hasExpandableContent && (
         <div
           className={`transition-all duration-300 ${
-            isExpanded ? "max-h-[800px] opacity-100" : "max-h-0 overflow-hidden opacity-0"
+            isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 overflow-hidden opacity-0"
           }`}
         >
           <div className="border-t border-slate-100 px-6 py-4">
@@ -142,6 +144,37 @@ function ServiceCard({
                   </a>
                 ))}
               </div>
+            )}
+
+            {/* Tutorial video: mounted only while expanded so it is never focusable or playing when hidden */}
+            {service.tutorialVideo && isExpanded && (
+              <figure className="mt-4">
+                <figcaption
+                  id={`tutorial-video-${service.id}-title`}
+                  className="mb-2 text-sm font-semibold text-muted-foreground"
+                >
+                  {service.tutorialVideo.title}
+                </figcaption>
+                <video
+                  controls
+                  playsInline
+                  preload="none"
+                  poster={service.tutorialVideo.poster}
+                  aria-labelledby={`tutorial-video-${service.id}-title`}
+                  aria-describedby={`tutorial-video-${service.id}-desc`}
+                  className="aspect-video w-full rounded-lg bg-black"
+                >
+                  <source src={service.tutorialVideo.src} type="video/mp4" />
+                  Seu navegador não reproduz vídeos.{" "}
+                  <a href={service.tutorialVideo.src} className="underline">
+                    Baixe o vídeo
+                  </a>
+                  .
+                </video>
+                <p id={`tutorial-video-${service.id}-desc`} className="mt-2 text-xs text-muted-foreground">
+                  {service.tutorialVideo.description}
+                </p>
+              </figure>
             )}
 
             {/* Tutorial steps */}
