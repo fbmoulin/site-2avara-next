@@ -22,7 +22,7 @@ export function Judge() {
           <div className="relative mx-auto aspect-[3/4] w-full max-w-md overflow-hidden rounded-2xl bg-muted">
             <Image
               src="/images/forum_1764897995940.jpg"
-              alt={`Foto do ${JUDGE_INFO.name}`}
+              alt="Fachada do Fórum de Cariacica, sede da 2ª Vara Cível"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
