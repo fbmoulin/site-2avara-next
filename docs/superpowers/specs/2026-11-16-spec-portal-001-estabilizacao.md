@@ -15,7 +15,7 @@ O portal está no ar com o commit `ab56f13`. A revisão de 16/11/2026 encontrou 
 | `/pauta` mostra "Não foi possível consultar a pauta" | As migrações `20261024_hearing_schedules.sql` e `20261024_staff_and_drafts.sql` só foram aplicadas no Supabase de preview (`docs/PAUTA-E-USUARIOS.md`). A tabela não existe no banco de produção. |
 | Painel `/admin` inacessível em produção | `ADMIN_USER_IDS` só existe no ambiente Preview da Vercel. Sem a variável, `authorizeAdmin` responde 503 e `authorizeStaff` não encontra `staff_users`. |
 | Notícias paradas em 20/10/2026 | O feed RSS do TJES está ativo (itens de 13/11/2026), mas recusa requisições automatizadas. O coletor falha nos dois caminhos e não registra erro. A home é estática e nunca é revalidada. |
-| Risco de exposição de dados pessoais | Nenhuma migração ativa RLS em `contact_messages`, `appointments`, `demands`, `articles` e `news`. A anon key é pública. [Resultado da consulta ao banco de produção: ver §9.] |
+| Risco de exposição de dados pessoais | Nenhuma migração ativa RLS em `contact_messages`, `appointments`, `demands`, `articles` e `news`. A anon key é pública. Confirmado e corrigido em 20/11/2026 (§9). |
 | Rodapé abaixo do contraste mínimo | "Política de Privacidade" e "Termos de Uso" a 4,23:1; "Desenvolvido por" a 2,66:1 (mínimo 4,5:1). |
 | Mapa aponta para outro lugar | O embed marca −20,3508 / −40,4106; o Fórum fica em −20,3332 / −40,3767 (cerca de 4 km). |
 
@@ -237,8 +237,8 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 | Item | Resultado |
 | --- | --- |
 | Versão no ar | `ab56f13` nos três endereços; HTML idêntico |
-| Pauta | Migração ausente em produção (documentação do repositório e variáveis da Vercel) [confirmação no banco: pendente] |
-| RLS | [pendente: consulta ao Supabase de produção] |
+| Pauta | Confirmado em 20/11/2026: `hearing_schedules` e `staff_users` ausentes no banco de produção; migrações aplicadas no mesmo dia |
+| RLS | Confirmado em 20/11/2026: cinco tabelas sem RLS e com leitura, escrita e exclusão para `anon`; corrigido no mesmo dia (`20261116_rls_public_tables`) |
 | Notícias | Feed do TJES ativo (itens de 13/11/2026); recusa acesso automatizado; coletor falha sem log |
 | Mapa | Marcador cerca de 4 km a sudoeste do Fórum |
 | Contraste do rodapé | 4,23:1 e 2,66:1 (mínimo 4,5:1) |
