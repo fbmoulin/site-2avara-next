@@ -34,12 +34,19 @@ const NAMED_ENTITIES: Record<string, string> = {
   nbsp: " ",
 }
 
+// A malformed feed must not throw: out-of-range code points stay as written.
+function codePoint(entity: string, value: number): string {
+  return Number.isInteger(value) && value >= 0 && value <= 0x10ffff
+    ? String.fromCodePoint(value)
+    : entity
+}
+
 function decodeEntities(str: string): string {
   return str
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
     .replace(/<[^>]*>/g, "")
-    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/&#(\d+);/g, (entity, code: string) => codePoint(entity, Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (entity, code: string) => codePoint(entity, parseInt(code, 16)))
     .replace(/&([a-z]+);/gi, (entity, name: string) => NAMED_ENTITIES[name.toLowerCase()] ?? entity)
 }
 

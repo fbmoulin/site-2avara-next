@@ -129,6 +129,13 @@ function cronRequest(authorization?: string) {
 }
 
 describe("RSS parsing", () => {
+  test("out-of-range numeric entities stay as written instead of throwing", () => {
+    const xml = `<rss><channel><item><title>Teste &#99999999; e &#x110000; ok &#233;</title><link>https://www.tjes.jus.br/x/</link><guid>g-1</guid></item></channel></rss>`
+    const { items } = extractFromRss(xml)
+    expect(items).toHaveLength(1)
+    expect(items[0].title).toBe("Teste &#99999999; e &#x110000; ok é")
+  })
+
   test("parses the sample feed and discards links outside https tjes.jus.br", () => {
     const { items, skipped } = extractFromRss(SAMPLE_RSS)
     expect(skipped).toBe(3)
