@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer className="bg-slate-950 text-slate-400">
       <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-2">
           {/* Branding */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
@@ -29,19 +29,6 @@ export function Footer() {
             <p className="text-sm">{CONTACT_INFO.phone}</p>
             <p className="text-sm">{CONTACT_INFO.email}</p>
           </div>
-
-          {/* Links */}
-          <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
-              Institucional
-            </h3>
-            <span className="text-sm text-slate-500">
-              Política de Privacidade
-            </span>
-            <span className="text-sm text-slate-500">
-              Termos de Uso
-            </span>
-          </div>
         </div>
 
         <div className="mt-10 border-t border-slate-800 pt-6 text-center text-xs">
@@ -49,7 +36,7 @@ export function Footer() {
             &copy; 2026 2ª Vara Cível de Cariacica. Todos os direitos
             reservados.
           </p>
-          <p className="mt-2 text-slate-600">
+          <p className="mt-2 text-slate-400">
             Desenvolvido por{" "}
             <a
               href="https://lexintelligentia.com"
