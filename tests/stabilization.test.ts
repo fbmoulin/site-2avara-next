@@ -111,8 +111,8 @@ const userActions = await import("../app/admin/usuarios/actions")
 const { POST: chat } = await import("../app/api/chat/route")
 const { POST: contact } = await import("../app/api/contact/route")
 const { POST: upload } = await import("../app/api/upload/route")
-const { POST: appointment } = await import("../app/api/appointments/route")
-const { POST: demand } = await import("../app/api/demands/route")
+const appointmentRoute = await import("../app/api/appointments/route")
+const demandRoute = await import("../app/api/demands/route")
 const { default: AdminLayout } = await import("../app/admin/layout")
 const { proxy } = await import("../proxy")
 const { NextRequest } = await import("next/server")
@@ -322,8 +322,6 @@ describe("Administrative authorization", () => {
 describe("Fail-closed protection across public write/guide routes", () => {
   const routes = [
     ["/api/contact", contact, contactData],
-    ["/api/appointments", appointment, {}],
-    ["/api/demands", demand, {}],
     ["/api/chat", chat, { option: "contact" }],
   ] as const
   for (const failure of ["missing", "rejected", "resolved-timeout"] as const) {
@@ -346,6 +344,46 @@ describe("Fail-closed protection across public write/guide routes", () => {
     expect((await handler(request(path, body))).status).toBe(429)
     expect(writes).toBe(0)
   })
+})
+
+describe("Retired appointment and demand routes", () => {
+  const methods = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const
+  const validBodies = {
+    "/api/appointments": {
+      type: "virtual",
+      withWhom: "assessoria",
+      name: "Pessoa Teste",
+      processNumber: "0000000-00.2026.8.08.0012",
+      reason: "Motivo fictício para teste local.",
+    },
+    "/api/demands": {
+      processNumber: "0000000-00.2026.8.08.0012",
+      demandType: "celeridade",
+      description: "Descrição fictícia para teste local.",
+      priority: "normal",
+    },
+  }
+  for (const [path, route] of [
+    ["/api/appointments", appointmentRoute],
+    ["/api/demands", demandRoute],
+  ] as const) {
+    test.each(methods)(`${path} answers 410 to %s without writing or sending e-mail`, async (method) => {
+      process.env = { ...process.env, NODE_ENV: "production" }
+      const handler = route[method] as (req: InstanceType<typeof NextRequest>) => Response
+      const response = await handler(
+        new NextRequest(`http://localhost${path}`, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: ["GET", "HEAD"].includes(method) ? undefined : JSON.stringify(validBodies[path]),
+        }),
+      )
+      expect(response.status).toBe(410)
+      if (method !== "HEAD") expect((await response.json()).error).toContain("desativado")
+      expect(writes).toBe(0)
+      expect(sentEmails).toHaveLength(0)
+      expect(postResponseTasks).toHaveLength(0)
+    })
+  }
 })
 
 describe("Informative assistant", () => {

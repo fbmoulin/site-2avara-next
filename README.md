@@ -29,7 +29,7 @@ As ações administrativas, o layout, o Proxy e o upload verificam a autorizaç�
 
 - `POST /api/contact`: valida entrada, persiste em `contact_messages` e retorna 201 com `message` e `id`. Esse identificador é de contato, não protocolo de petição ou confirmação de agendamento.
 - `POST /api/chat`: recebe `{ "option": "services" | "contact" | "virtual" }` e retorna orientação JSON. Clientes antigos com `message/history` recebem orientação fixa em SSE, sem reflexão do conteúdo e sem chamada a provedor.
-- `/api/appointments` e `/api/demands` mantêm seus contratos existentes; o guia não chama essas rotas.
+- `/api/appointments` e `/api/demands` foram desativadas: respondem 410 a qualquer método, sem gravar e sem enviar e-mail. As tabelas `appointments` e `demands` e as telas do painel que listam os registros antigos continuam disponíveis.
 - `/api/news?cron=true`: exige `Authorization: Bearer <CRON_SECRET>` (comparação em tempo constante; sem a variável, 503). Lê o RSS do TJES diretamente, com `User-Agent` identificável, guarda só links `https` de `tjes.jus.br`, registra no log um JSON `news_scrape` (`fetched`, `inserted`, `updated`, `skipped`, `errors`) e revalida `/` e `/noticias` quando há novidade. Feed recusado ou sem itens responde 502; falha de banco, 500.
 - `GET /api/news?limit=n`: `n` inteiro de 1 a 50; valor ausente ou inválido usa 10.
 
