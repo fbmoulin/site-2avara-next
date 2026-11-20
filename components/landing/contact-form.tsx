@@ -26,6 +26,8 @@ const SUBJECT_OPTIONS = [
   { value: "outro", label: "Outro" },
 ]
 
+const PRIVACY_NOTICE_ID = "contact-privacy-notice"
+
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [subject, setSubject] = useState<string | null>(null)
@@ -294,8 +296,21 @@ export function ContactForm() {
                   </div>
                 )}
 
+                <p id={PRIVACY_NOTICE_ID} className="text-sm text-foreground">
+                  Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de
+                  dados:{" "}
+                  <a
+                    href="mailto:lgpd@tjes.jus.br"
+                    className="font-medium underline underline-offset-2 hover:no-underline"
+                  >
+                    lgpd@tjes.jus.br
+                  </a>
+                  .
+                </p>
+
                 <Button
                   type="submit"
+                  aria-describedby={PRIVACY_NOTICE_ID}
                   disabled={status === "loading"}
                   className="w-full bg-amber-500 text-foreground hover:bg-amber-400 disabled:opacity-50"
                   size="lg"

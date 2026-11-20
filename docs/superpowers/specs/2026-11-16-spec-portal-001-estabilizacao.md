@@ -25,7 +25,7 @@ O portal está no ar com o commit `ab56f13`. A revisão de 16/11/2026 encontrou 
 | --- | --- | --- |
 | O1 | Pauta e painel funcionando em produção | `/pauta` sem `read_failed` no log; responsável entra em `/admin` |
 | O2 | Notícias do TJES atualizadas todo dia útil | Item mais recente em `/` com no máximo 24 h de atraso em relação ao feed |
-| O3 | Nenhum dado pessoal legível com a anon key; LGPD básica atendida | Consulta REST anônima às cinco tabelas retorna erro de permissão; política de privacidade publicada |
+| O3 | Nenhum dado pessoal legível com a anon key; LGPD básica atendida | Consulta REST anônima às cinco tabelas retorna erro de permissão; aviso de uso dos dados no formulário; expurgo após 12 meses (R1.7 e R3.6, alterados em 20/11/2026) |
 | O4 | Navegação e formulários utilizáveis por teclado, leitor de tela e celular | Casos E2E novos aprovados; nenhuma falha WCAG 2.1 AA nos fluxos principais |
 | O5 | Linha de base de uso das tarefas principais | Eventos dos quatro atalhos registrados por quatro semanas |
 
@@ -85,11 +85,13 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 - Recriar `DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `CRON_SECRET` de Production como "Sensitive" (a Vercel aponta `readable-secret`).
 - Aceite: cabeçalhos conferidos na resposta de produção; VLibras continua funcionando; a Vercel não aponta mais `readable-secret`.
 
-**R1.7 (P1) Privacidade e termos**
-- Páginas `/privacidade` e `/termos`, com links reais no rodapé.
-- Aviso de uma linha acima do botão Enviar do formulário, com link para `/privacidade`.
-- Conteúdo da política: finalidade, base legal, dados coletados, retenção (Q-1), compartilhamento, direitos do titular e canal de contato (Q-7).
-- Aceite: links funcionam; texto aprovado pelo responsável; aviso visível antes do envio.
+**R1.7 (P1) Aviso de uso dos dados** — alterado em 20/11/2026 por decisão do responsável (D-5)
+- Sem páginas `/privacidade` e `/termos`: o portal não é página oficial do TJES.
+- Os itens "Política de Privacidade" e "Termos de Uso" (texto sem link) saem do rodapé, com o bloco "Institucional".
+- Aviso de uma linha acima do botão Enviar, sem link para política e sem checkbox: "Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de dados: lgpd@tjes.jus.br." O e-mail é `mailto:`; o aviso descreve o botão por `aria-describedby`.
+- Contraste mínimo de 4,5:1 no aviso e no crédito do rodapé.
+- Aceite: E2E confere ausência dos itens no rodapé, texto do aviso, descrição acessível do botão e contraste medido no navegador.
+- Texto original (substituído): páginas `/privacidade` e `/termos` com links no rodapé; aviso com link para `/privacidade`; política com finalidade, base legal, dados, retenção (Q-1), compartilhamento, direitos do titular e canal (Q-7).
 
 **R1.8 (P3) Domínio**
 - `www.2avaraciveldecariacica.org` redireciona com 308 para o domínio principal.
@@ -180,8 +182,9 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 - `/noticias` com 30 itens por página; itens com mais de 90 dias desativados; filtro de categorias (Q-5).
 - Aceite: HTML de `/noticias` ≤ 150 KB (hoje 1,5 MB).
 
-**R3.6 (P2) Retenção de dados**
+**R3.6 (P2) Retenção de dados** — antecipado para a onda 1 em 20/11/2026 (T028; D-6)
 - Cron de expurgo ou anonimização de `contact_messages`, `appointments` e `demands` após o prazo de Q-1.
+- Implementação: exclusão dos registros com `created_at` anterior a 12 meses (`lib/retention.ts`, `RETENTION_MONTHS = 12`), numa transação; `GET /api/retention` com a mesma autenticação do cron de notícias; log JSON `data_retention` só com contagens; cron diário `30 6 * * *` em `vercel.json`.
 - Aceite: teste com dados sintéticos vencidos.
 
 **R3.7 (P2) Primeira tela orientada a tarefas**
@@ -202,18 +205,20 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 | D-2 | Plano de execução em três ondas aprovado | 16/11/2026 |
 | D-3 | `www` redireciona para o domínio principal; DNS nos IPs recomendados pela Vercel | 16/11/2026 |
 | D-4 | Toda mudança de código passa por branch, PR, CI e preview com o Supabase `site-2avara-preview` antes de produção | 16/11/2026 |
+| D-5 | R1.7 alterado: sem páginas de privacidade e termos, porque o portal não é página oficial do TJES; itens removidos do rodapé; aviso curto no formulário com o canal `lgpd@tjes.jus.br` | 20/11/2026 |
+| D-6 | Q-1 resolvida: guarda de 12 meses e depois exclusão; T028 (R3.6) antecipada para a onda 1 | 20/11/2026 |
 
 ## 6. Questões em aberto
 
 | ID | Questão | Proposta |
 | --- | --- | --- |
-| Q-1 | Prazo de guarda de contatos, agendamentos e demandas | 12 meses e depois anonimização |
+| Q-1 | Prazo de guarda de contatos, agendamentos e demandas | Resolvida em 20/11/2026 (D-6): 12 meses e depois exclusão |
 | Q-2 | Manter o Gmail do gabinete como canal público | Migrar para caixa institucional do TJES quando possível |
 | Q-3 | Manter o crédito "Desenvolvido por Lex Intelligentia" no rodapé | Decisão do responsável |
 | Q-4 | Se o TJES bloquear os IPs da Vercel mesmo com User-Agent | (a) curadoria manual no admin; (b) coleta por GitHub Actions gravando via endpoint autenticado; (c) retirar a seção |
 | Q-5 | Filtrar matérias criminais do feed | Mostrar só as categorias institucionais e cíveis |
 | Q-6 | UUID do responsável e lista da equipe para produção | Informar na execução de R1.2 |
-| Q-7 | Controlador e canal do titular na política de privacidade | Indicar o TJES e o encarregado de dados dele; a vara como canal de contato |
+| Q-7 | Controlador e canal do titular na política de privacidade | Sem política publicada (D-5); o aviso do formulário indica `lgpd@tjes.jus.br` |
 | Q-8 | Duração da sessão do painel | 8 horas |
 
 ## 7. Implantação e reversão
@@ -225,7 +230,8 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 
 ## 8. Roteiro de verificação em produção
 
-- [ ] `/`, `/pauta`, `/noticias`, `/artigos` e `/privacidade` respondem 200; uma rota inexistente responde 404 em português.
+- [ ] `/`, `/pauta`, `/noticias` e `/artigos` respondem 200; uma rota inexistente responde 404 em português.
+- [ ] Log de produção com o evento `data_retention` do cron diário; `/api/retention` sem `Authorization` responde 401.
 - [ ] Consulta REST anônima às cinco tabelas retorna erro de permissão.
 - [ ] Log de produção sem `read_failed` e com o resultado do coletor de notícias.
 - [ ] Cabeçalhos de segurança conforme R1.6; `www` responde 308.
