@@ -1,0 +1,245 @@
+# SPEC-PORTAL-001 — Estabilização, segurança e experiência do portal
+
+**Projeto:** site-2avara-next (portal público da 2ª Vara Cível de Cariacica)
+**Data:** 16/11/2026
+**Status:** Rascunho para aprovação
+**Versão de referência:** produção em 2avaraciveldecariacica.org = commit `ab56f13` (`master`), deploy `dpl_ELgUp6MFmWJJLKtdwxKAyDRLEKAG`, conferido em 16/11/2026
+**Origem:** documento "Revisão do portal da 2ª Vara Cível de Cariacica — segurança, UX e otimização" (16/11/2026); plano de execução em três ondas aprovado em 16/11/2026
+
+## 1. Contexto
+
+O portal está no ar com o commit `ab56f13`. A revisão de 16/11/2026 encontrou falhas visíveis ao público e riscos de dados pessoais. As causas abaixo foram confirmadas em 16/11/2026.
+
+| Sintoma | Causa confirmada |
+| --- | --- |
+| `/pauta` mostra "Não foi possível consultar a pauta" | As migrações `20261024_hearing_schedules.sql` e `20261024_staff_and_drafts.sql` só foram aplicadas no Supabase de preview (`docs/PAUTA-E-USUARIOS.md`). A tabela não existe no banco de produção. |
+| Painel `/admin` inacessível em produção | `ADMIN_USER_IDS` só existe no ambiente Preview da Vercel. Sem a variável, `authorizeAdmin` responde 503 e `authorizeStaff` não encontra `staff_users`. |
+| Notícias paradas em 20/10/2026 | O feed RSS do TJES está ativo (itens de 13/11/2026), mas recusa requisições automatizadas. O coletor falha nos dois caminhos e não registra erro. A home é estática e nunca é revalidada. |
+| Risco de exposição de dados pessoais | Nenhuma migração ativa RLS em `contact_messages`, `appointments`, `demands`, `articles` e `news`. A anon key é pública. [Resultado da consulta ao banco de produção: ver §9.] |
+| Rodapé abaixo do contraste mínimo | "Política de Privacidade" e "Termos de Uso" a 4,23:1; "Desenvolvido por" a 2,66:1 (mínimo 4,5:1). |
+| Mapa aponta para outro lugar | O embed marca −20,3508 / −40,4106; o Fórum fica em −20,3332 / −40,3767 (cerca de 4 km). |
+
+## 2. Objetivos
+
+| ID | Resultado esperado | Como medir |
+| --- | --- | --- |
+| O1 | Pauta e painel funcionando em produção | `/pauta` sem `read_failed` no log; responsável entra em `/admin` |
+| O2 | Notícias do TJES atualizadas todo dia útil | Item mais recente em `/` com no máximo 24 h de atraso em relação ao feed |
+| O3 | Nenhum dado pessoal legível com a anon key; LGPD básica atendida | Consulta REST anônima às cinco tabelas retorna erro de permissão; política de privacidade publicada |
+| O4 | Navegação e formulários utilizáveis por teclado, leitor de tela e celular | Casos E2E novos aprovados; nenhuma falha WCAG 2.1 AA nos fluxos principais |
+| O5 | Linha de base de uso das tarefas principais | Eventos dos quatro atalhos registrados por quatro semanas |
+
+**Fora do escopo:** redesenho visual completo, troca de stack, guia com IA, integração com o PJe, novo domínio.
+
+## 3. Invariantes (não podem regredir)
+
+Tirados de `CLAUDE.md`, `AGENTS.md` e da revisão:
+
+1. Bun é o único gerenciador de pacotes e scripts.
+2. Contato: gravar antes de responder 201; notificar depois da resposta; falha de e-mail não vira falha de gravação; nenhum dado pessoal em log.
+3. Rate limit obrigatório em produção: dependência ausente ou com erro = 503; cota esgotada = 429.
+4. O guia de atendimento continua determinístico, sem modelos e sem coletar casos.
+5. Autorização fail-closed: sem identidade = 401; sem permissão = 403; configuração ausente = 503. Nunca autorizar por padrão.
+6. Testes nunca usam produção como fixture. Mudança de esquema em produção só por migração versionada, com cópia de segurança antes.
+7. Interface em português; componentes de servidor por padrão; nomes de código em inglês.
+8. Ler `node_modules/next/dist/docs/` antes de usar API do Next 16.
+
+## 4. Requisitos
+
+Cada requisito tem critério de aceite verificável. A prioridade segue a revisão (P0 a P3).
+
+### Onda 1 — produção operacional e riscos imediatos
+
+**R1.1 (P0) Banco de produção alinhado e protegido**
+- Aplicar em produção, nesta ordem: `20261024_hearing_schedules.sql`, `20261024_staff_and_drafts.sql` e a nova `20261116_rls_public_tables.sql`.
+- A nova migração ativa RLS e revoga `anon`/`authenticated` em `contact_messages`, `appointments`, `demands`, `articles` e `news`, e inclui o script de reversão.
+- No Supabase Auth de produção, cadastro público desativado.
+- Aceite: `relrowsecurity = true` nas sete tabelas; `GET /rest/v1/<tabela>?select=id&limit=0` com a anon key retorna erro de permissão nas cinco tabelas; `/pauta` mostra "ainda não foi publicada" ou a tabela; nenhum `read_failed` no log após o deploy.
+
+**R1.2 (P1) Responsável e equipe em produção**
+- `ADMIN_USER_IDS` em Production com o UUID do responsável (conta Supabase de produção).
+- Cadastrar assessoras e estagiárias em `/admin/usuarios`.
+- Aceite: responsável abre `/admin/usuarios`; conta de estagiária abre `/admin/pauta` e recebe 403 em `/admin/contatos`.
+
+**R1.3 (P1) Coletor de notícias confiável**
+- Requisição com `User-Agent` identificável e `Accept: application/rss+xml`.
+- Remover o caminho por `r.jina.ai`.
+- Aceitar só links `https:` com host terminando em `tjes.jus.br`.
+- Registrar no log o resultado (`inserted`, `updated`, `errors`), sem dados pessoais.
+- Ao final, chamar `revalidatePath("/")` e `revalidatePath("/noticias")`.
+- Comparar `CRON_SECRET` em tempo constante.
+- Aceite: execução do cron em produção grava os itens recentes do feed; a home mostra o item mais recente em até 1 h. Se o TJES continuar recusando os IPs da Vercel, aplicar a alternativa decidida em Q-4.
+
+**R1.4 (P1) Home revalidada**
+- `export const revalidate = 3600` em `app/page.tsx`.
+- Aceite: cabeçalho `age` da home nunca passa de 3600 s após a primeira revalidação.
+
+**R1.5 (P1) Rotas sem uso removidas**
+- `/api/appointments` e `/api/demands` respondem 410 e não enviam e-mail.
+- Aceite: teste unitário e E2E confirmam 410 e nenhuma chamada a `sendEmail`.
+
+**R1.6 (P2) Cabeçalhos e segredos**
+- CSP sem `api.openai.com`, com host Supabase fixo e com `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`.
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
+- Remover `OPENAI_API_KEY` da Vercel.
+- Recriar `DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `CRON_SECRET` de Production como "Sensitive" (a Vercel aponta `readable-secret`).
+- Aceite: cabeçalhos conferidos na resposta de produção; VLibras continua funcionando; a Vercel não aponta mais `readable-secret`.
+
+**R1.7 (P1) Privacidade e termos**
+- Páginas `/privacidade` e `/termos`, com links reais no rodapé.
+- Aviso de uma linha acima do botão Enviar do formulário, com link para `/privacidade`.
+- Conteúdo da política: finalidade, base legal, dados coletados, retenção (Q-1), compartilhamento, direitos do titular e canal de contato (Q-7).
+- Aceite: links funcionam; texto aprovado pelo responsável; aviso visível antes do envio.
+
+**R1.8 (P3) Domínio**
+- `www.2avaraciveldecariacica.org` redireciona com 308 para o domínio principal.
+- Registro A na Hostinger nos IPs recomendados pela Vercel.
+- Aceite: `curl -I https://www.2avaraciveldecariacica.org/` retorna 308; a Vercel não marca mais `optional-change`.
+
+### Onda 2 — estrutura e acessibilidade
+
+**R2.1 (P1) Admin isolado**
+- Grupos de rotas `app/(public)` (VLibras, guia, barra de acessibilidade) e `app/(admin)` (sem scripts externos).
+- CSP com nonce via `proxy.ts` no admin.
+- Sessão Supabase mais curta (Q-8).
+- Aceite: HTML do `/admin` sem `vlibras.gov.br`; CSP do admin sem `unsafe-inline`/`unsafe-eval` em `script-src`.
+
+**R2.2 (P1) Navegação**
+- Itens do menu como `<Link href="/#secao">`, com links para Notícias, Artigos e Pauta.
+- Seções com `scroll-margin-top`.
+- Menu móvel fecha com Esc, ao clicar fora e ao navegar; fundo opaco; rolagem travada; foco preso e devolvido ao botão.
+- Aceite: E2E navega pelo menu a partir de `/noticias`, `/artigos` e `/pauta`; E2E móvel fecha o menu com Esc.
+
+**R2.3 (P1) Conteúdo visível sem JavaScript**
+- Hero sem `ScrollReveal`; nenhum bloco acima da dobra com `opacity:0` no HTML do servidor.
+- `<MotionConfig reducedMotion="user">` no layout público.
+- Aceite: HTML de `/` sem `opacity:0` no hero; E2E com `toHaveCSS("opacity","1")`; com `prefers-reduced-motion`, nenhuma transição.
+
+**R2.4 (P1) Cards de serviços**
+- Conteúdo recolhido não renderizado ou `inert`.
+- `aria-expanded` e `aria-controls` no botão; cards sem conteúdo expansível não usam `<button>`.
+- Aceite: Tab não alcança links ocultos; axe sem violações nos cards.
+
+**R2.5 (P2) Landmarks**
+- Um único `<main id="main-content" tabIndex={-1}>` no layout; `<div>` nas páginas.
+- Aceite: um `main` por página; o link de salto funciona em todas as rotas públicas.
+
+**R2.6 (P2) Login**
+- Redirecionamento só para a mesma origem e caminho iniciado em `/admin`.
+- Aceite: `/login?redirect=/\evil.com` termina em `/admin`.
+
+**R2.7 (P2) Entradas do servidor**
+- Assunto do contato como `z.enum` igual à lista da tela.
+- Campo honeypot.
+- `/api/client-errors` com `readJsonBody(req, 8192)`, rate limit, chaves permitidas e só o `pathname` no log.
+- Auditoria grava o e-mail de `requireAdmin()`.
+- `zoomLink` validado como URL `https` do Zoom; `notes` com no máximo 5000 caracteres.
+- `/api/news?limit` validado com zod.
+- Aceite: testes unitários para cada validação.
+
+**R2.8 (P2) Formulário de contato**
+- `autocomplete` (`name`, `tel`, `email`).
+- Erros ligados aos campos com `aria-invalid`/`aria-describedby`; dica de formato visível.
+- Foco na mensagem de sucesso.
+- Telefone e e-mail do gabinete como `tel:` e `mailto:`.
+- Aceite: E2E de envio com teclado; leitor de tela anuncia erro e sucesso.
+
+**R2.9 (P2) Rodapé, mapa e pauta**
+- Textos do rodapé com contraste ≥ 4,5:1.
+- `h2` oculto acima dos `h3` do rodapé.
+- Embed do mapa centrado no Fórum (−20,3332 / −40,3767).
+- Mensagem de erro da pauta com Balcão Virtual e telefone.
+- Aceite: medição de contraste; marcador sobre o Fórum.
+
+**R2.10 (P1) Artigos**
+- `revalidatePath` do slug antigo e do novo ao editar ou despublicar.
+- `generateMetadata` filtra `isPublished`.
+- Aceite: despublicar um artigo sintético no preview tira a página do ar em até 1 min.
+
+### Onda 3 — otimização e estratégia
+
+**R3.1 (P2) SEO**
+- `metadataBase`, `title.template`, canonical, Open Graph com imagem.
+- JSON-LD `GovernmentOrganization` (endereço, telefone, horário), `FAQPage` e `Article`.
+- `sitemap.ts` com `/pauta` e `revalidate`.
+- Aceite: Rich Results Test sem erros; sitemap com quatro rotas fixas mais os artigos.
+
+**R3.2 (P2) FAQ indexável**
+- `<details><summary>` nativo; respostas no HTML do servidor.
+
+**R3.3 (P2) Peso e LCP**
+- `LazyMotion` + `m` (ou CSS puro).
+- Imagem do fórum sem `priority`, com `sizes` correto.
+- Geist Mono só no admin.
+- Aceite: JS da home ≤ 200 KB transferidos (hoje 269 KB); LCP móvel ≤ 2,5 s.
+
+**R3.4 (P2) Erros e carregamento**
+- `error.tsx`, `global-error.tsx`, `not-found.tsx` e `loading.tsx` em português; consultas de `/noticias` e `/artigos` com try/catch.
+
+**R3.5 (P2) Notícias enxutas**
+- `/noticias` com 30 itens por página; itens com mais de 90 dias desativados; filtro de categorias (Q-5).
+- Aceite: HTML de `/noticias` ≤ 150 KB (hoje 1,5 MB).
+
+**R3.6 (P2) Retenção de dados**
+- Cron de expurgo ou anonimização de `contact_messages`, `appointments` e `demands` após o prazo de Q-1.
+- Aceite: teste com dados sintéticos vencidos.
+
+**R3.7 (P2) Primeira tela orientada a tarefas**
+- Título curto e quatro atalhos: Tenho audiência · Consultar processo · Pauta da semana · Falar com a vara.
+- Missão, visão e equipe em "Sobre".
+- Aceite: os quatro atalhos visíveis sem rolagem em 390×844.
+
+**R3.8 (P2) Métricas**
+- Vercel Web Analytics (sem cookies), com eventos dos quatro atalhos, do vídeo do Zoom e de envio do formulário.
+- Pergunta "Isto resolveu sua dúvida?" no guia e na pauta.
+- Aceite: eventos visíveis no painel por quatro semanas.
+
+## 5. Decisões tomadas
+
+| ID | Decisão | Data |
+| --- | --- | --- |
+| D-1 | A versão de referência é a publicada em 2avaraciveldecariacica.org; o repositório só é alterado depois de conferir que corresponde a ela | 16/11/2026 |
+| D-2 | Plano de execução em três ondas aprovado | 16/11/2026 |
+| D-3 | `www` redireciona para o domínio principal; DNS nos IPs recomendados pela Vercel | 16/11/2026 |
+| D-4 | Toda mudança de código passa por branch, PR, CI e preview com o Supabase `site-2avara-preview` antes de produção | 16/11/2026 |
+
+## 6. Questões em aberto
+
+| ID | Questão | Proposta |
+| --- | --- | --- |
+| Q-1 | Prazo de guarda de contatos, agendamentos e demandas | 12 meses e depois anonimização |
+| Q-2 | Manter o Gmail do gabinete como canal público | Migrar para caixa institucional do TJES quando possível |
+| Q-3 | Manter o crédito "Desenvolvido por Lex Intelligentia" no rodapé | Decisão do responsável |
+| Q-4 | Se o TJES bloquear os IPs da Vercel mesmo com User-Agent | (a) curadoria manual no admin; (b) coleta por GitHub Actions gravando via endpoint autenticado; (c) retirar a seção |
+| Q-5 | Filtrar matérias criminais do feed | Mostrar só as categorias institucionais e cíveis |
+| Q-6 | UUID do responsável e lista da equipe para produção | Informar na execução de R1.2 |
+| Q-7 | Controlador e canal do titular na política de privacidade | Indicar o TJES e o encarregado de dados dele; a vara como canal de contato |
+| Q-8 | Duração da sessão do painel | 8 horas |
+
+## 7. Implantação e reversão
+
+1. **Banco:** exportar o esquema e os dados de produção (`pg_dump`) antes de qualquer migração. Aplicar as migrações dentro de transação. Todas são aditivas; a de RLS traz o script de reversão.
+2. **Código:** branch por onda → PR → CI (`lint`, `typecheck`, `test`, `verify:local`) → deploy de preview com o Supabase de preview → checagem manual → merge em `master`.
+3. **Verificação em produção:** depois de cada deploy, rodar o roteiro de §8.
+4. **Reversão:** promover de volta o deploy anterior na Vercel (instantâneo; o atual é `dpl_ELgUp6MFmWJJLKtdwxKAyDRLEKAG`). Banco: script de reversão da migração de RLS. As tabelas novas podem ficar sem prejuízo.
+
+## 8. Roteiro de verificação em produção
+
+- [ ] `/`, `/pauta`, `/noticias`, `/artigos` e `/privacidade` respondem 200; uma rota inexistente responde 404 em português.
+- [ ] Consulta REST anônima às cinco tabelas retorna erro de permissão.
+- [ ] Log de produção sem `read_failed` e com o resultado do coletor de notícias.
+- [ ] Cabeçalhos de segurança conforme R1.6; `www` responde 308.
+- [ ] Envio de contato sintético: 201, gravação única, e-mail recebido no gabinete e em cópia oculta.
+- [ ] Menu, link de salto e formulário pelo teclado; menu móvel em 390 px.
+
+## 9. Confirmações de 16/11/2026
+
+| Item | Resultado |
+| --- | --- |
+| Versão no ar | `ab56f13` nos três endereços; HTML idêntico |
+| Pauta | Migração ausente em produção (documentação do repositório e variáveis da Vercel) [confirmação no banco: pendente] |
+| RLS | [pendente: consulta ao Supabase de produção] |
+| Notícias | Feed do TJES ativo (itens de 13/11/2026); recusa acesso automatizado; coletor falha sem log |
+| Mapa | Marcador cerca de 4 km a sudoeste do Fórum |
+| Contraste do rodapé | 4,23:1 e 2,66:1 (mínimo 4,5:1) |
+| Painel | `ADMIN_USER_IDS` ausente em Production |
