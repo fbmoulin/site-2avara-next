@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState, type FormEvent } from "react"
+import Link from "next/link"
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle } from "lucide-react"
 import { motion } from "framer-motion"
 import { ScrollReveal } from "@/components/motion/scroll-reveal"
@@ -294,8 +295,20 @@ export function ContactForm() {
                   </div>
                 )}
 
+                <p id="contact-privacy-notice" className="text-sm text-foreground">
+                  Usamos seus dados só para responder a esta mensagem. Saiba mais na{" "}
+                  <Link
+                    href="/privacidade"
+                    className="font-medium underline underline-offset-4 hover:text-amber-700 dark:hover:text-amber-300"
+                  >
+                    Política de Privacidade
+                  </Link>
+                  .
+                </p>
+
                 <Button
                   type="submit"
+                  aria-describedby="contact-privacy-notice"
                   disabled={status === "loading"}
                   className="w-full bg-amber-500 text-foreground hover:bg-amber-400 disabled:opacity-50"
                   size="lg"

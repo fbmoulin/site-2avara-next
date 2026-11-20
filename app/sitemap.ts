@@ -10,6 +10,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: BASE_URL, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
     { url: `${BASE_URL}/artigos`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${BASE_URL}/noticias`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
+    { url: `${BASE_URL}/privacidade`, lastModified: new Date("2026-11-20"), changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE_URL}/termos`, lastModified: new Date("2026-11-20"), changeFrequency: "yearly", priority: 0.3 },
   ]
 
   let articlePages: MetadataRoute.Sitemap = []

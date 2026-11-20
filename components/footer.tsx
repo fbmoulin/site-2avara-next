@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Scale } from "lucide-react"
 import { CONTACT_INFO } from "@/lib/constants"
 
@@ -35,12 +36,18 @@ export function Footer() {
             <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
               Institucional
             </h3>
-            <span className="text-sm text-slate-500">
+            <Link
+              href="/privacidade"
+              className="w-fit text-sm text-slate-300 underline-offset-4 transition-colors hover:text-white hover:underline focus-visible:underline"
+            >
               Política de Privacidade
-            </span>
-            <span className="text-sm text-slate-500">
+            </Link>
+            <Link
+              href="/termos"
+              className="w-fit text-sm text-slate-300 underline-offset-4 transition-colors hover:text-white hover:underline focus-visible:underline"
+            >
               Termos de Uso
-            </span>
+            </Link>
           </div>
         </div>
 
@@ -49,13 +56,13 @@ export function Footer() {
             &copy; 2026 2ª Vara Cível de Cariacica. Todos os direitos
             reservados.
           </p>
-          <p className="mt-2 text-slate-600">
+          <p className="mt-2 text-slate-400">
             Desenvolvido por{" "}
             <a
               href="https://lexintelligentia.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-amber-500/70 transition-colors hover:text-amber-400"
+              className="text-amber-400 transition-colors hover:text-amber-300"
             >
               Lex Intelligentia
             </a>
