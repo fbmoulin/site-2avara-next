@@ -124,3 +124,21 @@ test.describe("Client Error Logging — /api/client-errors", () => {
     expect(response.status()).toBe(422)
   })
 })
+
+test.describe("Security headers", () => {
+  test("home responds with the R1.6 headers", async ({ request }) => {
+    const response = await request.get("/")
+    const headers = response.headers()
+    expect(headers["permissions-policy"]).toBe("camera=(), microphone=(), geolocation=()")
+    const csp = headers["content-security-policy"]
+    for (const directive of [
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ])
+      expect(csp).toContain(directive)
+    expect(csp).not.toContain("api.openai.com")
+    expect(csp).toContain("https://vlibras.gov.br")
+  })
+})
