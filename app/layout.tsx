@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "2ª Vara Cível de Cariacica - TJES",
   description:
-    "Portal oficial da 2ª Vara Cível de Cariacica, Espírito Santo. Consulte processos, agende atendimentos e conheça nossos serviços.",
+    "Portal informativo da 2ª Vara Cível de Cariacica (ES): serviços, pauta de audiências, notícias e contato.",
 }
 
 export default function RootLayout({

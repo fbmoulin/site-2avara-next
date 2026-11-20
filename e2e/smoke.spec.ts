@@ -7,6 +7,14 @@ test.describe("Smoke Tests — Pages Render", () => {
     await expect(page.locator("body")).toBeVisible()
   })
 
+  test("meta description describes an informative portal, not the official one", async ({ page }) => {
+    await page.goto("/")
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      "content",
+      "Portal informativo da 2ª Vara Cível de Cariacica (ES): serviços, pauta de audiências, notícias e contato.",
+    )
+  })
+
   test("login page renders with admin title", async ({ page }) => {
     await page.goto("/login")
     await expect(page.locator("h1")).toBeVisible()
