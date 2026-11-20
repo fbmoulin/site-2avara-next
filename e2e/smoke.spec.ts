@@ -59,6 +59,23 @@ test.describe("API Routes — Health Checks", () => {
     const response = await request.get("/api/news?cron=true")
     expect(response.status()).toBe(401)
   })
+
+  test("GET /api/retention rejects without auth", async ({ request }) => {
+    const response = await request.get("/api/retention")
+    expect(response.status()).toBe(401)
+  })
+
+  test("GET /api/retention with the disposable secret keeps recent rows", async ({ request }) => {
+    test.skip(!process.env.CRON_SECRET, "runs under verify:local, which sets a disposable CRON_SECRET")
+    const response = await request.get("/api/retention", {
+      headers: { authorization: `Bearer ${process.env.CRON_SECRET}` },
+    })
+    expect(response.status()).toBe(200)
+    expect(await response.json()).toEqual({
+      retentionMonths: 12,
+      deleted: { contactMessages: 0, appointments: 0, demands: 0 },
+    })
+  })
 })
 
 test.describe("Accessibility — Reduced Motion", () => {

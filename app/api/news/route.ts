@@ -1,4 +1,3 @@
-import { createHash, timingSafeEqual } from "node:crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
@@ -6,26 +5,13 @@ import { db } from "@/lib/db"
 import { news } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
 import { scrapeNews } from "@/lib/news-scraper"
+import { rejectUnauthorizedCron } from "@/lib/cron-auth"
 
 const limitSchema = z.coerce.number().int().min(1).max(50).catch(10)
 
-/** Constant-time comparison; hashing first makes inputs of different lengths comparable. */
-function secretMatches(received: string, expected: string): boolean {
-  const a = createHash("sha256").update(received).digest()
-  const b = createHash("sha256").update(expected).digest()
-  return timingSafeEqual(a, b) && received.length === expected.length
-}
-
 async function runCron(request: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET?.trim()
-  if (!cronSecret) {
-    console.error(JSON.stringify({ event: "news_cron_misconfigured", reason: "missing_cron_secret" }))
-    return NextResponse.json({ error: "Serviço indisponível." }, { status: 503 })
-  }
-  const authHeader = request.headers.get("authorization") ?? ""
-  if (!secretMatches(authHeader, `Bearer ${cronSecret}`)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const rejected = rejectUnauthorizedCron(request, "news_cron_misconfigured")
+  if (rejected) return rejected
 
   const startedAt = Date.now()
   const result = await scrapeNews()

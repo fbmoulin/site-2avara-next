@@ -41,8 +41,10 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 - [ ] **T009 [manual] Variáveis da Vercel** (R1.6)
   Remover `OPENAI_API_KEY`; recriar como Sensitive `DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `CRON_SECRET` (Production).
 
-- [ ] **T010 Privacidade e termos** (R1.7) — texto depende de Q-1 e Q-7
-  `app/privacidade/page.tsx`, `app/termos/page.tsx`, links no `components/footer.tsx`, aviso em `components/landing/contact-form.tsx`, entradas no `sitemap.ts`. O agente redige o texto; o responsável aprova antes do merge.
+- [ ] **T010 Aviso de uso dos dados** (R1.7, alterado em 20/11/2026 por decisão do responsável)
+  Sem páginas de privacidade e termos. Remover os dois itens do `components/footer.tsx` (e o bloco "Institucional"), corrigir o contraste do crédito e pôr o aviso curto com `lgpd@tjes.jus.br` em `components/landing/contact-form.tsx`. Feito na branch `fix/onda-1-rodape-retencao`.
+- [ ] **T028 Expurgo de dados pessoais** (R3.6) — antecipada da onda 3 em 20/11/2026; Q-1 resolvida (12 meses, exclusão)
+  `lib/retention.ts`, `app/api/retention/route.ts`, `lib/cron-auth.ts` (autenticação comum aos crons), cron `30 6 * * *` em `vercel.json`, testes com mocks e com PGlite. Feito na branch `fix/onda-1-rodape-retencao`.
 
 - [ ] **T011 Verificação da onda 1**
   Preview com o Supabase de preview → merge → roteiro de §8 da spec em produção. Executar o cron manualmente uma vez e conferir as notícias. Se o TJES recusar, abrir T011a conforme Q-4.
@@ -89,7 +91,7 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 - [ ] **T025 LazyMotion, imagem e fontes** (R3.3) — medir JS e LCP antes e depois
 - [ ] **T026 Páginas de erro e carregamento** (R3.4)
 - [ ] **T027 Notícias paginadas e filtradas** (R3.5) — depende de Q-5
-- [ ] **T028 Expurgo de dados pessoais** (R3.6) — depende de Q-1
+- T028 Expurgo de dados pessoais (R3.6) — antecipada para a onda 1 em 20/11/2026
 - [ ] **T029 Primeira tela com atalhos** (R3.7) — proposta visual aprovada pelo responsável antes de codificar
 - [ ] **T030 Web Analytics e pergunta de satisfação** (R3.8)
 - [ ] **T031 Verificação da onda 3 e linha de base** — registrar métricas da semana 1 no README
