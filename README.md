@@ -6,7 +6,7 @@ Portal de informações, contato com a equipe, artigos e notícias. O guia de at
 
 - Node.js 24.x (compatível com a configuração consultada da Vercel).
 - Bun 1.4.3, fixado em `packageManager`.
-- Next.js 16.4.2, React/React DOM 19.3.1.
+- Next.js 16.4.6, React/React DOM 19.3.1.
 
 ```bash
 bun install --frozen-lockfile
