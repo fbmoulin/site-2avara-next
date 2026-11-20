@@ -26,10 +26,11 @@ Aplicar, nesta ordem, somente ao banco correto:
 
 1. `lib/db/migrations/20261024_hearing_schedules.sql`
 2. `lib/db/migrations/20261024_staff_and_drafts.sql`
+3. `lib/db/migrations/20261116_rls_public_tables.sql` (reversão: `20261116_rls_public_tables_rollback.sql`)
 
-As tabelas têm RLS habilitada e acesso direto revogado para anon/authenticated. A aplicação usa a conexão server-only. A pauta usa versão otimista para impedir sobrescrita silenciosa em duas gravações concorrentes. Não há dados reais nos scripts.
+As tabelas têm RLS habilitada e acesso direto revogado para anon/authenticated. A terceira migração faz o mesmo nas tabelas antigas `contact_messages`, `appointments`, `demands`, `articles` e `news`, sem criar políticas: a aplicação usa só a conexão server-only (papel `postgres`, que ignora RLS). A pauta usa versão otimista para impedir sobrescrita silenciosa em duas gravações concorrentes. Não há dados reais nos scripts.
 
-As migrações foram executadas no projeto isolado `site-2avara-preview` em 24/10/2026; não executar em produção sem concluir a validação. A chave administrativa do Supabase ainda precisa ser configurada no Preview para testar criação real de usuários. Redis e integrações externas continuam pendentes de validação real.
+As duas primeiras migrações foram executadas no projeto isolado `site-2avara-preview` em 24/10/2026. **As três migrações foram aplicadas no Supabase de produção em 20/11/2026, nesta ordem.** O script de reversão da RLS volta a expor os dados à anon key e só deve ser usado em emergência, com cópia de segurança. O teste `tests/rls-migration.test.ts` confirma em PGlite que, depois da migração, os papéis anon e authenticated não leem nem gravam nas cinco tabelas. A chave administrativa do Supabase ainda precisa ser configurada no Preview para testar criação real de usuários. Redis e integrações externas continuam pendentes de validação real.
 
 ## Verificação local em 24/10/2026
 

@@ -2,7 +2,7 @@
 
 Leia `AGENTS.md` e a documentação da versão instalada do Next em `node_modules/next/dist/docs/` antes de alterar código. Veja `README.md` e `docs/STABILIZATION.md` para configuração e limites de validação.
 
-- Next 16.4.2, React 19.3.1, Node 24.x, Bun 1.4.3; use somente Bun para dependências e scripts.
+- Next 16.4.6, React 19.3.1, Node 24.x, Bun 1.4.3; use somente Bun para dependências e scripts.
 - Supabase Auth verifica identidade; `lib/auth.ts:requireAdmin` aplica `ADMIN_USER_IDS` validado no servidor. Todas as ações e o upload precisam dessa guarda.
 - `proxy.ts` renova a sessão e preserva cookies. Não o trate como proteção suficiente para operações.
 - O guia público é determinístico (`lib/assistant.ts`), não chama modelos, não coleta casos nem confirma registro ou reserva. Preserve esse limite ao editar textos e atalhos.

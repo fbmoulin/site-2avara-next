@@ -17,8 +17,10 @@ test.describe("Integration Tests — Full Flow with DB", () => {
     expect(body.message).toContain("sucesso")
   })
 
-  test("POST /api/appointments creates booking", async ({ request }) => {
-    const response = await request.post("/api/appointments", {
+  test("retired appointment and demand routes reject valid payloads with 410", async ({
+    request,
+  }) => {
+    const appointment = await request.post("/api/appointments", {
       data: {
         type: "virtual",
         withWhom: "assessoria",
@@ -28,13 +30,8 @@ test.describe("Integration Tests — Full Flow with DB", () => {
         reason: "Teste automatizado de agendamento via Playwright. Verificar fluxo completo.",
       },
     })
-    expect(response.status()).toBe(201)
-    const body = await response.json()
-    expect(body.message).toContain("sucesso")
-  })
-
-  test("POST /api/demands creates demand record", async ({ request }) => {
-    const response = await request.post("/api/demands", {
+    expect(appointment.status()).toBe(410)
+    const demand = await request.post("/api/demands", {
       data: {
         processNumber: "0009876-11.2026.8.08.0012",
         demandType: "celeridade",
@@ -43,9 +40,7 @@ test.describe("Integration Tests — Full Flow with DB", () => {
         priority: "normal",
       },
     })
-    expect(response.status()).toBe(201)
-    const body = await response.json()
-    expect(body.message).toContain("sucesso")
+    expect(demand.status()).toBe(410)
   })
 
   test("POST /api/chat returns approved guidance without a model", async ({ request }) => {

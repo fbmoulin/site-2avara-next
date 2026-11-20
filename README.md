@@ -6,7 +6,7 @@ Portal de informações, contato com a equipe, artigos e notícias. O guia de at
 
 - Node.js 24.x (compatível com a configuração consultada da Vercel).
 - Bun 1.4.3, fixado em `packageManager`.
-- Next.js 16.4.2, React/React DOM 19.3.1.
+- Next.js 16.4.6, React/React DOM 19.3.1.
 
 ```bash
 bun install --frozen-lockfile
@@ -29,8 +29,9 @@ As ações administrativas, o layout, o Proxy e o upload verificam a autorizaç�
 
 - `POST /api/contact`: valida entrada, persiste em `contact_messages` e retorna 201 com `message` e `id`. Esse identificador é de contato, não protocolo de petição ou confirmação de agendamento.
 - `POST /api/chat`: recebe `{ "option": "services" | "contact" | "virtual" }` e retorna orientação JSON. Clientes antigos com `message/history` recebem orientação fixa em SSE, sem reflexão do conteúdo e sem chamada a provedor.
-- `/api/appointments` e `/api/demands` mantêm seus contratos existentes; o guia não chama essas rotas.
-- `/api/news?cron=true`: mantém a autenticação por `CRON_SECRET`.
+- `/api/appointments` e `/api/demands` foram desativadas: respondem 410 a qualquer método, sem gravar e sem enviar e-mail. As tabelas `appointments` e `demands` e as telas do painel que listam os registros antigos continuam disponíveis.
+- `/api/news?cron=true`: exige `Authorization: Bearer <CRON_SECRET>` (comparação em tempo constante; sem a variável, 503). Lê o RSS do TJES diretamente, com `User-Agent` identificável, guarda só links `https` de `tjes.jus.br`, registra no log um JSON `news_scrape` (`fetched`, `inserted`, `updated`, `skipped`, `errors`) e revalida `/` e `/noticias` quando há novidade. Feed recusado ou sem itens responde 502; falha de banco, 500.
+- `GET /api/news?limit=n`: `n` inteiro de 1 a 50; valor ausente ou inválido usa 10.
 
 ## Validação reproduzível
 

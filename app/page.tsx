@@ -8,6 +8,9 @@ import { NewsPreview } from "@/components/landing/news-preview"
 import { Faq } from "@/components/landing/faq"
 import { ContactForm } from "@/components/landing/contact-form"
 
+// ISR: the news and articles blocks read the database; the cron also calls revalidatePath("/").
+export const revalidate = 3600
+
 export default function Home() {
   return (
     <main id="main-content">
