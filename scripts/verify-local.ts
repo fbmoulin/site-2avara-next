@@ -46,6 +46,11 @@ try {
     )
     if (persisted.rows[0]?.count !== 1) throw new Error("Contact persistence verification failed")
     console.log("Verified: exactly one integration contact persisted in disposable PostgreSQL.")
+    const retired = await database.query<{ count: number }>(
+      "SELECT ((SELECT count(*) FROM appointments) + (SELECT count(*) FROM demands))::int AS count"
+    )
+    if (retired.rows[0]?.count !== 0) throw new Error("Retired routes wrote appointments or demands")
+    console.log("Verified: retired appointment/demand routes wrote nothing.")
   }
 } finally {
   await server.stop()

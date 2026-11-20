@@ -29,19 +29,18 @@ test.describe("API Routes — Health Checks", () => {
     expect(body.error).toBe("Dados inválidos")
   })
 
-  test("POST /api/appointments validates required fields", async ({ request }) => {
-    const response = await request.post("/api/appointments", {
-      data: { name: "Test" }, // Missing type, withWhom, processNumber, reason
+  for (const path of ["/api/appointments", "/api/demands"]) {
+    test(`${path} is retired with 410`, async ({ request }) => {
+      for (const response of [
+        await request.get(path),
+        await request.post(path, { data: { name: "Teste" } }),
+        await request.delete(path),
+      ]) {
+        expect(response.status()).toBe(410)
+        expect((await response.json()).error).toContain("desativado")
+      }
     })
-    expect(response.status()).toBe(400)
-  })
-
-  test("POST /api/demands validates required fields", async ({ request }) => {
-    const response = await request.post("/api/demands", {
-      data: {}, // Empty
-    })
-    expect(response.status()).toBe(400)
-  })
+  }
 
   test("POST /api/chat validates message field", async ({ request }) => {
     const response = await request.post("/api/chat", {
@@ -123,5 +122,23 @@ test.describe("Client Error Logging — /api/client-errors", () => {
       data: { errors: entries },
     })
     expect(response.status()).toBe(422)
+  })
+})
+
+test.describe("Security headers", () => {
+  test("home responds with the R1.6 headers", async ({ request }) => {
+    const response = await request.get("/")
+    const headers = response.headers()
+    expect(headers["permissions-policy"]).toBe("camera=(), microphone=(), geolocation=()")
+    const csp = headers["content-security-policy"]
+    for (const directive of [
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ])
+      expect(csp).toContain(directive)
+    expect(csp).not.toContain("api.openai.com")
+    expect(csp).toContain("https://vlibras.gov.br")
   })
 })
