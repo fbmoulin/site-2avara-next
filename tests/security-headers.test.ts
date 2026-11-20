@@ -56,11 +56,17 @@ describe("security headers from next.config.ts", async () => {
       "'unsafe-inline'",
       "'unsafe-eval'",
       "https://vlibras.gov.br",
+      "https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/",
     ])
+    // Only the official VLibras repository on jsDelivr, never the whole CDN.
+    for (const directive of ["script-src", "style-src", "img-src", "font-src", "connect-src"]) {
+      expect(csp.get(directive)).not.toContain("https://cdn.jsdelivr.net")
+    }
+    expect(csp.get("worker-src")).toEqual(["'self'", "blob:"])
     expect(csp.get("frame-src")).toContain("https://vlibras.gov.br")
     expect(csp.get("img-src")).toContain("https://vlibras.gov.br")
     expect(csp.get("font-src")).toEqual(
-      expect.arrayContaining(["https://vlibras.gov.br", "https://cdn.jsdelivr.net"]),
+      expect.arrayContaining(["https://vlibras.gov.br", "https://cdn.jsdelivr.net/gh/spbgovbr-vlibras/"]),
     )
     expect(csp.get("connect-src")).toEqual(
       expect.arrayContaining([
