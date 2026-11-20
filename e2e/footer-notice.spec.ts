@@ -52,3 +52,26 @@ test("footer has no privacy or terms placeholders and its credit meets 4.5:1", a
   expect(await contrastRatio(credit)).toBeGreaterThanOrEqual(4.5)
   expect(await contrastRatio(link)).toBeGreaterThanOrEqual(4.5)
 })
+
+test("contact form shows the data notice above the submit button and links it", async ({ page }) => {
+  await page.goto("/")
+  const notice = page.locator("#contact-privacy-notice")
+  const text =
+    "Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de dados: lgpd@tjes.jus.br."
+  await expect(notice).toHaveText(text)
+  await expect(notice.getByRole("link", { name: "lgpd@tjes.jus.br" })).toHaveAttribute(
+    "href",
+    "mailto:lgpd@tjes.jus.br",
+  )
+  await expect(page.locator("#contato").getByRole("checkbox")).toHaveCount(0)
+
+  const submit = page.getByRole("button", { name: "Enviar Mensagem", exact: true })
+  await expect(submit).toHaveAttribute("aria-describedby", "contact-privacy-notice")
+  await expect(submit).toHaveAccessibleDescription(text)
+
+  await notice.scrollIntoViewIfNeeded()
+  const [noticeBox, submitBox] = [await notice.boundingBox(), await submit.boundingBox()]
+  expect(noticeBox!.y + noticeBox!.height).toBeLessThanOrEqual(submitBox!.y)
+  expect(await contrastRatio(notice)).toBeGreaterThanOrEqual(4.5)
+  expect(await contrastRatio(notice.getByRole("link"))).toBeGreaterThanOrEqual(4.5)
+})
