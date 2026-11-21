@@ -300,10 +300,10 @@ export function ContactForm() {
                   Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de
                   dados:{" "}
                   <a
-                    href="mailto:lgpd@tjes.jus.br"
+                    href="mailto:suporte@lexintelligentia.com.br"
                     className="font-medium underline underline-offset-2 hover:no-underline"
                   >
-                    lgpd@tjes.jus.br
+                    suporte@lexintelligentia.com.br
                   </a>
                   .
                 </p>

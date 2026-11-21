@@ -2,8 +2,8 @@ import { lt, sql } from "drizzle-orm"
 import { db } from "./db"
 import { appointments, contactMessages, demands } from "./db/schema"
 
-/** Retention period for personal data received by the portal (SPEC-PORTAL-001, Q-1 / R3.6). */
-export const RETENTION_MONTHS = 12
+/** Retention period for personal data received by the portal (SPEC-PORTAL-001, Q-1 / R3.6; 90 days since 21/11/2026). */
+export const RETENTION_DAYS = 90
 
 export interface RetentionCounts {
   contactMessages: number
@@ -16,7 +16,7 @@ export interface RetentionCounts {
  * filled by `now()` in the session time zone, so comparing with `now()` in the same session keeps
  * both sides consistent regardless of the server's zone.
  */
-const cutoff = sql`now() - ${sql.raw(`interval '${RETENTION_MONTHS} months'`)}`
+const cutoff = sql`now() - ${sql.raw(`interval '${RETENTION_DAYS} days'`)}`
 
 /**
  * Deletes contacts, appointments and demands created before the retention cutoff, in a single

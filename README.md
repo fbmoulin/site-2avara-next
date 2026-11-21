@@ -35,13 +35,13 @@ As ações administrativas, o layout, o Proxy e o upload verificam a autorizaç�
 
 ## Retenção de dados pessoais
 
-Contatos (`contact_messages`), agendamentos (`appointments`) e demandas (`demands`) são guardados por **12 meses** a partir de `created_at` e depois excluídos (`RETENTION_MONTHS` em `lib/retention.ts`; SPEC-PORTAL-001, R3.6). A exclusão é definitiva e corre numa transação: as três tabelas são expurgadas juntas ou nenhuma é. O corte é calculado pelo relógio do banco (`now() - interval '12 months'`). Notícias e artigos não entram na rotina.
+Contatos (`contact_messages`), agendamentos (`appointments`) e demandas (`demands`) são guardados por **90 dias** a partir de `created_at` e depois excluídos (`RETENTION_DAYS` em `lib/retention.ts`; SPEC-PORTAL-001, R3.6; prazo definido em 21/11/2026). A exclusão é definitiva e corre numa transação: as três tabelas são expurgadas juntas ou nenhuma é. O corte é calculado pelo relógio do banco (`now() - interval '90 days'`). Notícias e artigos não entram na rotina.
 
 - `GET /api/retention`: chamado pelo cron diário da Vercel às 06:30 UTC (`30 6 * * *` em `vercel.json`, horário diferente do cron de notícias). Mesma autenticação do cron de notícias (`lib/cron-auth.ts`): `Authorization: Bearer <CRON_SECRET>` comparado em tempo constante; sem a variável, 503; segredo errado, 401.
 - Sucesso: 200 com `{ retentionMonths, deleted: { contactMessages, appointments, demands } }` e log JSON `data_retention` só com as contagens, sem dados pessoais.
 - Falha de banco: 500 com `{ error: <nome do erro> }`; o log registra só o nome, sem SQL nem parâmetros.
 
-O formulário de contato mostra, acima do botão Enviar, o aviso: "Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de dados: lgpd@tjes.jus.br." O portal não publica política de privacidade nem termos de uso, porque não é página oficial do TJES (decisão do responsável de 20/11/2026).
+O formulário de contato mostra, acima do botão Enviar, o aviso: "Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de dados: suporte@lexintelligentia.com.br." O portal não publica política de privacidade nem termos de uso, porque não é página oficial do TJES (decisão do responsável de 20/11/2026).
 
 ## Validação reproduzível
 

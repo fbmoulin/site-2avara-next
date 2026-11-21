@@ -80,7 +80,7 @@ test.describe("API Routes — Health Checks", () => {
     })
     expect(response.status()).toBe(200)
     expect(await response.json()).toEqual({
-      retentionMonths: 12,
+      retentionDays: 90,
       deleted: { contactMessages: 0, appointments: 0, demands: 0 },
     })
   })

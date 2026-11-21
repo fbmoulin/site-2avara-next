@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { rejectUnauthorizedCron } from "@/lib/cron-auth"
-import { purgeExpiredRecords, RETENTION_MONTHS } from "@/lib/retention"
+import { purgeExpiredRecords, RETENTION_DAYS } from "@/lib/retention"
 
 /** Daily Vercel cron (vercel.json): deletes personal data older than the retention period. */
 export async function GET(request: NextRequest) {
@@ -14,19 +14,19 @@ export async function GET(request: NextRequest) {
     console.info(
       JSON.stringify({
         event: "data_retention",
-        retentionMonths: RETENTION_MONTHS,
+        retentionDays: RETENTION_DAYS,
         deleted,
         durationMs: Date.now() - startedAt,
       }),
     )
-    return NextResponse.json({ retentionMonths: RETENTION_MONTHS, deleted })
+    return NextResponse.json({ retentionDays: RETENTION_DAYS, deleted })
   } catch (error) {
     // Only the error name: driver messages can carry SQL text and parameters.
     const name = error instanceof Error ? error.name : "UnknownError"
     console.error(
       JSON.stringify({
         event: "data_retention",
-        retentionMonths: RETENTION_MONTHS,
+        retentionDays: RETENTION_DAYS,
         failure: "database",
         error: name,
         durationMs: Date.now() - startedAt,

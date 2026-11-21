@@ -58,11 +58,11 @@ test("contact form shows the data notice above the submit button and links it", 
   await page.goto("/")
   const notice = page.locator("#contact-privacy-notice")
   const text =
-    "Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de dados: lgpd@tjes.jus.br."
+    "Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de dados: suporte@lexintelligentia.com.br."
   await expect(notice).toHaveText(text)
-  await expect(notice.getByRole("link", { name: "lgpd@tjes.jus.br" })).toHaveAttribute(
+  await expect(notice.getByRole("link", { name: "suporte@lexintelligentia.com.br" })).toHaveAttribute(
     "href",
-    "mailto:lgpd@tjes.jus.br",
+    "mailto:suporte@lexintelligentia.com.br",
   )
   await expect(page.locator("#contato").getByRole("checkbox")).toHaveCount(0)
 

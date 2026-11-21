@@ -43,7 +43,7 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 
 - [ ] **T010 Aviso de uso dos dados** (R1.7, alterado em 20/11/2026 por decisão do responsável)
   Sem páginas de privacidade e termos. Remover os dois itens do `components/footer.tsx` (e o bloco "Institucional"), corrigir o contraste do crédito e pôr o aviso curto com `lgpd@tjes.jus.br` em `components/landing/contact-form.tsx`. Feito na branch `fix/onda-1-rodape-retencao`.
-- [ ] **T028 Expurgo de dados pessoais** (R3.6) — antecipada da onda 3 em 20/11/2026; Q-1 resolvida (12 meses, exclusão)
+- [ ] **T028 Expurgo de dados pessoais** (R3.6) — antecipada da onda 3 em 20/11/2026; Q-1 resolvida (90 dias desde 21/11/2026, exclusão; antes 12 meses)
   `lib/retention.ts`, `app/api/retention/route.ts`, `lib/cron-auth.ts` (autenticação comum aos crons), cron `30 6 * * *` em `vercel.json`, testes com mocks e com PGlite. Feito na branch `fix/onda-1-rodape-retencao`.
 
 - [ ] **T011 Verificação da onda 1**

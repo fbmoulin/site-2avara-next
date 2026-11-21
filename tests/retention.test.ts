@@ -32,7 +32,7 @@ mock.module("../lib/db", () => ({
   },
 }))
 
-const { purgeExpiredRecords, RETENTION_MONTHS } = await import("../lib/retention")
+const { purgeExpiredRecords, RETENTION_DAYS } = await import("../lib/retention")
 const { GET } = await import("../app/api/retention/route")
 const { NextRequest } = await import("next/server")
 
@@ -69,8 +69,8 @@ function cronRequest(authorization?: string) {
 }
 
 describe("purgeExpiredRecords", () => {
-  test("retention period is 12 months", () => {
-    expect(RETENTION_MONTHS).toBe(12)
+  test("retention period is 90 days", () => {
+    expect(RETENTION_DAYS).toBe(90)
   })
 
   test("deletes from the three personal-data tables in one transaction and counts per table", async () => {
@@ -80,12 +80,12 @@ describe("purgeExpiredRecords", () => {
     expect(deletedTables).toEqual(["contact_messages", "appointments", "demands"])
   })
 
-  test("each condition compares created_at with now() minus 12 months", async () => {
+  test("each condition compares created_at with now() minus 90 days", async () => {
     await purgeExpiredRecords()
     const dialect = new PgDialect()
     for (const table of ["contact_messages", "appointments", "demands"]) {
       const query = dialect.sqlToQuery(conditions[table])
-      expect(query.sql).toBe(`"${table}"."created_at" < now() - interval '12 months'`)
+      expect(query.sql).toBe(`"${table}"."created_at" < now() - interval '90 days'`)
       expect(query.params).toEqual([])
     }
   })
@@ -128,15 +128,15 @@ describe("GET /api/retention", () => {
     const response = await GET(cronRequest(`Bearer ${SECRET}`))
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({
-      retentionMonths: 12,
+      retentionDays: 90,
       deleted: { contactMessages: 2, appointments: 4, demands: 1 },
     })
     expect(logs).toHaveLength(1)
     const entry = JSON.parse(logs[0])
-    expect(Object.keys(entry).sort()).toEqual(["deleted", "durationMs", "event", "retentionMonths"])
+    expect(Object.keys(entry).sort()).toEqual(["deleted", "durationMs", "event", "retentionDays"])
     expect(entry).toMatchObject({
       event: "data_retention",
-      retentionMonths: 12,
+      retentionDays: 90,
       deleted: { contactMessages: 2, appointments: 4, demands: 1 },
     })
     expect(logs[0]).not.toContain("id-")
@@ -170,7 +170,7 @@ describe("GET /api/retention", () => {
   })
 })
 
-test("real disposable database deletes only rows older than 12 months", async () => {
+test("real disposable database deletes only rows older than 90 days", async () => {
   const child = Bun.spawn([process.execPath, "tests/fixtures/retention-pglite.ts"], {
     stdout: "pipe",
     stderr: "pipe",
@@ -181,5 +181,5 @@ test("real disposable database deletes only rows older than 12 months", async ()
     child.exited,
   ])
   expect({ stdout, stderr, code }).toMatchObject({ code: 0 })
-  expect(stdout).toContain("verified: only rows older than 12 months were deleted")
+  expect(stdout).toContain("verified: only rows older than 90 days were deleted")
 }, 30000)
