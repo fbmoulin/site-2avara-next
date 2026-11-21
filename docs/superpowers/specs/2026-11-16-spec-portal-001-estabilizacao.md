@@ -209,20 +209,20 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 | D-6 | Q-1 resolvida: guarda de 12 meses e depois exclusão; T028 (R3.6) antecipada para a onda 1 | 20/11/2026 |
 | D-7 | Q-3 resolvida: o crédito do rodapé passa a "Desenvolvido e publicado por Felipe Moulin — Instagram: @felipemoulinjus" | 21/11/2026 |
 | D-8 | Q-2: o Gmail do gabinete continua como canal público por enquanto. Q-8: sessão do painel de 8 horas aprovada | 21/11/2026 |
-| D-9 | Q-1 alterada: prazo de guarda passa de 12 meses para 90 dias, com exclusão definitiva | 21/11/2026 |
-| D-10 | Q-7: canal sobre proteção de dados no aviso do formulário passa a ser `suporte@lexintelligentia.com.br` (Lex Intelligentia) | 21/11/2026 |
+| D-9 | Q-7: canal sobre proteção de dados no aviso do formulário passa a ser `suporte@lexintelligentia.com.br` (Lex Intelligentia) | 21/11/2026 |
+| D-10 | Q-1 alterada: prazo de guarda passa de 12 meses para 90 dias, com exclusão definitiva | 21/11/2026 |
 
 ## 6. Questões em aberto
 
 | ID | Questão | Proposta |
 | --- | --- | --- |
-| Q-1 | Prazo de guarda de contatos, agendamentos e demandas | Resolvida (D-6, alterada por D-9 em 21/11/2026): 90 dias e depois exclusão |
+| Q-1 | Prazo de guarda de contatos, agendamentos e demandas | Resolvida (D-6, alterada por D-10 em 21/11/2026): 90 dias e depois exclusão |
 | Q-2 | Manter o Gmail do gabinete como canal público | Mantido por enquanto (D-8); migrar para caixa institucional do TJES quando possível |
 | Q-3 | Crédito do rodapé | Resolvida em 21/11/2026 (D-7): "Desenvolvido e publicado por Felipe Moulin — Instagram: @felipemoulinjus" |
 | Q-4 | Se o TJES bloquear os IPs da Vercel mesmo com User-Agent | (a) curadoria manual no admin; (b) coleta por GitHub Actions gravando via endpoint autenticado; (c) retirar a seção |
 | Q-5 | Filtrar matérias criminais do feed | Mostrar só as categorias institucionais e cíveis |
 | Q-6 | UUID do responsável e lista da equipe para produção | Informar na execução de R1.2 |
-| Q-7 | Controlador e canal do titular | Resolvida em 21/11/2026 (D-10): Lex Intelligentia; o aviso do formulário indica `suporte@lexintelligentia.com.br`. Sem política publicada (D-5) |
+| Q-7 | Controlador e canal do titular | Resolvida em 21/11/2026 (D-9): Lex Intelligentia; o aviso do formulário indica `suporte@lexintelligentia.com.br`. Sem política publicada (D-5) |
 | Q-8 | Duração da sessão do painel | 8 horas, aprovada em 21/11/2026 (D-8) |
 
 ## 7. Implantação e reversão
