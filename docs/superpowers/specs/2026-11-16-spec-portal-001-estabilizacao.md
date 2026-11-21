@@ -25,7 +25,7 @@ O portal está no ar com o commit `ab56f13`. A revisão de 16/11/2026 encontrou 
 | --- | --- | --- |
 | O1 | Pauta e painel funcionando em produção | `/pauta` sem `read_failed` no log; responsável entra em `/admin` |
 | O2 | Notícias do TJES atualizadas todo dia útil | Item mais recente em `/` com no máximo 24 h de atraso em relação ao feed |
-| O3 | Nenhum dado pessoal legível com a anon key; LGPD básica atendida | Consulta REST anônima às cinco tabelas retorna erro de permissão; aviso de uso dos dados no formulário; expurgo após 12 meses (R1.7 e R3.6, alterados em 20/11/2026) |
+| O3 | Nenhum dado pessoal legível com a anon key; LGPD básica atendida | Consulta REST anônima às cinco tabelas retorna erro de permissão; aviso de uso dos dados no formulário; expurgo após 90 dias (R1.7 e R3.6, alterados em 20 e 21/11/2026) |
 | O4 | Navegação e formulários utilizáveis por teclado, leitor de tela e celular | Casos E2E novos aprovados; nenhuma falha WCAG 2.1 AA nos fluxos principais |
 | O5 | Linha de base de uso das tarefas principais | Eventos dos quatro atalhos registrados por quatro semanas |
 
@@ -184,7 +184,7 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 
 **R3.6 (P2) Retenção de dados** — antecipado para a onda 1 em 20/11/2026 (T028; D-6)
 - Cron de expurgo ou anonimização de `contact_messages`, `appointments` e `demands` após o prazo de Q-1.
-- Implementação: exclusão dos registros com `created_at` anterior a 12 meses (`lib/retention.ts`, `RETENTION_MONTHS = 12`), numa transação; `GET /api/retention` com a mesma autenticação do cron de notícias; log JSON `data_retention` só com contagens; cron diário `30 6 * * *` em `vercel.json`.
+- Implementação: exclusão dos registros com `created_at` anterior a 90 dias (`lib/retention.ts`, `RETENTION_DAYS = 90`; era 12 meses até 21/11/2026), numa transação; `GET /api/retention` com a mesma autenticação do cron de notícias; log JSON `data_retention` só com contagens; cron diário `30 6 * * *` em `vercel.json`.
 - Aceite: teste com dados sintéticos vencidos.
 
 **R3.7 (P2) Primeira tela orientada a tarefas**
@@ -210,12 +210,13 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 | D-7 | Q-3 resolvida: o crédito do rodapé passa a "Desenvolvido e publicado por Felipe Moulin — Instagram: @felipemoulinjus" | 21/11/2026 |
 | D-8 | Q-2: o Gmail do gabinete continua como canal público por enquanto. Q-8: sessão do painel de 8 horas aprovada | 21/11/2026 |
 | D-9 | Q-7: canal sobre proteção de dados no aviso do formulário passa a ser `suporte@lexintelligentia.com.br` (Lex Intelligentia) | 21/11/2026 |
+| D-10 | Q-1 alterada: prazo de guarda passa de 12 meses para 90 dias, com exclusão definitiva | 21/11/2026 |
 
 ## 6. Questões em aberto
 
 | ID | Questão | Proposta |
 | --- | --- | --- |
-| Q-1 | Prazo de guarda de contatos, agendamentos e demandas | Resolvida em 20/11/2026 (D-6): 12 meses e depois exclusão |
+| Q-1 | Prazo de guarda de contatos, agendamentos e demandas | Resolvida (D-6, alterada por D-10 em 21/11/2026): 90 dias e depois exclusão |
 | Q-2 | Manter o Gmail do gabinete como canal público | Mantido por enquanto (D-8); migrar para caixa institucional do TJES quando possível |
 | Q-3 | Crédito do rodapé | Resolvida em 21/11/2026 (D-7): "Desenvolvido e publicado por Felipe Moulin — Instagram: @felipemoulinjus" |
 | Q-4 | Se o TJES bloquear os IPs da Vercel mesmo com User-Agent | (a) curadoria manual no admin; (b) coleta por GitHub Actions gravando via endpoint autenticado; (c) retirar a seção |

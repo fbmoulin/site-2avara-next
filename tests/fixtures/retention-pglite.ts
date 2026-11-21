@@ -14,9 +14,9 @@ mock.module("../../lib/db", () => ({ db }))
 
 // Ages relative to the database clock, as created_at is filled in production.
 const AGES = {
-  old: "now() - interval '13 months'",
-  justExpired: "now() - interval '12 months' - interval '1 day'",
-  justInside: "now() - interval '12 months' + interval '1 day'",
+  old: "now() - interval '6 months'",
+  justExpired: "now() - interval '90 days' - interval '1 day'",
+  justInside: "now() - interval '90 days' + interval '1 day'",
   recent: "now() - interval '1 month'",
   fresh: "now()",
 }
@@ -55,7 +55,7 @@ const request = () =>
 const first = await GET(request())
 assert.equal(first.status, 200)
 assert.deepEqual(await first.json(), {
-  retentionMonths: 12,
+  retentionDays: 90,
   deleted: { contactMessages: EXPIRED.length, appointments: EXPIRED.length, demands: EXPIRED.length },
 })
 
@@ -73,4 +73,4 @@ assert.equal(second.status, 200)
 assert.deepEqual((await second.json()).deleted, { contactMessages: 0, appointments: 0, demands: 0 })
 
 await pg.close()
-console.log("verified: only rows older than 12 months were deleted, in all three tables")
+console.log("verified: only rows older than 90 days were deleted, in all three tables")
