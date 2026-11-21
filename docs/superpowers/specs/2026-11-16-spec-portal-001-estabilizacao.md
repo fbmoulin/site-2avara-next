@@ -88,7 +88,7 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 **R1.7 (P1) Aviso de uso dos dados** — alterado em 20/11/2026 por decisão do responsável (D-5)
 - Sem páginas `/privacidade` e `/termos`: o portal não é página oficial do TJES.
 - Os itens "Política de Privacidade" e "Termos de Uso" (texto sem link) saem do rodapé, com o bloco "Institucional".
-- Aviso de uma linha acima do botão Enviar, sem link para política e sem checkbox: "Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de dados: lgpd@tjes.jus.br." O e-mail é `mailto:`; o aviso descreve o botão por `aria-describedby`.
+- Aviso de uma linha acima do botão Enviar, sem link para política e sem checkbox: "Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de dados: suporte@lexintelligentia.com.br." O e-mail é `mailto:`; o aviso descreve o botão por `aria-describedby`.
 - Contraste mínimo de 4,5:1 no aviso e no crédito do rodapé.
 - Aceite: E2E confere ausência dos itens no rodapé, texto do aviso, descrição acessível do botão e contraste medido no navegador.
 - Texto original (substituído): páginas `/privacidade` e `/termos` com links no rodapé; aviso com link para `/privacidade`; política com finalidade, base legal, dados, retenção (Q-1), compartilhamento, direitos do titular e canal (Q-7).
@@ -209,6 +209,7 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 | D-6 | Q-1 resolvida: guarda de 12 meses e depois exclusão; T028 (R3.6) antecipada para a onda 1 | 20/11/2026 |
 | D-7 | Q-3 resolvida: o crédito do rodapé passa a "Desenvolvido e publicado por Felipe Moulin — Instagram: @felipemoulinjus" | 21/11/2026 |
 | D-8 | Q-2: o Gmail do gabinete continua como canal público por enquanto. Q-8: sessão do painel de 8 horas aprovada | 21/11/2026 |
+| D-9 | Q-7: canal sobre proteção de dados no aviso do formulário passa a ser `suporte@lexintelligentia.com.br` (Lex Intelligentia) | 21/11/2026 |
 
 ## 6. Questões em aberto
 
@@ -220,7 +221,7 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 | Q-4 | Se o TJES bloquear os IPs da Vercel mesmo com User-Agent | (a) curadoria manual no admin; (b) coleta por GitHub Actions gravando via endpoint autenticado; (c) retirar a seção |
 | Q-5 | Filtrar matérias criminais do feed | Mostrar só as categorias institucionais e cíveis |
 | Q-6 | UUID do responsável e lista da equipe para produção | Informar na execução de R1.2 |
-| Q-7 | Controlador e canal do titular na política de privacidade | Sem política publicada (D-5); o aviso do formulário indica `lgpd@tjes.jus.br` |
+| Q-7 | Controlador e canal do titular | Resolvida em 21/11/2026 (D-9): Lex Intelligentia; o aviso do formulário indica `suporte@lexintelligentia.com.br`. Sem política publicada (D-5) |
 | Q-8 | Duração da sessão do painel | 8 horas, aprovada em 21/11/2026 (D-8) |
 
 ## 7. Implantação e reversão
