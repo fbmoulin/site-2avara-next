@@ -37,14 +37,14 @@ export function Footer() {
             reservados.
           </p>
           <p className="mt-2 text-slate-400">
-            Desenvolvido por{" "}
+            Desenvolvido e publicado por Felipe Moulin — Instagram:{" "}
             <a
-              href="https://lexintelligentia.com"
+              href="https://www.instagram.com/felipemoulinjus/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-amber-500/70 transition-colors hover:text-amber-400"
             >
-              Lex Intelligentia
+              @felipemoulinjus
             </a>
           </p>
         </div>

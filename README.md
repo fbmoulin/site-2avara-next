@@ -70,4 +70,4 @@ Veja [docs/STABILIZATION.md](docs/STABILIZATION.md) para os requisitos, evidênc
 
 ## Licença
 
-Copyright 2026 2ª Vara Cível de Cariacica. Desenvolvido por Lex Intelligentia.
+Copyright 2026 2ª Vara Cível de Cariacica. Desenvolvido e publicado por Felipe Moulin (Instagram: @felipemoulinjus).

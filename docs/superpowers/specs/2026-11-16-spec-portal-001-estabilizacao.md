@@ -207,19 +207,21 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 | D-4 | Toda mudança de código passa por branch, PR, CI e preview com o Supabase `site-2avara-preview` antes de produção | 16/11/2026 |
 | D-5 | R1.7 alterado: sem páginas de privacidade e termos, porque o portal não é página oficial do TJES; itens removidos do rodapé; aviso curto no formulário com o canal `lgpd@tjes.jus.br` | 20/11/2026 |
 | D-6 | Q-1 resolvida: guarda de 12 meses e depois exclusão; T028 (R3.6) antecipada para a onda 1 | 20/11/2026 |
+| D-7 | Q-3 resolvida: o crédito do rodapé passa a "Desenvolvido e publicado por Felipe Moulin — Instagram: @felipemoulinjus" | 21/11/2026 |
+| D-8 | Q-2: o Gmail do gabinete continua como canal público por enquanto. Q-8: sessão do painel de 8 horas aprovada | 21/11/2026 |
 
 ## 6. Questões em aberto
 
 | ID | Questão | Proposta |
 | --- | --- | --- |
 | Q-1 | Prazo de guarda de contatos, agendamentos e demandas | Resolvida em 20/11/2026 (D-6): 12 meses e depois exclusão |
-| Q-2 | Manter o Gmail do gabinete como canal público | Migrar para caixa institucional do TJES quando possível |
-| Q-3 | Manter o crédito "Desenvolvido por Lex Intelligentia" no rodapé | Decisão do responsável |
+| Q-2 | Manter o Gmail do gabinete como canal público | Mantido por enquanto (D-8); migrar para caixa institucional do TJES quando possível |
+| Q-3 | Crédito do rodapé | Resolvida em 21/11/2026 (D-7): "Desenvolvido e publicado por Felipe Moulin — Instagram: @felipemoulinjus" |
 | Q-4 | Se o TJES bloquear os IPs da Vercel mesmo com User-Agent | (a) curadoria manual no admin; (b) coleta por GitHub Actions gravando via endpoint autenticado; (c) retirar a seção |
 | Q-5 | Filtrar matérias criminais do feed | Mostrar só as categorias institucionais e cíveis |
 | Q-6 | UUID do responsável e lista da equipe para produção | Informar na execução de R1.2 |
 | Q-7 | Controlador e canal do titular na política de privacidade | Sem política publicada (D-5); o aviso do formulário indica `lgpd@tjes.jus.br` |
-| Q-8 | Duração da sessão do painel | 8 horas |
+| Q-8 | Duração da sessão do painel | 8 horas, aprovada em 21/11/2026 (D-8) |
 
 ## 7. Implantação e reversão
 

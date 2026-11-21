@@ -46,9 +46,10 @@ test("footer has no privacy or terms placeholders and its credit meets 4.5:1", a
   for (const removed of ["Institucional", "Política de Privacidade", "Termos de Uso"])
     await expect(footer).not.toContainText(removed)
 
-  const credit = footer.locator("p", { hasText: "Desenvolvido por" })
-  const link = credit.getByRole("link", { name: "Lex Intelligentia" })
-  await expect(link).toHaveAttribute("href", "https://lexintelligentia.com")
+  const credit = footer.locator("p", { hasText: "Desenvolvido e publicado por Felipe Moulin" })
+  await expect(footer).not.toContainText("Lex Intelligentia")
+  const link = credit.getByRole("link", { name: "@felipemoulinjus" })
+  await expect(link).toHaveAttribute("href", "https://www.instagram.com/felipemoulinjus/")
   expect(await contrastRatio(credit)).toBeGreaterThanOrEqual(4.5)
   expect(await contrastRatio(link)).toBeGreaterThanOrEqual(4.5)
 })
