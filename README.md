@@ -41,7 +41,7 @@ Contatos (`contact_messages`), agendamentos (`appointments`) e demandas (`demand
 - Sucesso: 200 com `{ retentionMonths, deleted: { contactMessages, appointments, demands } }` e log JSON `data_retention` só com as contagens, sem dados pessoais.
 - Falha de banco: 500 com `{ error: <nome do erro> }`; o log registra só o nome, sem SQL nem parâmetros.
 
-O formulário de contato mostra, acima do botão Enviar, o aviso: "Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de dados: lgpd@tjes.jus.br." O portal não publica política de privacidade nem termos de uso, porque não é página oficial do TJES (decisão do responsável de 20/11/2026).
+O formulário de contato mostra, acima do botão Enviar, o aviso: "Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de dados: suporte@lexintelligentia.com.br." O portal não publica política de privacidade nem termos de uso, porque não é página oficial do TJES (decisão do responsável de 20/11/2026).
 
 ## Validação reproduzível
 
