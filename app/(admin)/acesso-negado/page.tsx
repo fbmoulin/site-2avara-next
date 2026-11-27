@@ -1,5 +1,3 @@
-import Link from "next/link"
-
 export const metadata = { title: "Acesso não autorizado", robots: { index: false, follow: false } }
 
 export default function AccessDeniedPage() {
@@ -10,9 +8,10 @@ export default function AccessDeniedPage() {
         Sua conta não possui permissão para acessar o painel administrativo. Entre em contato com o
         responsável pelo portal.
       </p>
-      <Link className="mt-6 inline-block underline" href="/">
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- full load so the public page gets its own CSP (proxy.ts) */}
+      <a className="mt-6 inline-block underline" href="/">
         Voltar ao início
-      </Link>
+      </a>
     </main>
   )
 }

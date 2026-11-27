@@ -55,6 +55,19 @@ export function NavbarClient() {
     return () => observer.disconnect()
   }, [pathname])
 
+  // The mobile menu is hidden from the lg breakpoint up: close it there so its scroll lock and
+  // focus trap do not outlive it.
+  useEffect(() => {
+    if (!mobileOpen) return
+    const desktop = window.matchMedia("(min-width: 64rem)")
+    function onChange() {
+      if (desktop.matches) setMobileOpen(false)
+    }
+    onChange()
+    desktop.addEventListener("change", onChange)
+    return () => desktop.removeEventListener("change", onChange)
+  }, [mobileOpen])
+
   // Open mobile menu: lock page scroll, trap focus, close with Esc or a click outside.
   useEffect(() => {
     if (!mobileOpen) return

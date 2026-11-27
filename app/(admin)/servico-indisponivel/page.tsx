@@ -1,5 +1,3 @@
-import Link from "next/link"
-
 export const metadata = {
   title: "Serviço temporariamente indisponível",
   robots: { index: false, follow: false },
@@ -12,9 +10,10 @@ export default function ServiceUnavailablePage() {
       <p className="mt-4">
         Não foi possível verificar o acesso administrativo. Tente novamente mais tarde.
       </p>
-      <Link className="mt-6 inline-block underline" href="/">
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- full load so the public page gets its own CSP (proxy.ts) */}
+      <a className="mt-6 inline-block underline" href="/">
         Voltar ao início
-      </Link>
+      </a>
     </main>
   )
 }

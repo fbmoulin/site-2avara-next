@@ -62,3 +62,16 @@ test("public pages keep the VLibras CSP and widget", async ({ request }) => {
     expect(await response.text()).toContain("vw-access-button")
   }
 })
+
+test("leaving the admin group for the public site is a full page load with the public CSP", async ({
+  page,
+}) => {
+  for (const path of ["/acesso-negado", "/servico-indisponivel"]) {
+    await page.goto(path)
+    const [response] = await Promise.all([
+      page.waitForResponse((r) => new URL(r.url()).pathname === "/" && r.request().resourceType() === "document"),
+      page.getByRole("link", { name: "Voltar ao início" }).click(),
+    ])
+    expect(response.headers()["content-security-policy"]).toContain("https://vlibras.gov.br")
+  }
+})

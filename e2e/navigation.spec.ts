@@ -83,6 +83,19 @@ test.describe("mobile menu at 390 px", () => {
     expect(await page.evaluate(() => document.body.style.overflow)).toBe("")
   })
 
+  test("growing to the desktop breakpoint closes it and releases scroll and focus", async ({
+    page,
+  }) => {
+    await page.goto("/pauta")
+    await page.getByRole("button", { name: "Abrir menu" }).click()
+    await expect(page.locator("#mobile-navigation")).toBeVisible()
+    await page.setViewportSize({ width: 1280, height: 844 })
+    await expect(page.locator("#mobile-navigation")).toHaveCount(0)
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe("")
+    await page.keyboard.press("Tab")
+    await expect(page.locator(":focus")).toBeVisible()
+  })
+
   test("a click outside closes it", async ({ page }) => {
     await page.goto("/pauta")
     await page.getByRole("button", { name: "Abrir menu" }).click()
