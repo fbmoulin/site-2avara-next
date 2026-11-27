@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react"
 import { db } from "@/lib/db"
 import { articles } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
+import { pageMetadata } from "@/lib/seo"
 import {
   Card,
   CardHeader,
@@ -14,9 +15,12 @@ import {
 
 export const revalidate = 60
 
-export const metadata = {
-  title: "Artigos - 2ª Vara Cível de Cariacica",
-}
+export const metadata = pageMetadata({
+  title: "Artigos",
+  description:
+    "Artigos sobre Direito, inovação no Judiciário e informações para advogados e cidadãos.",
+  path: "/artigos",
+})
 
 export default async function ArtigosPage() {
   const items = await db

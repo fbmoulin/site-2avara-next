@@ -7,15 +7,22 @@ import { BlogPreview } from "@/components/landing/blog-preview"
 import { NewsPreview } from "@/components/landing/news-preview"
 import { Faq } from "@/components/landing/faq"
 import { ContactForm } from "@/components/landing/contact-form"
+import { JsonLd } from "@/components/json-ld"
+import { FAQS } from "@/lib/constants"
 import { hearingSuspensionNotice } from "@/lib/hearing-schedule"
+import { faqPageJsonLd, governmentOrganizationJsonLd, pageMetadata, SITE_NAME } from "@/lib/seo"
 
 // ISR: the news and articles blocks read the database; the cron also calls revalidatePath("/").
 export const revalidate = 3600
+
+export const metadata = pageMetadata({ title: SITE_NAME, path: "/", absoluteTitle: true })
 
 export default function Home() {
   const suspension = hearingSuspensionNotice()
   return (
     <>
+      <JsonLd data={governmentOrganizationJsonLd()} />
+      <JsonLd data={faqPageJsonLd(FAQS)} />
       <Hero />
       <Judge />
       <Services />

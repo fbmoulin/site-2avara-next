@@ -10,6 +10,7 @@ import {
   CONTACT_INFO,
   CONTACT_SUBJECTS,
   FORUM_MAP_EMBED_URL,
+  OFFICE_HOURS,
 } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -262,7 +263,7 @@ export function ContactForm() {
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">Horário</p>
-                  <p className="text-sm text-muted-foreground">Seg-Sex: 12h às 18h</p>
+                  <p className="text-sm text-muted-foreground">{OFFICE_HOURS.label}</p>
                 </div>
               </div>
             </div>

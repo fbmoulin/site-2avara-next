@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm"
 import { HearingScheduleUnavailable } from "@/components/hearing-schedule-unavailable"
 import { db } from "@/lib/db"
 import { hearingSchedules } from "@/lib/db/schema"
+import { pageMetadata } from "@/lib/seo"
 import {
   addDays,
   currentWeek,
@@ -12,7 +13,12 @@ import {
   scheduleSchema,
 } from "@/lib/hearing-schedule"
 
-export const metadata = { title: "Pauta semanal de audiências — 2ª Vara Cível de Cariacica" }
+export const metadata = pageMetadata({
+  title: "Pauta semanal de audiências",
+  description:
+    "Pauta semanal das audiências da 2ª Vara Cível de Cariacica (ES), com horários e modalidades.",
+  path: "/pauta",
+})
 
 export default async function HearingSchedulePage() {
   await connection()

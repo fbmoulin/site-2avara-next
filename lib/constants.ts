@@ -154,12 +154,30 @@ export const JUDGE_INFO = {
   bio: "Graduado em Direito pela FDV, especialista em Processo Civil, Digital Hacking e IA aplicada ao Direito. Atua na magistratura capixaba há mais de 20 anos, com foco em celeridade e gestão processual por meio do uso de ferramentas de Inteligência Artificial e humanização da Justiça.",
 }
 
+// Parts of the address, also used by the GovernmentOrganization JSON-LD (R3.1).
+export const ADDRESS = {
+  street: "R. Meridional, 1000 - Alto Lage",
+  city: "Cariacica",
+  region: "ES",
+  postalCode: "29151-230",
+  country: "BR",
+} as const
+
 export const CONTACT_INFO = {
-  address: "R. Meridional, 1000 - Alto Lage, Cariacica - ES, 29151-230",
+  address: `${ADDRESS.street}, ${ADDRESS.city} - ${ADDRESS.region}, ${ADDRESS.postalCode}`,
   email: "2civelgabinetecariacica@gmail.com",
   phone: "(27) 3246-5641",
   phoneHref: "tel:+552732465641",
+  phoneInternational: "+55-27-3246-5641",
 }
+
+// In-person service hours: shown in the contact block and in the JSON-LD (R3.1).
+export const OFFICE_HOURS = {
+  label: "Seg-Sex: 12h às 18h",
+  days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+  opens: "12:00",
+  closes: "18:00",
+} as const
 
 // Fórum de Cariacica (R2.9): the map embed is centred on these coordinates.
 export const FORUM_COORDINATES = { latitude: -20.3332, longitude: -40.3767 }

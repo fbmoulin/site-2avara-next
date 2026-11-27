@@ -3,6 +3,7 @@ import { ArrowLeft, ExternalLink } from "lucide-react"
 import { db } from "@/lib/db"
 import { news } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
+import { pageMetadata } from "@/lib/seo"
 import {
   Card,
   CardHeader,
@@ -14,9 +15,11 @@ import {
 
 export const revalidate = 3600
 
-export const metadata = {
-  title: "Notícias - 2ª Vara Cível de Cariacica",
-}
+export const metadata = pageMetadata({
+  title: "Notícias do TJES",
+  description: "Notícias recentes publicadas pelo Tribunal de Justiça do Espírito Santo (TJES).",
+  path: "/noticias",
+})
 
 export default async function NoticiasPage() {
   const items = await db

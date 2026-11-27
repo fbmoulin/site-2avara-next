@@ -6,6 +6,8 @@ import { db } from "@/lib/db"
 import { articles } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { getPublishedArticle } from "@/lib/articles"
+import { JsonLd } from "@/components/json-ld"
+import { articleJsonLd, OG_IMAGE, pageMetadata } from "@/lib/seo"
 
 // Safety net besides revalidatePath from the panel: a change shows within a minute (R2.10).
 export const revalidate = 60
@@ -32,14 +34,18 @@ export async function generateMetadata({
     return { title: "Artigo não encontrado" }
   }
 
-  return {
+  const base = pageMetadata({
     title: article.title,
     description: article.excerpt ?? undefined,
+    path: `/artigos/${article.slug}`,
+  })
+  return {
+    ...base,
     openGraph: {
-      title: article.title,
-      description: article.excerpt ?? undefined,
-      images: article.imageUrl ? [article.imageUrl] : [],
+      ...base.openGraph,
       type: "article" as const,
+      ...(article.publishedAt ? { publishedTime: article.publishedAt.toISOString() } : {}),
+      images: article.imageUrl ? [{ url: article.imageUrl, alt: article.title }] : [OG_IMAGE],
     },
   }
 }
@@ -60,6 +66,7 @@ export default async function ArtigoPage({
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 md:px-6">
+      <JsonLd data={articleJsonLd(article)} />
       <Link
         href="/artigos"
         className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
