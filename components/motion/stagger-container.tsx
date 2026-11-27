@@ -1,54 +1,35 @@
 "use client"
 
-import { type ReactNode, useRef } from "react"
-import { motion, useInView } from "framer-motion"
+import { type CSSProperties, type ReactNode, useRef } from "react"
+import { useReveal } from "./use-reveal"
 
 type Direction = "up" | "left" | "right"
-
-const getItemVariants = (direction: Direction) => {
-  const offset: Record<Direction, Record<string, number>> = {
-    up: { y: 20 },
-    left: { x: -20 },
-    right: { x: 20 },
-  }
-
-  return {
-    hidden: { opacity: 0, ...offset[direction] },
-    visible: { opacity: 1, x: 0, y: 0 },
-  }
-}
 
 interface StaggerContainerProps {
   children: ReactNode
   staggerDelay?: number
+  /** Kept for compatibility: each StaggerItem sets its own direction. */
   direction?: Direction
   className?: string
 }
 
+// The container decides when its items reveal; app/globals.css staggers them by position (R3.3).
 export function StaggerContainer({
   children,
   staggerDelay = 0.1,
   className,
 }: StaggerContainerProps) {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, amount: 0.1 })
-
+  const state = useReveal(ref)
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial={false}
-      animate={isInView ? "visible" : "hidden"}
-      variants={{
-        hidden: {},
-        visible: {
-          transition: { staggerChildren: staggerDelay },
-        },
-      }}
       className={className}
-      data-reveal=""
+      data-reveal-group={state}
+      style={{ "--reveal-stagger": `${staggerDelay}s` } as CSSProperties}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }
 
@@ -58,19 +39,10 @@ interface StaggerItemProps {
   className?: string
 }
 
-export function StaggerItem({
-  children,
-  direction = "up",
-  className,
-}: StaggerItemProps) {
+export function StaggerItem({ children, direction = "up", className }: StaggerItemProps) {
   return (
-    <motion.div
-      variants={getItemVariants(direction)}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className={className}
-      data-reveal=""
-    >
+    <div className={className} data-reveal="" data-reveal-item={direction}>
       {children}
-    </motion.div>
+    </div>
   )
 }

@@ -11,24 +11,10 @@ import {
   MessageSquare,
   Scale,
 } from "lucide-react"
-import { motion } from "framer-motion"
 import { SERVICES } from "@/lib/constants"
 import type { ServiceItem } from "@/lib/constants"
 import { ScrollReveal } from "@/components/motion/scroll-reveal"
 import { StaggerContainer, StaggerItem } from "@/components/motion/stagger-container"
-
-import type { TargetAndTransition, Transition } from "framer-motion"
-
-const HOVER_ANIMATIONS: Record<
-  string,
-  { whileHover: TargetAndTransition; transition: Transition }
-> = {
-  search: { whileHover: { scale: [1, 1.15, 1] }, transition: { duration: 0.4 } },
-  video: { whileHover: { rotate: [0, 10, 0] }, transition: { duration: 0.3 } },
-  calendar: { whileHover: { y: [0, -4, 0] }, transition: { duration: 0.3 } },
-  "file-text": { whileHover: { rotateY: [0, 180, 360] }, transition: { duration: 0.5 } },
-  "message-square": { whileHover: { rotate: [-5, 5, 0] }, transition: { duration: 0.3 } },
-}
 
 const ICON_COMPONENTS: Record<string, React.ReactNode> = {
   search: <Search className="size-6" />,
@@ -68,19 +54,18 @@ function ServiceCard({
     Boolean(service.tutorialVideo)
 
   const panelId = `service-panel-${service.id}`
+  // Hover effect in CSS (R3.3), off with reduced motion.
   const icon = (
-    <motion.div
+    <div
       aria-hidden="true"
-      className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600"
-      whileHover={HOVER_ANIMATIONS[service.icon]?.whileHover}
-      transition={HOVER_ANIMATIONS[service.icon]?.transition}
+      className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition-transform duration-300 group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
     >
       {ICON_COMPONENTS[service.icon] ?? <FileText className="size-6" />}
-    </motion.div>
+    </div>
   )
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-md">
+    <div className="group overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-md">
       {hasExpandableContent ? (
         // Disclosure: the button names the card and controls the panel below (R2.4).
         <h3>

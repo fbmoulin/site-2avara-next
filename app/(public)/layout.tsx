@@ -4,41 +4,38 @@ import { AccessibilityBar } from "@/components/accessibility-bar"
 import { Chatbot } from "@/components/chatbot"
 import { LoggerInit } from "@/components/logger-init"
 import { VLibrasInit } from "@/components/vlibras-init"
-import { MotionProvider } from "@/components/motion/motion-provider"
 
 // Public pages: accessibility bar, informative guide and VLibras. The admin group never renders these.
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <MotionProvider>
-      <div className="flex min-h-full flex-1 flex-col pt-11 md:pt-9">
-        <AccessibilityBar />
-        <Navbar />
-        {/* The only <main> of every public page; target of the "Ir para conteúdo" link (R2.5). */}
-        <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
-          {children}
-        </main>
-        <Footer />
+    <div className="flex min-h-full flex-1 flex-col pt-11 md:pt-9">
+      <AccessibilityBar />
+      <Navbar />
+      {/* The only <main> of every public page; target of the "Ir para conteúdo" link (R2.5). */}
+      <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
+        {children}
+      </main>
+      <Footer />
 
-        <LoggerInit />
-        <Chatbot />
+      <LoggerInit />
+      <Chatbot />
 
-        {/* VLibras - acessibilidade em Libras */}
-        <div
-          // @ts-expect-error — VLibras uses non-standard vw attribute
-          vw="true"
-          className="enabled"
-        >
-          <div vw-access-button="true" className="active" />
-          <div vw-plugin-wrapper="true">
-            <div className="vw-plugin-top-wrapper" />
-          </div>
+      {/* VLibras - acessibilidade em Libras */}
+      <div
+        // @ts-expect-error — VLibras uses non-standard vw attribute
+        vw="true"
+        className="enabled"
+      >
+        <div vw-access-button="true" className="active" />
+        <div vw-plugin-wrapper="true">
+          <div className="vw-plugin-top-wrapper" />
         </div>
-        <VLibrasInit />
-        <style>{`
+      </div>
+      <VLibrasInit />
+      <style>{`
         [vw] .active { position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 9999 !important; }
         [vw-plugin-wrapper] { position: fixed !important; z-index: 9998 !important; }
       `}</style>
-      </div>
-    </MotionProvider>
+    </div>
   )
 }

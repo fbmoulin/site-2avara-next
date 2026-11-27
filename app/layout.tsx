@@ -1,15 +1,10 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Geist } from "next/font/google"
 import { OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo"
 import "./globals.css"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
-})
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
 })
 
@@ -32,7 +27,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", images: [OG_IMAGE.url] },
 }
 
-// Shared shell only. The public chrome (VLibras, guide, accessibility bar) lives in app/(public);
+// Shared shell only. Geist Mono is loaded by app/(admin)/layout.tsx, the only place that uses it (R3.3). The public chrome (VLibras, guide, accessibility bar) lives in app/(public);
 // the panel in app/(admin) loads no external script (SPEC-PORTAL-001 R2.1).
 export default function RootLayout({
   children,
@@ -40,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="pt-BR" className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   )

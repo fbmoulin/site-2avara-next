@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react"
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle } from "lucide-react"
-import { motion } from "framer-motion"
 import { ScrollReveal } from "@/components/motion/scroll-reveal"
 import { log } from "@/lib/logger"
 import {
@@ -16,13 +15,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select"
 
 const PRIVACY_NOTICE_ID = "contact-privacy-notice"
 
@@ -74,7 +66,6 @@ function describedBy(field: FieldName, errors: FieldErrors) {
 
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
-  const [subject, setSubject] = useState<string | null>(null)
 
   const [errorMessage, setErrorMessage] = useState("")
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
@@ -113,7 +104,7 @@ export function ContactForm() {
       name: formData.get("name") as string,
       phone: formData.get("phone") as string,
       email: formData.get("email") as string,
-      subject: subject ?? "outro",
+      subject: (formData.get("subject") as string | null) || "outro",
       message: formData.get("message") as string,
       [CONTACT_HONEYPOT_FIELD]: (formData.get(CONTACT_HONEYPOT_FIELD) as string | null) ?? "",
     }
@@ -177,7 +168,6 @@ export function ContactForm() {
       } catch {
         log.warn("contact_form_reset_failed")
       }
-      setSubject(null)
       setFieldErrors({})
       setStatus("success")
     } catch {
@@ -295,13 +285,10 @@ export function ContactForm() {
                 aria-live="polite"
                 className="flex flex-col items-center justify-center gap-4 py-12 text-center"
               >
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
-                  <CheckCircle className="size-16 text-green-500" />
-                </motion.div>
+                <CheckCircle
+                  aria-hidden="true"
+                  className="size-16 text-green-500 animate-in zoom-in-50 duration-300 motion-reduce:animate-none"
+                />
                 <h3
                   ref={successHeading}
                   tabIndex={-1}
@@ -404,19 +391,22 @@ export function ContactForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label id="subject-label">Assunto</Label>
-                  <Select value={subject} onValueChange={(val) => setSubject(val)}>
-                    <SelectTrigger aria-labelledby="subject-label" className="w-full bg-background">
-                      <SelectValue placeholder="Selecione o assunto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CONTACT_SUBJECTS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="subject">Assunto</Label>
+                  {/* Native select (R3.3): keyboard, screen reader and mobile picker from the
+                      browser, without the popup library. Empty value is sent as "outro". */}
+                  <select
+                    id="subject"
+                    name="subject"
+                    defaultValue=""
+                    className="flex h-9 w-full rounded-lg border border-input bg-background px-2.5 py-1.5 text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
+                  >
+                    <option value="">Selecione o assunto</option>
+                    {CONTACT_SUBJECTS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="space-y-2">
