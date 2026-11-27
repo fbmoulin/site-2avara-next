@@ -210,6 +210,7 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 | D-7 | Q-3 resolvida: o crédito do rodapé passa a "Desenvolvido e publicado por Felipe Moulin — Instagram: @felipemoulinjus" | 21/11/2026 |
 | D-8 | Q-2: o Gmail do gabinete continua como canal público por enquanto. Q-8: sessão do painel de 8 horas aprovada | 21/11/2026 |
 | D-9 | Q-7: canal sobre proteção de dados no aviso do formulário passa a ser `suporte@lexintelligentia.com.br` (Lex Intelligentia) | 21/11/2026 |
+| D-10 | Q-4: o TJES responde 403 ao cron vindo de `iad1` (EUA); as funções passam a rodar em `gru1` (São Paulo) antes de qualquer alternativa | 27/11/2026 |
 
 ## 6. Questões em aberto
 
