@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react"
 import { db } from "@/lib/db"
 import { articles } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
+import { pageMetadata } from "@/lib/seo"
 import {
   Card,
   CardHeader,
@@ -14,16 +15,29 @@ import {
 
 export const revalidate = 60
 
-export const metadata = {
-  title: "Artigos - 2ª Vara Cível de Cariacica",
-}
+export const metadata = pageMetadata({
+  title: "Artigos",
+  description:
+    "Artigos sobre Direito, inovação no Judiciário e informações para advogados e cidadãos.",
+  path: "/artigos",
+})
+
+type ArticleItem = typeof articles.$inferSelect
 
 export default async function ArtigosPage() {
-  const items = await db
-    .select()
-    .from(articles)
-    .where(eq(articles.isPublished, true))
-    .orderBy(desc(articles.publishedAt))
+  // R3.4: a database failure shows a notice instead of the error page.
+  let items: ArticleItem[] = []
+  let unavailable = false
+  try {
+    items = await db
+      .select()
+      .from(articles)
+      .where(eq(articles.isPublished, true))
+      .orderBy(desc(articles.publishedAt))
+  } catch {
+    unavailable = true
+    console.error("[artigos] read_failed")
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
@@ -37,10 +51,12 @@ export default async function ArtigosPage() {
 
       <h1 className="mb-8 text-3xl font-bold tracking-tight">Artigos</h1>
 
-      {items.length === 0 ? (
-        <p className="text-muted-foreground">
-          Nenhum artigo publicado ainda.
+      {unavailable ? (
+        <p role="alert" className="rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4">
+          Não foi possível carregar os artigos agora. Tente novamente em alguns minutos.
         </p>
+      ) : items.length === 0 ? (
+        <p className="text-muted-foreground">Nenhum artigo publicado ainda.</p>
       ) : (
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
@@ -55,16 +71,12 @@ export default async function ArtigosPage() {
 
                 <CardContent className="flex-1">
                   {item.excerpt && (
-                    <CardDescription className="line-clamp-2">
-                      {item.excerpt}
-                    </CardDescription>
+                    <CardDescription className="line-clamp-2">{item.excerpt}</CardDescription>
                   )}
                 </CardContent>
 
                 <CardFooter className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    {item.author}
-                  </span>
+                  <span className="text-xs text-muted-foreground">{item.author}</span>
                   {item.publishedAt && (
                     <time className="text-xs text-muted-foreground">
                       {new Date(item.publishedAt).toLocaleDateString("pt-BR", {

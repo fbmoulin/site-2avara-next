@@ -1,33 +1,50 @@
 import type { MetadataRoute } from "next"
+import { eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { articles } from "@/lib/db/schema"
-import { eq } from "drizzle-orm"
+import { absoluteUrl, FIXED_PUBLIC_ROUTES } from "@/lib/seo"
 
-const BASE_URL = "https://2avaraciveldecariacica.org"
+// R3.1: the four fixed public routes plus the published articles, regenerated every hour (the
+// panel also revalidates the article pages when they change).
+export const revalidate = 3600
+
+const FIXED_ROUTE_DETAILS: Record<
+  (typeof FIXED_PUBLIC_ROUTES)[number],
+  Pick<MetadataRoute.Sitemap[number], "changeFrequency" | "priority">
+> = {
+  "/": { changeFrequency: "weekly", priority: 1 },
+  "/pauta": { changeFrequency: "weekly", priority: 0.9 },
+  "/noticias": { changeFrequency: "daily", priority: 0.7 },
+  "/artigos": { changeFrequency: "weekly", priority: 0.8 },
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticPages: MetadataRoute.Sitemap = [
-    { url: BASE_URL, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
-    { url: `${BASE_URL}/artigos`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${BASE_URL}/noticias`, lastModified: new Date(), changeFrequency: "daily", priority: 0.7 },
-  ]
+  const fixedPages: MetadataRoute.Sitemap = FIXED_PUBLIC_ROUTES.map((path) => ({
+    url: absoluteUrl(path),
+    ...FIXED_ROUTE_DETAILS[path],
+  }))
 
   let articlePages: MetadataRoute.Sitemap = []
   try {
-    const slugs = await db
-      .select({ slug: articles.slug, publishedAt: articles.publishedAt })
+    const published = await db
+      .select({
+        slug: articles.slug,
+        publishedAt: articles.publishedAt,
+        updatedAt: articles.updatedAt,
+      })
       .from(articles)
       .where(eq(articles.isPublished, true))
 
-    articlePages = slugs.map((a) => ({
-      url: `${BASE_URL}/artigos/${a.slug}`,
-      lastModified: a.publishedAt ?? new Date(),
+    articlePages = published.map((article) => ({
+      url: absoluteUrl(`/artigos/${article.slug}`),
+      lastModified: article.updatedAt ?? article.publishedAt ?? undefined,
       changeFrequency: "monthly" as const,
       priority: 0.6,
     }))
   } catch {
-    // DB unavailable — return static pages only
+    // Database unavailable: publish the fixed routes only.
+    console.error("[sitemap] read_failed")
   }
 
-  return [...staticPages, ...articlePages]
+  return [...fixedPages, ...articlePages]
 }

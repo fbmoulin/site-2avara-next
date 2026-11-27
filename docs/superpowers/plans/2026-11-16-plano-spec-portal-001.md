@@ -86,14 +86,18 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 
 ## Onda 3 — otimização e estratégia (branch `feat/onda-3-otimizacao`)
 
-- [ ] **T023 Metadados e JSON-LD** (R3.1)
-- [ ] **T024 FAQ com `<details>`** (R3.2)
-- [ ] **T025 LazyMotion, imagem e fontes** (R3.3) — medir JS e LCP antes e depois
-- [ ] **T026 Páginas de erro e carregamento** (R3.4)
-- [ ] **T027 Notícias paginadas e filtradas** (R3.5) — depende de Q-5
+- [x] **T023 Metadados e JSON-LD** (R3.1) — feito em 27/11/2026
+  `lib/seo.ts`, `components/json-ld.tsx`, `app/layout.tsx`, `app/sitemap.ts`, `app/robots.ts`, metadados das páginas públicas.
+- [x] **T024 FAQ com `<details>`** (R3.2) — feito em 27/11/2026
+  `components/landing/faq.tsx` como componente de servidor.
+- [x] **T025 LazyMotion, imagem e fontes** (R3.3) — feito em 27/11/2026; medições na seção 11 da spec
+  Optou-se por CSS puro (framer-motion removido), `<select>` nativo no contato, foto do Fórum sem `priority`, Geist Mono só no painel.
+- [x] **T026 Páginas de erro e carregamento** (R3.4) — feito em 27/11/2026
+- [x] **T027 Notícias paginadas e filtradas** (R3.5) — feito em 27/11/2026; Q-5 decidida: todas as categorias
 - T028 Expurgo de dados pessoais (R3.6) — antecipada para a onda 1 em 20/11/2026
 - [ ] **T029 Primeira tela com atalhos** (R3.7) — proposta visual aprovada pelo responsável antes de codificar
-- [ ] **T030 Web Analytics e pergunta de satisfação** (R3.8)
+- [x] **T030 Web Analytics** (R3.8) — feito em 27/11/2026, sem a pergunta de satisfação (decisão do responsável)
+  Eventos do vídeo do Zoom e do contato confirmado; função pronta para os atalhos de T029. Pendente [manual]: ativar Web Analytics no projeto da Vercel.
 - [ ] **T031 Verificação da onda 3 e linha de base** — registrar métricas da semana 1 no README
 
 ## Dependências

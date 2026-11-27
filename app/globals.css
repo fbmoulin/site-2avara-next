@@ -172,6 +172,35 @@
   :where(section[id], #localizacao) { scroll-margin-top: 7rem; }
 }
 
+/* Scroll reveal without an animation library (R3.3; components/motion/use-reveal.ts). The server
+   HTML is the visible final state; only blocks below the fold become "pending" after hydration. */
+[data-reveal-variant] {
+  transition-property: opacity, transform, filter;
+  transition-duration: var(--reveal-duration, 0.6s);
+  transition-delay: var(--reveal-delay, 0s);
+  transition-timing-function: ease-out;
+}
+[data-reveal="pending"][data-reveal-variant="fade-up"] { opacity: 0; transform: translateY(20px); }
+[data-reveal="pending"][data-reveal-variant="fade-left"] { opacity: 0; transform: translateX(-40px); }
+[data-reveal="pending"][data-reveal-variant="fade-right"] { opacity: 0; transform: translateX(40px); }
+[data-reveal="pending"][data-reveal-variant="scale-blur"] {
+  opacity: 0;
+  transform: scale(1.05);
+  filter: blur(10px);
+}
+[data-reveal-group] > [data-reveal-item] {
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+[data-reveal-group="pending"] > [data-reveal-item] { opacity: 0; }
+[data-reveal-group="pending"] > [data-reveal-item="up"] { transform: translateY(20px); }
+[data-reveal-group="pending"] > [data-reveal-item="left"] { transform: translateX(-20px); }
+[data-reveal-group="pending"] > [data-reveal-item="right"] { transform: translateX(20px); }
+[data-reveal-group] > [data-reveal-item]:nth-child(2) { transition-delay: calc(var(--reveal-stagger) * 1); }
+[data-reveal-group] > [data-reveal-item]:nth-child(3) { transition-delay: calc(var(--reveal-stagger) * 2); }
+[data-reveal-group] > [data-reveal-item]:nth-child(4) { transition-delay: calc(var(--reveal-stagger) * 3); }
+[data-reveal-group] > [data-reveal-item]:nth-child(5) { transition-delay: calc(var(--reveal-stagger) * 4); }
+[data-reveal-group] > [data-reveal-item]:nth-child(n + 6) { transition-delay: calc(var(--reveal-stagger) * 5); }
+
 /* Reduced motion (R2.3): scroll-reveal wrappers show their final state at once. CSS, not JS, so it
    also holds before hydration and never changes the server HTML that React hydrates. */
 @media (prefers-reduced-motion: reduce) {

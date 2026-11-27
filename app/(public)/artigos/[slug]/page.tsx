@@ -6,24 +6,27 @@ import { db } from "@/lib/db"
 import { articles } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 import { getPublishedArticle } from "@/lib/articles"
+import { JsonLd } from "@/components/json-ld"
+import { articleJsonLd, OG_IMAGE, pageMetadata } from "@/lib/seo"
 
 // Safety net besides revalidatePath from the panel: a change shows within a minute (R2.10).
 export const revalidate = 60
 
 export async function generateStaticParams() {
-  const items = await db
-    .select({ slug: articles.slug })
-    .from(articles)
-    .where(eq(articles.isPublished, true))
-
-  return items.map((item) => ({ slug: item.slug }))
+  try {
+    const items = await db
+      .select({ slug: articles.slug })
+      .from(articles)
+      .where(eq(articles.isPublished, true))
+    return items.map((item) => ({ slug: item.slug }))
+  } catch {
+    // Database unavailable at build time: the pages are rendered on the first visit (R3.4).
+    console.error("[artigos] static_params_failed")
+    return []
+  }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   // Unpublished articles have no public metadata (title, excerpt, image) either.
   const article = await getPublishedArticle(slug)
@@ -32,23 +35,23 @@ export async function generateMetadata({
     return { title: "Artigo não encontrado" }
   }
 
-  return {
+  const base = pageMetadata({
     title: article.title,
     description: article.excerpt ?? undefined,
+    path: `/artigos/${article.slug}`,
+  })
+  return {
+    ...base,
     openGraph: {
-      title: article.title,
-      description: article.excerpt ?? undefined,
-      images: article.imageUrl ? [article.imageUrl] : [],
+      ...base.openGraph,
       type: "article" as const,
+      ...(article.publishedAt ? { publishedTime: article.publishedAt.toISOString() } : {}),
+      images: article.imageUrl ? [{ url: article.imageUrl, alt: article.title }] : [OG_IMAGE],
     },
   }
 }
 
-export default async function ArtigoPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export default async function ArtigoPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const article = await getPublishedArticle(slug)
 
@@ -60,6 +63,7 @@ export default async function ArtigoPage({
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 md:px-6">
+      <JsonLd data={articleJsonLd(article)} />
       <Link
         href="/artigos"
         className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -86,9 +90,7 @@ export default async function ArtigoPage({
           {article.category}
         </span>
 
-        <h1 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
-          {article.title}
-        </h1>
+        <h1 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">{article.title}</h1>
 
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <span>{article.author}</span>
