@@ -119,7 +119,8 @@ test.describe("Accessibility — visible content and reduced motion (R2.3)", () 
     await expect(page.locator("h1")).toBeVisible()
     await expect(page.getByText("Serviços Disponíveis")).toBeVisible()
     await expect(page.getByText("Perguntas Frequentes")).toBeVisible()
-    await expect(page.getByText("Entre em Contato")).toBeVisible()
+    // By role: the FAQ answers (now in the HTML, R3.2) also contain "entre em contato".
+    await expect(page.getByRole("heading", { name: "Entre em Contato" })).toBeVisible()
     // Without scrolling: no element of the home page is left transparent waiting for an animation.
     await expect
       .poll(() =>
