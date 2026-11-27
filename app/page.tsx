@@ -7,11 +7,13 @@ import { BlogPreview } from "@/components/landing/blog-preview"
 import { NewsPreview } from "@/components/landing/news-preview"
 import { Faq } from "@/components/landing/faq"
 import { ContactForm } from "@/components/landing/contact-form"
+import { hearingSuspensionNotice } from "@/lib/hearing-schedule"
 
 // ISR: the news and articles blocks read the database; the cron also calls revalidatePath("/").
 export const revalidate = 3600
 
 export default function Home() {
+  const suspension = hearingSuspensionNotice()
   return (
     <main id="main-content">
       <Hero />
@@ -21,7 +23,11 @@ export default function Home() {
         <h2 id="pauta-heading" className="text-2xl font-bold">
           Pauta semanal de audiências
         </h2>
-        <p className="my-3">Consulte os horários e as modalidades das audiências desta semana.</p>
+        {suspension ? (
+          <p className="my-3 font-semibold">{suspension}</p>
+        ) : (
+          <p className="my-3">Consulte os horários e as modalidades das audiências desta semana.</p>
+        )}
         <Link
           href="/pauta"
           className="inline-block rounded bg-primary px-5 py-3 text-primary-foreground"

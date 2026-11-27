@@ -76,3 +76,13 @@ export function formatDate(date: string) {
     month: "2-digit",
   })
 }
+
+/** Last day (Sao Paulo) without hearings; set by the judge on 27/11/2026. */
+export const HEARINGS_SUSPENDED_UNTIL = "2027-01-31"
+
+/** Public notice shown instead of the weekly schedule while hearings are suspended; null afterwards. */
+export function hearingSuspensionNotice(now = new Date()): string | null {
+  if (localDate(now) > HEARINGS_SUSPENDED_UNTIL) return null
+  const [year, month, day] = HEARINGS_SUSPENDED_UNTIL.split("-")
+  return `Sem audiências designadas até ${day}/${month}/${year}.`
+}
