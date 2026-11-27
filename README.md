@@ -5,6 +5,7 @@ Portal de informações, contato com a equipe, artigos e notícias. O guia de at
 ## Requisitos
 
 - Node.js 24.x (compatível com a configuração consultada da Vercel).
+- Funções da Vercel na região `gru1` (São Paulo), definida em `vercel.json`: o feed de notícias do TJES responde 403 a acessos da região padrão (`iad1`, EUA), e o Supabase de produção fica em `sa-east-1`.
 - Bun 1.4.3, fixado em `packageManager`.
 - Next.js 16.4.6, React/React DOM 19.3.1.
 
