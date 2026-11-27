@@ -53,6 +53,7 @@ export function ScrollReveal({
       variants={{ hidden: v.hidden, visible: v.visible }}
       transition={{ duration, delay, ease: "easeOut" }}
       className={className}
+      data-reveal=""
     >
       {children}
     </motion.div>

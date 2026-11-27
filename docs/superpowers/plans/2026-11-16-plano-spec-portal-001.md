@@ -51,35 +51,35 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 
 ## Onda 2 — estrutura e acessibilidade (branch `fix/onda-2-acessibilidade`)
 
-- [ ] **T012 Grupos de rotas público/admin** (R2.1)
+- [x] **T012 Grupos de rotas público/admin** (R2.1) — feito em 27/11/2026
   Mover páginas para `app/(public)` e `app/(admin)`; VLibras, guia e barra só no público; nonce de CSP no `proxy.ts` para `/admin`. E2E: HTML do admin sem scripts externos.
 
-- [ ] **T013 Navegação e menu móvel** (R2.2)
+- [x] **T013 Navegação e menu móvel** (R2.2) — feito em 27/11/2026
   `components/navbar-client.tsx`: `<Link>`, itens de rota, Esc, clique fora, fecha ao navegar, rolagem travada, foco devolvido. E2E desktop e 390 px.
 
-- [ ] **T014 Hero e movimento** (R2.3)
+- [x] **T014 Hero e movimento** (R2.3) — feito em 27/11/2026
   `components/landing/hero.tsx`, `components/motion/*`, `MotionConfig`. Corrigir o `e2e/smoke.spec.ts` para conferir a opacidade.
 
-- [ ] **T015 Cards de serviços** (R2.4)
+- [x] **T015 Cards de serviços** (R2.4) — feito em 27/11/2026
   `components/landing/services.tsx`: `inert`/renderização condicional, `aria-expanded`, `aria-controls`. Teste com axe.
 
-- [ ] **T016 Landmarks e link de salto** (R2.5)
-  `app/layout.tsx`, `app/page.tsx`, `app/pauta/page.tsx`.
+- [x] **T016 Landmarks e link de salto** (R2.5) — feito em 27/11/2026
+  `app/(public)/layout.tsx`, `app/(public)/page.tsx`, `app/(public)/pauta/page.tsx`.
 
-- [ ] **T017 Redirecionamento do login** (R2.6)
-  `app/login/page.tsx`, com teste do caso `/\evil.com`.
+- [x] **T017 Redirecionamento do login** (R2.6) — feito em 27/11/2026
+  `app/(admin)/login/page.tsx` e `lib/safe-redirect.ts`, com teste do caso `/\evil.com`.
 
-- [ ] **T018 Validações do servidor** (R2.7)
-  `lib/validators.ts`, honeypot no formulário, `app/api/client-errors/route.ts`, `app/admin/actions.ts` e clientes do admin.
+- [x] **T018 Validações do servidor** (R2.7) — feito em 27/11/2026
+  `lib/validators.ts`, honeypot no formulário, `app/api/client-errors/route.ts`, `app/(admin)/admin/actions.ts` e clientes do admin.
 
-- [ ] **T019 Formulário de contato** (R2.8)
+- [x] **T019 Formulário de contato** (R2.8) — feito em 27/11/2026
   `components/landing/contact-form.tsx`: `autocomplete`, ARIA de erro, foco no sucesso, `tel:`/`mailto:`.
 
-- [ ] **T020 Rodapé, mapa e pauta** (R2.9)
+- [x] **T020 Rodapé, mapa e pauta** (R2.9) — feito em 27/11/2026
   `components/footer.tsx` (contraste, `h2` oculto), embed do mapa, mensagem de erro de `/pauta`.
 
-- [ ] **T021 Artigos** (R2.10)
-  `app/admin/actions.ts` (`revalidatePath` do slug) e `app/artigos/[slug]/page.tsx` (`isPublished` no `generateMetadata`; `cache()` na consulta).
+- [x] **T021 Artigos** (R2.10) — feito em 27/11/2026
+  `app/(admin)/admin/actions.ts` (`revalidatePath` do slug) e `app/(public)/artigos/[slug]/page.tsx` (`isPublished` no `generateMetadata`; `cache()` na consulta, em `lib/articles.ts`).
 
 - [ ] **T022 Verificação da onda 2**
   Preview → merge → roteiro de §8, com teclado e leitor de tela nos fluxos principais.

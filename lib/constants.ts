@@ -30,6 +30,22 @@ export interface FaqItem {
   answer: string
 }
 
+export const BALCAO_VIRTUAL_URL = "https://www.tjes.jus.br/balcao-virtual/"
+
+// Subjects offered by the contact form. lib/validators.ts accepts only these values (R2.7).
+export const CONTACT_SUBJECTS = [
+  { value: "informacao", label: "Informação" },
+  { value: "agendamento", label: "Agendamento" },
+  { value: "sugestao", label: "Sugestão" },
+  { value: "reclamacao", label: "Reclamação" },
+  { value: "outro", label: "Outro" },
+] as const
+
+// Name of the hidden honeypot field of the contact form. People never see or fill it.
+export const CONTACT_HONEYPOT_FIELD = "website"
+
+export type ContactSubject = (typeof CONTACT_SUBJECTS)[number]["value"]
+
 export const SERVICES: ServiceItem[] = [
   {
     id: "1",
@@ -44,7 +60,7 @@ export const SERVICES: ServiceItem[] = [
     description:
       "Atendimento online por videoconferência com a secretaria da vara. Tire dúvidas, solicite informações e obtenha orientações sem sair de casa.",
     icon: "video",
-    url: "https://www.tjes.jus.br/balcao-virtual/",
+    url: BALCAO_VIRTUAL_URL,
   },
   {
     id: "2",
@@ -142,6 +158,11 @@ export const CONTACT_INFO = {
   address: "R. Meridional, 1000 - Alto Lage, Cariacica - ES, 29151-230",
   email: "2civelgabinetecariacica@gmail.com",
   phone: "(27) 3246-5641",
+  phoneHref: "tel:+552732465641",
 }
+
+// Fórum de Cariacica (R2.9): the map embed is centred on these coordinates.
+export const FORUM_COORDINATES = { latitude: -20.3332, longitude: -40.3767 }
+export const FORUM_MAP_EMBED_URL = `https://www.google.com/maps?q=${FORUM_COORDINATES.latitude},${FORUM_COORDINATES.longitude}&z=16&hl=pt-BR&output=embed`
 
 export const TJES_NEWS_URL = "https://www.tjes.jus.br/category/s1-front-page/ultimasnoticias/"

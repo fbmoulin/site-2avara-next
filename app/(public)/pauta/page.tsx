@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { connection } from "next/server"
 import { and, eq } from "drizzle-orm"
+import { HearingScheduleUnavailable } from "@/components/hearing-schedule-unavailable"
 import { db } from "@/lib/db"
 import { hearingSchedules } from "@/lib/db/schema"
 import {
@@ -40,7 +41,7 @@ export default async function HearingSchedulePage() {
     console.error("[hearing-schedule] read_failed")
   }
   return (
-    <section id="main-content" className="mx-auto max-w-5xl space-y-6 px-4 py-12">
+    <div className="mx-auto max-w-5xl space-y-6 px-4 py-12">
       <Link href="/" className="underline">
         Voltar ao início
       </Link>
@@ -58,7 +59,7 @@ export default async function HearingSchedulePage() {
           {suspension}
         </p>
       ) : unavailable ? (
-        <p role="alert">Não foi possível consultar a pauta. Tente novamente mais tarde.</p>
+        <HearingScheduleUnavailable />
       ) : !schedule ? (
         <p role="status">A pauta desta semana ainda não foi publicada.</p>
       ) : schedule.hearings.length === 0 ? (
@@ -109,6 +110,6 @@ export default async function HearingSchedulePage() {
           Ver orientações para audiências e instalação do Zoom
         </Link>
       </div>
-    </section>
+    </div>
   )
 }

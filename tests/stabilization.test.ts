@@ -3,7 +3,13 @@ import { staffUsers } from "../lib/db/schema"
 
 const ADMIN = "11111111-1111-4111-8111-111111111111"
 const MEMBER = "22222222-2222-4222-8222-222222222222"
-let user: { id: string; app_metadata?: object; user_metadata?: object } | null = null
+let user: {
+  id: string
+  app_metadata?: object
+  user_metadata?: object
+  last_sign_in_at?: string | null
+  email?: string
+} | null = null
 let authError: { status?: number } | null = null
 let authThrows = false
 let staffRecord: { role: string; active: boolean } | undefined
@@ -11,6 +17,8 @@ let staffLookupFails = false
 let refreshCookie = false
 let writes = 0
 let dbFails = false
+let updatesAllowed = false
+let updatedValues: Record<string, unknown>[] = []
 let emailFails = false
 type SentEmail = { to: string[]; cc?: string[]; bcc?: string[] }
 let sentTo: string[][] = []
@@ -50,7 +58,11 @@ mock.module("@supabase/ssr", () => ({
           options.cookies.setAll([
             { name: "session-test", value: "refreshed", options: { path: "/", httpOnly: true } },
           ])
-        return { data: { user }, error: authError }
+        // Fixtures sign in "now" unless a test sets last_sign_in_at (8-hour panel session).
+        return {
+          data: { user: user && { last_sign_in_at: new Date().toISOString(), ...user } },
+          error: authError,
+        }
       },
     },
   }),
@@ -98,23 +110,32 @@ mock.module("../lib/db", () => ({
       },
     }),
     update: () => {
-      throw new Error("Protected data was updated")
+      if (!updatesAllowed) throw new Error("Protected data was updated")
+      return {
+        set: (values: Record<string, unknown>) => {
+          updatedValues.push(values)
+          return { where: async () => [] }
+        },
+      }
     },
   },
 }))
 
-const { authorizeAdmin, AdminAccessError } = await import("../lib/admin-policy")
+const { authorizeAdmin, AdminAccessError, activeSessionUser, ADMIN_SESSION_MAX_AGE_SECONDS } =
+  await import("../lib/admin-policy")
 const { requireAdmin } = await import("../lib/auth")
-const actions = await import("../app/admin/actions")
-const scheduleActions = await import("../app/admin/pauta/actions")
-const userActions = await import("../app/admin/usuarios/actions")
+const actions = await import("../app/(admin)/admin/actions")
+const scheduleActions = await import("../app/(admin)/admin/pauta/actions")
+const userActions = await import("../app/(admin)/admin/usuarios/actions")
 const { POST: chat } = await import("../app/api/chat/route")
 const { POST: contact } = await import("../app/api/contact/route")
 const { POST: upload } = await import("../app/api/upload/route")
+const { POST: clientErrors } = await import("../app/api/client-errors/route")
 const appointmentRoute = await import("../app/api/appointments/route")
 const demandRoute = await import("../app/api/demands/route")
-const { default: AdminLayout } = await import("../app/admin/layout")
-const { proxy } = await import("../proxy")
+const { default: AdminLayout } = await import("../app/(admin)/admin/layout")
+const { proxy, config: proxyConfig } = await import("../proxy")
+const { ADMIN_PATHS } = await import("../lib/security-headers")
 const { NextRequest } = await import("next/server")
 const { sendContactNotification, sendAppointmentNotification, sendDemandNotification } =
   await import("../lib/email")
@@ -130,6 +151,8 @@ beforeEach(() => {
   refreshCookie = false
   writes = 0
   dbFails = false
+  updatesAllowed = false
+  updatedValues = []
   emailFails = false
   sentTo = []
   sentEmails = []
@@ -319,10 +342,85 @@ describe("Administrative authorization", () => {
   })
 })
 
+describe("Administrative session and CSP (R2.1)", () => {
+  const NINE_HOURS_AGO = () => new Date(Date.now() - 9 * 3600 * 1000).toISOString()
+  test("a session older than 8 hours is treated as no session", async () => {
+    user = { id: ADMIN, last_sign_in_at: NINE_HOURS_AGO() }
+    await expect(requireAdmin()).rejects.toMatchObject({ status: 401 })
+    const response = await proxy(new NextRequest("http://localhost/admin/contatos"))
+    expect(response.status).toBe(307)
+    expect(response.headers.get("location")).toContain("/login?redirect=%2Fadmin%2Fcontatos")
+    user = { id: ADMIN, last_sign_in_at: new Date(Date.now() - 7 * 3600 * 1000).toISOString() }
+    expect((await requireAdmin()).id).toBe(ADMIN)
+  })
+  test("missing or invalid sign-in time fails closed", async () => {
+    for (const lastSignIn of [null, "not-a-date"]) {
+      user = { id: ADMIN, last_sign_in_at: lastSignIn }
+      await expect(requireAdmin()).rejects.toMatchObject({ status: 401 })
+    }
+  })
+  test("8-hour limit is pure and exact", () => {
+    const now = Date.parse("2026-11-27T20:00:00Z")
+    expect(activeSessionUser({ last_sign_in_at: "2026-11-27T12:00:00Z" }, now)).not.toBeNull()
+    expect(activeSessionUser({ last_sign_in_at: "2026-11-27T11:59:59Z" }, now)).toBeNull()
+    expect(activeSessionUser(null, now)).toBeNull()
+    expect(ADMIN_SESSION_MAX_AGE_SECONDS).toBe(28800)
+  })
+  test.each(["/admin", "/admin/pauta", "/login", "/acesso-negado", "/servico-indisponivel"])(
+    "%s gets a fresh nonce CSP without unsafe-inline or unsafe-eval",
+    async (path) => {
+      user = { id: ADMIN }
+      const first = await proxy(new NextRequest(`http://localhost${path}`))
+      const second = await proxy(new NextRequest(`http://localhost${path}`))
+      const csp = first.headers.get("content-security-policy") ?? ""
+      const scripts = csp.split(";").find((part) => part.trim().startsWith("script-src")) ?? ""
+      expect(scripts).toMatch(/'nonce-[A-Za-z0-9+/=]{20,}'/)
+      expect(scripts).toContain("'strict-dynamic'")
+      expect(scripts).not.toContain("unsafe-inline")
+      expect(scripts).not.toContain("unsafe-eval")
+      expect(csp).not.toContain("vlibras")
+      expect(csp).not.toContain("jsdelivr")
+      expect(csp).toContain("frame-ancestors 'none'")
+      expect(second.headers.get("content-security-policy")).not.toBe(csp)
+      // Next reads the nonce from the forwarded request CSP while rendering.
+      expect(first.headers.get("x-middleware-request-content-security-policy")).toBe(csp)
+      expect(first.headers.get("x-middleware-request-x-nonce")).toBeTruthy()
+    },
+  )
+  test("proxy matcher covers every admin path", () => {
+    for (const path of ADMIN_PATHS)
+      expect(proxyConfig.matcher.some((pattern) => pattern.startsWith(path))).toBe(true)
+  })
+  test("denied and redirected admin responses also carry the nonce CSP", async () => {
+    let response = await proxy(new NextRequest("http://localhost/admin"))
+    expect(response.status).toBe(307)
+    expect(response.headers.get("content-security-policy")).toContain("'nonce-")
+    user = { id: MEMBER }
+    response = await proxy(new NextRequest("http://localhost/admin"))
+    expect(response.status).toBe(403)
+    expect(response.headers.get("content-security-policy")).toContain("'nonce-")
+    expect(response.headers.get("x-middleware-request-content-security-policy")).toContain(
+      "'nonce-",
+    )
+  })
+})
+
 describe("Fail-closed protection across public write/guide routes", () => {
+  const clientErrorBatch = {
+    errors: [
+      {
+        level: "error",
+        event: "test_error",
+        timestamp: "2026-11-27T12:00:00.000Z",
+        url: "https://example.com/",
+        session_id: "s",
+      },
+    ],
+  }
   const routes = [
     ["/api/contact", contact, contactData],
     ["/api/chat", chat, { option: "contact" }],
+    ["/api/client-errors", clientErrors, clientErrorBatch],
   ] as const
   for (const failure of ["missing", "rejected", "resolved-timeout"] as const) {
     test.each(routes)(
@@ -343,6 +441,105 @@ describe("Fail-closed protection across public write/guide routes", () => {
     quotaAllowed = false
     expect((await handler(request(path, body))).status).toBe(429)
     expect(writes).toBe(0)
+  })
+})
+
+describe("Server input validation (R2.7)", () => {
+  const ID = "33333333-3333-4333-8333-333333333333"
+  test("contact rejects a subject outside the form list and a filled honeypot, saving nothing", async () => {
+    expect(
+      (await contact(request("/api/contact", { ...contactData, subject: "Assunto livre" }))).status,
+    ).toBe(400)
+    expect(
+      (await contact(request("/api/contact", { ...contactData, website: "http://spam" }))).status,
+    ).toBe(400)
+    expect(writes).toBe(0)
+    expect(postResponseTasks).toHaveLength(0)
+    expect((await contact(request("/api/contact", { ...contactData, website: "" }))).status).toBe(
+      201,
+    )
+    expect(writes).toBe(1)
+  })
+
+  test("client-errors reads at most 8192 bytes", async () => {
+    const big = {
+      errors: [
+        {
+          level: "error",
+          event: "x",
+          timestamp: "t",
+          url: "/",
+          session_id: "s",
+          data: { message: "a".repeat(9000) },
+        },
+      ],
+    }
+    const response = await clientErrors(request("/api/client-errors", big))
+    expect(response.status).toBe(413)
+  })
+
+  test("client-errors logs only allowed keys and the pathname", async () => {
+    const logged: string[] = []
+    const original = console.error
+    console.error = (line: unknown) => void logged.push(String(line))
+    try {
+      const response = await clientErrors(
+        request("/api/client-errors", {
+          errors: [
+            {
+              level: "error",
+              event: "window_onerror",
+              timestamp: "2026-11-27T12:00:00.000Z",
+              url: "https://2avaraciveldecariacica.org/pauta?nome=Maria+Silva#frag",
+              session_id: "s",
+              data: {
+                message: "boom",
+                source: "https://2avaraciveldecariacica.org/_next/static/a.js?token=SECRETO",
+                email: "maria@example.com",
+              },
+            },
+          ],
+        }),
+      )
+      expect(response.status).toBe(204)
+    } finally {
+      console.error = original
+    }
+    expect(logged).toHaveLength(1)
+    const line = JSON.parse(logged[0])
+    expect(line.path).toBe("/pauta")
+    expect(line.source).toBe("/_next/static/a.js")
+    expect(line.message).toBe("boom")
+    expect(logged[0]).not.toContain("Maria")
+    expect(logged[0]).not.toContain("SECRETO")
+    expect(logged[0]).not.toContain("maria@example.com")
+    expect(logged[0]).not.toContain("2avaraciveldecariacica.org")
+  })
+
+  test("audit fields record the e-mail returned by requireAdmin, not a client value", async () => {
+    user = { id: ADMIN, email: "responsavel@example.com" }
+    updatesAllowed = true
+    await actions.updateContactStatus(ID, "answered", "Respondido por telefone.")
+    await actions.confirmAppointment(ID, "2026-12-01T10:00", "https://us02web.zoom.us/j/123")
+    await actions.resolveDemand(ID, "Resolvida.")
+    expect(
+      updatedValues.map((values) => values.answeredBy ?? values.confirmedBy ?? values.resolvedBy),
+    ).toEqual(["responsavel@example.com", "responsavel@example.com", "responsavel@example.com"])
+    expect(updatedValues[1].zoomLink).toBe("https://us02web.zoom.us/j/123")
+  })
+
+  test("non-Zoom links and notes over 5000 characters are rejected before writing", async () => {
+    user = { id: ADMIN, email: "responsavel@example.com" }
+    updatesAllowed = true
+    for (const link of ["http://zoom.us/j/1", "https://evil.example/j/1", "javascript:alert(1)"])
+      await expect(actions.confirmAppointment(ID, "2026-12-01T10:00", link)).rejects.toThrow()
+    const long = "a".repeat(5001)
+    await expect(actions.updateContactStatus(ID, "answered", long)).rejects.toThrow()
+    await expect(actions.rejectAppointment(ID, long)).rejects.toThrow()
+    await expect(actions.resolveDemand(ID, long)).rejects.toThrow()
+    expect(updatedValues).toHaveLength(0)
+    await actions.confirmAppointment(ID, "2026-12-01T10:00", "")
+    expect(updatedValues[0].zoomLink).toBeNull()
   })
 })
 
@@ -367,22 +564,25 @@ describe("Retired appointment and demand routes", () => {
     ["/api/appointments", appointmentRoute],
     ["/api/demands", demandRoute],
   ] as const) {
-    test.each(methods)(`${path} answers 410 to %s without writing or sending e-mail`, async (method) => {
-      process.env = { ...process.env, NODE_ENV: "production" }
-      const handler = route[method] as (req: InstanceType<typeof NextRequest>) => Response
-      const response = await handler(
-        new NextRequest(`http://localhost${path}`, {
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: ["GET", "HEAD"].includes(method) ? undefined : JSON.stringify(validBodies[path]),
-        }),
-      )
-      expect(response.status).toBe(410)
-      if (method !== "HEAD") expect((await response.json()).error).toContain("desativado")
-      expect(writes).toBe(0)
-      expect(sentEmails).toHaveLength(0)
-      expect(postResponseTasks).toHaveLength(0)
-    })
+    test.each(methods)(
+      `${path} answers 410 to %s without writing or sending e-mail`,
+      async (method) => {
+        process.env = { ...process.env, NODE_ENV: "production" }
+        const handler = route[method] as (req: InstanceType<typeof NextRequest>) => Response
+        const response = await handler(
+          new NextRequest(`http://localhost${path}`, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: ["GET", "HEAD"].includes(method) ? undefined : JSON.stringify(validBodies[path]),
+          }),
+        )
+        expect(response.status).toBe(410)
+        if (method !== "HEAD") expect((await response.json()).error).toContain("desativado")
+        expect(writes).toBe(0)
+        expect(sentEmails).toHaveLength(0)
+        expect(postResponseTasks).toHaveLength(0)
+      },
+    )
   }
 })
 
@@ -468,7 +668,7 @@ describe("Request notifications go to the office (gabinete) e-mail", () => {
         name: "Pessoa Teste",
         processNumber: "0000000-00.2026.8.08.0012",
         reason: "Motivo fictício para teste local.",
-      })
+      }),
     ).toBe(true)
     expect(
       await sendDemandNotification({
@@ -476,7 +676,7 @@ describe("Request notifications go to the office (gabinete) e-mail", () => {
         demandType: "celeridade",
         description: "Descrição fictícia para teste local.",
         priority: "normal",
-      })
+      }),
     ).toBe(true)
     expect(sentTo).toEqual([
       ["2civelgabinetecariacica@gmail.com"],

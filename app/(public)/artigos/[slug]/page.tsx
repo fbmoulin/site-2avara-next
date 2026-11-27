@@ -5,6 +5,10 @@ import { ArrowLeft } from "lucide-react"
 import { db } from "@/lib/db"
 import { articles } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
+import { getPublishedArticle } from "@/lib/articles"
+
+// Safety net besides revalidatePath from the panel: a change shows within a minute (R2.10).
+export const revalidate = 60
 
 export async function generateStaticParams() {
   const items = await db
@@ -21,15 +25,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const [article] = await db
-    .select({
-      title: articles.title,
-      excerpt: articles.excerpt,
-      imageUrl: articles.imageUrl,
-    })
-    .from(articles)
-    .where(eq(articles.slug, slug))
-    .limit(1)
+  // Unpublished articles have no public metadata (title, excerpt, image) either.
+  const article = await getPublishedArticle(slug)
 
   if (!article) {
     return { title: "Artigo não encontrado" }
@@ -53,13 +50,9 @@ export default async function ArtigoPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const [article] = await db
-    .select()
-    .from(articles)
-    .where(eq(articles.slug, slug))
-    .limit(1)
+  const article = await getPublishedArticle(slug)
 
-  if (!article || !article.isPublished) {
+  if (!article) {
     notFound()
   }
 

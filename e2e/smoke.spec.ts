@@ -86,18 +86,53 @@ test.describe("API Routes — Health Checks", () => {
   })
 })
 
-test.describe("Accessibility — Reduced Motion", () => {
-  test("landing page renders immediately with reduced motion", async ({ browser }) => {
+test.describe("Accessibility — visible content and reduced motion (R2.3)", () => {
+  test("server HTML of the hero has no opacity:0", async ({ request }) => {
+    const html = await (await request.get("/")).text()
+    const start = html.indexOf('id="inicio"')
+    expect(start).toBeGreaterThan(-1)
+    const hero = html.slice(start, html.indexOf("</section>", start))
+    expect(hero).toContain("Excelência e Celeridade na Prestação Jurisdicional")
+    expect(hero).not.toMatch(/opacity:\s*0/)
+  })
+
+  test("hero is fully opaque right away", async ({ page }) => {
+    await page.goto("/")
+    const hero = page.locator("#inicio")
+    for (const element of [
+      hero.locator("h1"),
+      hero.getByText("Comprometidos com a humanização"),
+      hero.getByRole("link", { name: "Nossos Serviços" }),
+    ]) {
+      await expect(element).toBeVisible()
+      await expect(element).toHaveCSS("opacity", "1")
+    }
+  })
+
+  test("with reduced motion, sections below the fold show without animating", async ({
+    browser,
+  }) => {
     const context = await browser.newContext({ reducedMotion: "reduce" })
     const page = await context.newPage()
     await page.goto("/")
 
-    // All section headings should be visible immediately (not hidden by pending animations)
     await expect(page.locator("h1")).toBeVisible()
     await expect(page.getByText("Serviços Disponíveis")).toBeVisible()
     await expect(page.getByText("Perguntas Frequentes")).toBeVisible()
     await expect(page.getByText("Entre em Contato")).toBeVisible()
-
+    // Without scrolling: no element of the home page is left transparent waiting for an animation.
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            Array.from(document.querySelectorAll("main *")).filter(
+              (element) =>
+                getComputedStyle(element).opacity === "0" &&
+                element.getBoundingClientRect().height > 0,
+            ).length,
+        ),
+      )
+      .toBe(0)
     await context.close()
   })
 })

@@ -75,6 +75,7 @@ export function ContatosClient({
   const [selected, setSelected] = useState<Contact | null>(null)
   const [notes, setNotes] = useState("")
   const [saving, setSaving] = useState(false)
+  const [actionError, setActionError] = useState("")
   const router = useRouter()
 
   function openDetail(contact: Contact) {
@@ -85,8 +86,16 @@ export function ContatosClient({
   async function handleMarkAsAnswered() {
     if (!selected) return
     setSaving(true)
-    await updateContactStatus(selected.id, "answered", "admin", notes)
-    setSaving(false)
+    setActionError("")
+    try {
+      await updateContactStatus(selected.id, "answered", notes)
+    } catch {
+      // The server validates again (e.g. Zoom link, notes up to 5000 characters).
+      setActionError("Não foi possível salvar. Confira os dados e tente novamente.")
+      return
+    } finally {
+      setSaving(false)
+    }
     setSelected(null)
     router.refresh()
   }
@@ -212,12 +221,18 @@ export function ContatosClient({
                       <Label htmlFor="notes">Observações</Label>
                       <Textarea
                         id="notes"
+                        maxLength={5000}
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         placeholder="Adicione observações sobre a resposta..."
                         className="mt-1"
                       />
                     </div>
+                    {actionError && (
+                      <p role="alert" className="text-sm text-destructive">
+                        {actionError}
+                      </p>
+                    )}
                     <Button
                       onClick={handleMarkAsAnswered}
                       disabled={saving}

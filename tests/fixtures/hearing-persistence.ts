@@ -16,7 +16,7 @@ mock.module("../../lib/auth", () => ({
   requirePanelUser: async () => ({ id: "11111111-1111-4111-8111-111111111111", role }),
 }))
 mock.module("next/cache", () => ({ revalidatePath: () => {} }))
-const { saveSchedule } = await import("../../app/admin/pauta/actions")
+const { saveSchedule } = await import("../../app/(admin)/admin/pauta/actions")
 const weekStart = currentWeek()
 function form(version: number, intent = "publish") {
   const result = new FormData()

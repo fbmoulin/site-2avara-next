@@ -96,6 +96,7 @@ export function AgendamentosClient({
   const [zoomLink, setZoomLink] = useState("")
   const [rejectNotes, setRejectNotes] = useState("")
   const [saving, setSaving] = useState(false)
+  const [actionError, setActionError] = useState("")
   const [mode, setMode] = useState<"view" | "confirm" | "reject">("view")
   const router = useRouter()
 
@@ -110,8 +111,16 @@ export function AgendamentosClient({
   async function handleConfirm() {
     if (!selected || !confirmedDate) return
     setSaving(true)
-    await confirmAppointment(selected.id, confirmedDate, zoomLink, "admin")
-    setSaving(false)
+    setActionError("")
+    try {
+      await confirmAppointment(selected.id, confirmedDate, zoomLink)
+    } catch {
+      // The server validates again (e.g. Zoom link, notes up to 5000 characters).
+      setActionError("Não foi possível salvar. Confira os dados e tente novamente.")
+      return
+    } finally {
+      setSaving(false)
+    }
     setSelected(null)
     router.refresh()
   }
@@ -119,8 +128,16 @@ export function AgendamentosClient({
   async function handleReject() {
     if (!selected) return
     setSaving(true)
-    await rejectAppointment(selected.id, rejectNotes)
-    setSaving(false)
+    setActionError("")
+    try {
+      await rejectAppointment(selected.id, rejectNotes)
+    } catch {
+      // The server validates again (e.g. Zoom link, notes up to 5000 characters).
+      setActionError("Não foi possível salvar. Confira os dados e tente novamente.")
+      return
+    } finally {
+      setSaving(false)
+    }
     setSelected(null)
     router.refresh()
   }
@@ -313,12 +330,18 @@ export function AgendamentosClient({
                       <Input
                         id="zoomLink"
                         type="url"
+                        inputMode="url"
                         value={zoomLink}
                         onChange={(e) => setZoomLink(e.target.value)}
                         placeholder="https://zoom.us/j/..."
                         className="mt-1"
                       />
                     </div>
+                    {actionError && (
+                      <p role="alert" className="text-sm text-destructive">
+                        {actionError}
+                      </p>
+                    )}
                     <div className="flex gap-2">
                       <Button
                         onClick={handleConfirm}
@@ -343,12 +366,18 @@ export function AgendamentosClient({
                       <Label htmlFor="rejectNotes">Motivo do cancelamento</Label>
                       <Textarea
                         id="rejectNotes"
+                        maxLength={5000}
                         value={rejectNotes}
                         onChange={(e) => setRejectNotes(e.target.value)}
                         placeholder="Informe o motivo do cancelamento..."
                         className="mt-1"
                       />
                     </div>
+                    {actionError && (
+                      <p role="alert" className="text-sm text-destructive">
+                        {actionError}
+                      </p>
+                    )}
                     <div className="flex gap-2">
                       <Button
                         variant="destructive"

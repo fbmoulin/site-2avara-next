@@ -1,44 +1,47 @@
 "use client"
 
-import { Suspense, useState, useMemo } from "react"
+import { useState, useMemo } from "react"
 import { createBrowserClient } from "@supabase/ssr"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { ADMIN_SESSION_COOKIE_OPTIONS } from "@/lib/admin-policy"
 
-export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
-  )
-}
-
-function LoginForm() {
+// redirectTo is already restricted to /admin paths by the server page (safeAdminRedirect).
+export function LoginForm({ redirectTo }: { redirectTo: string }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const rawRedirect = searchParams.get("redirect") || "/admin"
-  const redirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/admin"
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const supabase = useMemo(
-    () => supabaseUrl && supabaseKey ? createBrowserClient(supabaseUrl, supabaseKey) : null,
-    [supabaseUrl, supabaseKey]
+    () =>
+      supabaseUrl && supabaseKey
+        ? createBrowserClient(supabaseUrl, supabaseKey, {
+            cookieOptions: ADMIN_SESSION_COOKIE_OPTIONS,
+          })
+        : null,
+    [supabaseUrl, supabaseKey],
   )
 
   if (!supabase) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex min-h-screen items-center justify-center bg-background"
+      >
         <div className="w-full max-w-sm rounded-lg border border-border bg-card p-8 shadow-sm text-center">
           <h1 className="text-xl font-semibold text-foreground">Painel Administrativo</h1>
           <p className="mt-1 text-sm text-muted-foreground">2ª Vara Cível de Cariacica</p>
-          <p className="mt-4 text-sm text-destructive">Supabase não configurado. Defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY.</p>
+          <p className="mt-4 text-sm text-destructive">
+            Supabase não configurado. Defina NEXT_PUBLIC_SUPABASE_URL e
+            NEXT_PUBLIC_SUPABASE_ANON_KEY.
+          </p>
         </div>
-      </div>
+      </main>
     )
   }
 
@@ -58,33 +61,31 @@ function LoginForm() {
       return
     }
 
-    router.push(redirect)
+    router.push(redirectTo)
     router.refresh()
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className="flex min-h-screen items-center justify-center bg-background"
+    >
       <div className="w-full max-w-sm rounded-lg border border-border bg-card p-8 shadow-sm">
         <div className="mb-6 text-center">
-          <h1 className="text-xl font-semibold text-foreground">
-            Painel Administrativo
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            2ª Vara Cível de Cariacica
-          </p>
+          <h1 className="text-xl font-semibold text-foreground">Painel Administrativo</h1>
+          <p className="mt-1 text-sm text-muted-foreground">2ª Vara Cível de Cariacica</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label
-              htmlFor="email"
-              className="mb-1 block text-sm font-medium text-foreground"
-            >
+            <label htmlFor="email" className="mb-1 block text-sm font-medium text-foreground">
               Email
             </label>
             <input
               id="email"
               type="email"
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -94,15 +95,13 @@ function LoginForm() {
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="mb-1 block text-sm font-medium text-foreground"
-            >
+            <label htmlFor="password" className="mb-1 block text-sm font-medium text-foreground">
               Senha
             </label>
             <input
               id="password"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -110,15 +109,13 @@ function LoginForm() {
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Entrando..." : "Entrar"}
           </Button>
         </form>
       </div>
-    </div>
+    </main>
   )
 }

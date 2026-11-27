@@ -1,5 +1,5 @@
 import type { NextConfig } from "next"
-import { securityHeaders } from "./lib/security-headers"
+import { PUBLIC_CSP_SOURCE, publicSecurityHeaders, securityHeaders } from "./lib/security-headers"
 
 const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
   ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
@@ -27,7 +27,12 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/(.*)",
-        headers: securityHeaders(supabaseHost),
+        headers: securityHeaders(),
+      },
+      // The public CSP (VLibras) never reaches the admin routes; proxy.ts sends their nonce CSP.
+      {
+        source: PUBLIC_CSP_SOURCE,
+        headers: publicSecurityHeaders(supabaseHost),
       },
     ]
   },

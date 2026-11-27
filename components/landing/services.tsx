@@ -67,35 +67,57 @@ function ServiceCard({
     (service.tutorial && service.tutorial.length > 0) ||
     Boolean(service.tutorialVideo)
 
+  const panelId = `service-panel-${service.id}`
+  const icon = (
+    <motion.div
+      aria-hidden="true"
+      className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600"
+      whileHover={HOVER_ANIMATIONS[service.icon]?.whileHover}
+      transition={HOVER_ANIMATIONS[service.icon]?.transition}
+    >
+      {ICON_COMPONENTS[service.icon] ?? <FileText className="size-6" />}
+    </motion.div>
+  )
+
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-md">
-      <button
-        onClick={hasExpandableContent ? onToggle : undefined}
-        className={`flex w-full items-start gap-4 p-6 text-left ${
-          hasExpandableContent ? "cursor-pointer" : "cursor-default"
-        }`}
-      >
-        <motion.div
-          className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600"
-          whileHover={HOVER_ANIMATIONS[service.icon]?.whileHover}
-          transition={HOVER_ANIMATIONS[service.icon]?.transition}
-        >
-          {ICON_COMPONENTS[service.icon] ?? <FileText className="size-6" />}
-        </motion.div>
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-foreground">{service.title}</h3>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            {service.description}
-          </p>
+      {hasExpandableContent ? (
+        // Disclosure: the button names the card and controls the panel below (R2.4).
+        <h3>
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={isExpanded}
+            aria-controls={panelId}
+            className="flex w-full cursor-pointer items-start gap-4 p-6 text-left"
+          >
+            {icon}
+            <span className="flex-1">
+              <span className="block text-lg font-semibold text-foreground">{service.title}</span>
+              <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">
+                {service.description}
+              </span>
+            </span>
+            <ChevronDown
+              aria-hidden="true"
+              className={`mt-1 size-5 shrink-0 text-muted-foreground transition-transform duration-200 ${
+                isExpanded ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        </h3>
+      ) : (
+        // Nothing to expand: plain content, not a button.
+        <div className="flex w-full items-start gap-4 p-6 text-left">
+          {icon}
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-foreground">{service.title}</h3>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              {service.description}
+            </p>
+          </div>
         </div>
-        {hasExpandableContent && (
-          <ChevronDown
-            className={`mt-1 size-5 shrink-0 text-muted-foreground transition-transform duration-200 ${
-              isExpanded ? "rotate-180" : ""
-            }`}
-          />
-        )}
-      </button>
+      )}
 
       {/* Single external link */}
       {service.url && !hasExpandableContent && (
@@ -104,21 +126,18 @@ function ServiceCard({
             href={service.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-medium text-amber-600 transition-colors hover:text-amber-700"
+            className="inline-flex items-center gap-2 text-sm font-medium text-amber-800 underline-offset-2 transition-colors hover:text-amber-900 hover:underline"
           >
-            Acessar
-            <ExternalLink className="size-4" />
+            Acessar<span className="sr-only"> {service.title} (abre em nova aba)</span>
+            <ExternalLink aria-hidden="true" className="size-4" />
           </a>
         </div>
       )}
 
       {/* Expandable content */}
+      {/* Collapsed content is hidden and inert: out of the tab order and of the accessibility tree. */}
       {hasExpandableContent && (
-        <div
-          className={`transition-all duration-300 ${
-            isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 overflow-hidden opacity-0"
-          }`}
-        >
+        <div id={panelId} hidden={!isExpanded} inert={!isExpanded}>
           <div className="border-t border-slate-100 px-6 py-4">
             {/* Links */}
             {service.links && service.links.length > 0 && (
@@ -137,7 +156,7 @@ function ServiceCard({
                     }
                     target={link.url.startsWith("https:") ? "_blank" : undefined}
                     rel={!link.url.startsWith("https:") ? undefined : "noopener noreferrer"}
-                    className="inline-flex items-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-amber-100 hover:text-amber-700"
+                    className="inline-flex items-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-amber-100 hover:text-amber-900"
                   >
                     {getLinkIcon(link.icon)}
                     {link.label}
@@ -171,7 +190,10 @@ function ServiceCard({
                   </a>
                   .
                 </video>
-                <p id={`tutorial-video-${service.id}-desc`} className="mt-2 text-xs text-muted-foreground">
+                <p
+                  id={`tutorial-video-${service.id}-desc`}
+                  className="mt-2 text-xs text-muted-foreground"
+                >
                   {service.tutorialVideo.description}
                 </p>
               </figure>
@@ -184,7 +206,7 @@ function ServiceCard({
                 <ol className="space-y-2">
                   {service.tutorial.map((step, i) => (
                     <li key={i} className="flex gap-3 text-sm text-muted-foreground">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-700">
+                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-900">
                         {i + 1}
                       </span>
                       {step}
@@ -213,14 +235,14 @@ export function Services() {
       <div className="mx-auto max-w-4xl px-4 md:px-6">
         <ScrollReveal variant="fade-up">
           <div className="mb-12 text-center">
-            <p className="mb-2 text-sm font-semibold tracking-wider text-amber-500 uppercase">
+            <p className="mb-2 text-sm font-semibold tracking-wider text-amber-800 uppercase">
               Atendimento
             </p>
             <h2 className="flex items-center justify-center gap-3 text-3xl font-bold text-foreground md:text-4xl">
-              <Scale className="size-8 text-amber-500" />
+              <Scale aria-hidden="true" className="size-8 text-amber-500" />
               Serviços Disponíveis
             </h2>
-            <p className="mt-4 text-muted-foreground">
+            <p className="mt-4 text-foreground/80">
               Conheça os serviços oferecidos pela 2ª Vara Cível de Cariacica.
             </p>
           </div>

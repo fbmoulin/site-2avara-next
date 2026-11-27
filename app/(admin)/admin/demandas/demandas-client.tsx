@@ -99,6 +99,7 @@ export function DemandasClient({
   const [selected, setSelected] = useState<Demand | null>(null)
   const [resolutionNotes, setResolutionNotes] = useState("")
   const [saving, setSaving] = useState(false)
+  const [actionError, setActionError] = useState("")
   const router = useRouter()
 
   function openDetail(demand: Demand) {
@@ -109,8 +110,16 @@ export function DemandasClient({
   async function handleResolve() {
     if (!selected) return
     setSaving(true)
-    await resolveDemand(selected.id, "admin", resolutionNotes)
-    setSaving(false)
+    setActionError("")
+    try {
+      await resolveDemand(selected.id, resolutionNotes)
+    } catch {
+      // The server validates again (e.g. Zoom link, notes up to 5000 characters).
+      setActionError("Não foi possível salvar. Confira os dados e tente novamente.")
+      return
+    } finally {
+      setSaving(false)
+    }
     setSelected(null)
     router.refresh()
   }
@@ -256,12 +265,18 @@ export function DemandasClient({
                       <Label htmlFor="resolutionNotes">Notas da resolução</Label>
                       <Textarea
                         id="resolutionNotes"
+                        maxLength={5000}
                         value={resolutionNotes}
                         onChange={(e) => setResolutionNotes(e.target.value)}
                         placeholder="Descreva como a demanda foi resolvida..."
                         className="mt-1"
                       />
                     </div>
+                    {actionError && (
+                      <p role="alert" className="text-sm text-destructive">
+                        {actionError}
+                      </p>
+                    )}
                     <Button
                       onClick={handleResolve}
                       disabled={saving}

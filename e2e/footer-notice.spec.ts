@@ -54,16 +54,17 @@ test("footer has no privacy or terms placeholders and its credit meets 4.5:1", a
   expect(await contrastRatio(link)).toBeGreaterThanOrEqual(4.5)
 })
 
-test("contact form shows the data notice above the submit button and links it", async ({ page }) => {
+test("contact form shows the data notice above the submit button and links it", async ({
+  page,
+}) => {
   await page.goto("/")
   const notice = page.locator("#contact-privacy-notice")
   const text =
     "Seus dados servem só para responder a esta mensagem. Dúvidas sobre proteção de dados: suporte@lexintelligentia.com.br."
   await expect(notice).toHaveText(text)
-  await expect(notice.getByRole("link", { name: "suporte@lexintelligentia.com.br" })).toHaveAttribute(
-    "href",
-    "mailto:suporte@lexintelligentia.com.br",
-  )
+  await expect(
+    notice.getByRole("link", { name: "suporte@lexintelligentia.com.br" }),
+  ).toHaveAttribute("href", "mailto:suporte@lexintelligentia.com.br")
   await expect(page.locator("#contato").getByRole("checkbox")).toHaveCount(0)
 
   const submit = page.getByRole("button", { name: "Enviar Mensagem", exact: true })
@@ -75,4 +76,40 @@ test("contact form shows the data notice above the submit button and links it", 
   expect(noticeBox!.y + noticeBox!.height).toBeLessThanOrEqual(submitBox!.y)
   expect(await contrastRatio(notice)).toBeGreaterThanOrEqual(4.5)
   expect(await contrastRatio(notice.getByRole("link"))).toBeGreaterThanOrEqual(4.5)
+})
+
+// SPEC-PORTAL-001 R2.9.
+test("every footer text meets 4.5:1 and a hidden h2 heads the footer h3s", async ({ page }) => {
+  await page.goto("/")
+  const footer = page.locator("footer")
+  const texts = footer.locator("p, h3, a, span:not(.sr-only)")
+  const count = await texts.count()
+  expect(count).toBeGreaterThan(5)
+  for (let index = 0; index < count; index++) {
+    const element = texts.nth(index)
+    if (!(await element.isVisible())) continue
+    const ratio = await contrastRatio(element)
+    expect(ratio, `${await element.textContent()}`).toBeGreaterThanOrEqual(4.5)
+  }
+  const heading = footer.getByRole("heading", { level: 2, name: "Informações do portal" })
+  await expect(heading).toHaveClass(/sr-only/)
+  const levels = await footer
+    .getByRole("heading")
+    .evaluateAll((headings) => headings.map((element) => element.tagName))
+  expect(levels[0]).toBe("H2")
+  expect(levels.slice(1).every((tag) => tag === "H3")).toBe(true)
+  await expect(footer.getByRole("link", { name: "(27) 3246-5641" })).toHaveAttribute(
+    "href",
+    "tel:+552732465641",
+  )
+})
+
+test("the map embed is centred on the Fórum de Cariacica", async ({ page }) => {
+  await page.goto("/")
+  const map = page.locator("#contato iframe")
+  const src = new URL((await map.getAttribute("src"))!)
+  expect(src.origin).toBe("https://www.google.com")
+  expect(src.searchParams.get("q")).toBe("-20.3332,-40.3767")
+  expect(src.searchParams.get("output")).toBe("embed")
+  await expect(map).toHaveAttribute("title", /Fórum de Cariacica/)
 })

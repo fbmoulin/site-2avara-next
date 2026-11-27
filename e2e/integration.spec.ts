@@ -8,7 +8,7 @@ test.describe("Integration Tests — Full Flow with DB", () => {
         name: "Maria Teste E2E",
         phone: "27999887766",
         email: "maria.teste@e2e.com",
-        subject: "Teste E2E Playwright",
+        subject: "informacao",
         message: "Esta é uma mensagem de teste automatizado via Playwright E2E.",
       },
     })

@@ -16,13 +16,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex min-h-screen min-w-0 flex-col bg-background lg:flex-row">
       <AdminSidebar email={user.email ?? ""} role={user.role} />
-      <div
+      <main
         id="main-content"
         tabIndex={-1}
         className="admin-content min-w-0 flex-1 p-4 pb-24 sm:p-6 sm:pb-24"
       >
         {children}
-      </div>
+      </main>
     </div>
   )
 }
