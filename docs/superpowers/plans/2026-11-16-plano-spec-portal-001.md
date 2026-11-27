@@ -72,7 +72,7 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 - [x] **T018 Validações do servidor** (R2.7) — feito em 27/11/2026
   `lib/validators.ts`, honeypot no formulário, `app/api/client-errors/route.ts`, `app/(admin)/admin/actions.ts` e clientes do admin.
 
-- [ ] **T019 Formulário de contato** (R2.8)
+- [x] **T019 Formulário de contato** (R2.8) — feito em 27/11/2026
   `components/landing/contact-form.tsx`: `autocomplete`, ARIA de erro, foco no sucesso, `tel:`/`mailto:`.
 
 - [ ] **T020 Rodapé, mapa e pauta** (R2.9)

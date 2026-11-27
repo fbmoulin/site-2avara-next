@@ -156,6 +156,7 @@ export const CONTACT_INFO = {
   address: "R. Meridional, 1000 - Alto Lage, Cariacica - ES, 29151-230",
   email: "2civelgabinetecariacica@gmail.com",
   phone: "(27) 3246-5641",
+  phoneHref: "tel:+552732465641",
 }
 
 export const TJES_NEWS_URL = "https://www.tjes.jus.br/category/s1-front-page/ultimasnoticias/"

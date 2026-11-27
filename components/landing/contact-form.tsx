@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle } from "lucide-react"
 import { motion } from "framer-motion"
 import { ScrollReveal } from "@/components/motion/scroll-reveal"
@@ -20,22 +20,89 @@ import {
 
 const PRIVACY_NOTICE_ID = "contact-privacy-notice"
 
+type FieldName = "name" | "phone" | "email" | "message"
+type FieldErrors = Partial<Record<FieldName, string>>
+
+// Same limits as contactSchema (lib/validators.ts); the server validates again (R2.8).
+const FIELD_RULES: Record<
+  FieldName,
+  { hint: string; error: string; valid: (value: string) => boolean }
+> = {
+  name: {
+    hint: "Pelo menos 3 letras.",
+    error: "Informe o nome completo, com pelo menos 3 letras.",
+    valid: (value) => value.trim().length >= 3 && value.length <= 255,
+  },
+  phone: {
+    hint: "Com DDD. Exemplo: (27) 99999-0000.",
+    error: "Informe o telefone com DDD, por exemplo (27) 99999-0000.",
+    valid: (value) =>
+      value.replace(/\D/g, "").length >= 10 && value.length >= 10 && value.length <= 20,
+  },
+  email: {
+    hint: "Exemplo: nome@exemplo.com.",
+    error: "Informe um e-mail válido, por exemplo nome@exemplo.com.",
+    valid: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && value.length <= 255,
+  },
+  message: {
+    hint: "Entre 10 e 5000 caracteres.",
+    error: "Escreva a mensagem com pelo menos 10 caracteres.",
+    valid: (value) => value.trim().length >= 10 && value.length <= 5000,
+  },
+}
+const FIELD_ORDER: FieldName[] = ["name", "phone", "email", "message"]
+
+function validate(formData: FormData): FieldErrors {
+  const errors: FieldErrors = {}
+  for (const field of FIELD_ORDER) {
+    const value = (formData.get(field) as string | null) ?? ""
+    if (!FIELD_RULES[field].valid(value)) errors[field] = FIELD_RULES[field].error
+  }
+  return errors
+}
+
+// Hint always visible; the error, when present, is announced with the field (aria-describedby).
+function describedBy(field: FieldName, errors: FieldErrors) {
+  return errors[field] ? `${field}-hint ${field}-error` : `${field}-hint`
+}
+
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [subject, setSubject] = useState<string | null>(null)
 
   const [errorMessage, setErrorMessage] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const submitting = useRef(false)
+  const formRef = useRef<HTMLFormElement>(null)
+  const successHeading = useRef<HTMLHeadingElement>(null)
+
+  // Move focus to the confirmation so keyboard and screen reader users hear it (R2.8).
+  useEffect(() => {
+    if (status === "success") successHeading.current?.focus()
+  }, [status])
+
+  function focusFirstInvalid(errors: FieldErrors) {
+    const first = FIELD_ORDER.find((field) => errors[field])
+    if (first) formRef.current?.querySelector<HTMLElement>(`#${first}`)?.focus()
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (submitting.current) return
     const form = e.currentTarget
+    const formData = new FormData(form)
+    const errors = validate(formData)
+    setFieldErrors(errors)
+    if (Object.keys(errors).length > 0) {
+      setErrorMessage("Confira os campos destacados.")
+      setStatus("error")
+      focusFirstInvalid(errors)
+      return
+    }
     submitting.current = true
     setStatus("loading")
     setErrorMessage("")
 
-    const formData = new FormData(form)
     const body = {
       name: formData.get("name") as string,
       phone: formData.get("phone") as string,
@@ -54,6 +121,25 @@ export function ContactForm() {
 
       if (res.status !== 201) {
         log.error("contact_form_error", { status: res.status })
+        if (res.status === 400 || res.status === 422) {
+          // Point at the fields the server rejected, when it says which ones.
+          const answer: unknown = await res.json().catch(() => null)
+          const issues =
+            answer &&
+            typeof answer === "object" &&
+            "details" in answer &&
+            Array.isArray(answer.details)
+              ? (answer.details as { path?: unknown[] }[])
+              : []
+          const serverErrors: FieldErrors = {}
+          for (const issue of issues) {
+            const field = issue.path?.[0]
+            if (typeof field === "string" && FIELD_ORDER.includes(field as FieldName))
+              serverErrors[field as FieldName] = FIELD_RULES[field as FieldName].error
+          }
+          setFieldErrors(serverErrors)
+          focusFirstInvalid(serverErrors)
+        }
         const message =
           res.status === 400 || res.status === 422
             ? "Confira os dados: nome com pelo menos 3 caracteres, telefone com DDD, e-mail válido e mensagem com pelo menos 10 caracteres."
@@ -86,6 +172,7 @@ export function ContactForm() {
         log.warn("contact_form_reset_failed")
       }
       setSubject(null)
+      setFieldErrors({})
       setStatus("success")
     } catch {
       log.error("contact_form_network_error")
@@ -136,7 +223,14 @@ export function ContactForm() {
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">Telefone</p>
-                  <p className="text-sm text-muted-foreground">{CONTACT_INFO.phone}</p>
+                  <p className="text-sm">
+                    <a
+                      href={CONTACT_INFO.phoneHref}
+                      className="text-foreground underline underline-offset-2 hover:no-underline"
+                    >
+                      {CONTACT_INFO.phone}
+                    </a>
+                  </p>
                 </div>
               </div>
 
@@ -146,7 +240,14 @@ export function ContactForm() {
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">E-mail</p>
-                  <p className="text-sm text-muted-foreground">{CONTACT_INFO.email}</p>
+                  <p className="text-sm">
+                    <a
+                      href={`mailto:${CONTACT_INFO.email}`}
+                      className="break-all text-foreground underline underline-offset-2 hover:no-underline"
+                    >
+                      {CONTACT_INFO.email}
+                    </a>
+                  </p>
                 </div>
               </div>
 
@@ -195,7 +296,13 @@ export function ContactForm() {
                 >
                   <CheckCircle className="size-16 text-green-500" />
                 </motion.div>
-                <h3 className="text-xl font-bold text-foreground">Mensagem enviada!</h3>
+                <h3
+                  ref={successHeading}
+                  tabIndex={-1}
+                  className="text-xl font-bold text-foreground focus:outline-none"
+                >
+                  Mensagem enviada!
+                </h3>
                 <p className="text-sm text-muted-foreground">
                   Sua mensagem de contato foi recebida para análise da equipe. O envio não confirma
                   data ou horário de atendimento.
@@ -209,7 +316,15 @@ export function ContactForm() {
               </div>
             ) : (
               <form
+                ref={formRef}
                 onSubmit={handleSubmit}
+                onInput={(event) => {
+                  // Clear a field's error as soon as the person edits it.
+                  const field = (event.target as HTMLInputElement).name as FieldName
+                  if (fieldErrors[field])
+                    setFieldErrors((current) => ({ ...current, [field]: undefined }))
+                }}
+                noValidate
                 aria-busy={status === "loading"}
                 className="relative space-y-5"
               >
@@ -233,12 +348,16 @@ export function ContactForm() {
                   <Input
                     id="name"
                     name="name"
+                    autoComplete="name"
                     minLength={3}
                     maxLength={255}
                     placeholder="Seu nome"
                     required
+                    aria-invalid={fieldErrors.name ? true : undefined}
+                    aria-describedby={describedBy("name", fieldErrors)}
                     className="bg-background"
                   />
+                  <FieldMessages field="name" errors={fieldErrors} />
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -248,12 +367,17 @@ export function ContactForm() {
                       id="phone"
                       name="phone"
                       type="tel"
+                      autoComplete="tel"
+                      inputMode="tel"
                       minLength={10}
                       maxLength={20}
                       placeholder="(27) 99999-0000"
                       required
+                      aria-invalid={fieldErrors.phone ? true : undefined}
+                      aria-describedby={describedBy("phone", fieldErrors)}
                       className="bg-background"
                     />
+                    <FieldMessages field="phone" errors={fieldErrors} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">E-mail</Label>
@@ -261,10 +385,15 @@ export function ContactForm() {
                       id="email"
                       name="email"
                       type="email"
+                      autoComplete="email"
+                      maxLength={255}
                       placeholder="seu@email.com"
                       required
+                      aria-invalid={fieldErrors.email ? true : undefined}
+                      aria-describedby={describedBy("email", fieldErrors)}
                       className="bg-background"
                     />
+                    <FieldMessages field="email" errors={fieldErrors} />
                   </div>
                 </div>
 
@@ -294,8 +423,11 @@ export function ContactForm() {
                     minLength={10}
                     maxLength={5000}
                     required
+                    aria-invalid={fieldErrors.message ? true : undefined}
+                    aria-describedby={describedBy("message", fieldErrors)}
                     className="bg-background"
                   />
+                  <FieldMessages field="message" errors={fieldErrors} />
                 </div>
 
                 {status === "error" && (
@@ -303,7 +435,7 @@ export function ContactForm() {
                     role="alert"
                     className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700"
                   >
-                    <AlertCircle className="size-4 shrink-0" />
+                    <AlertCircle aria-hidden="true" className="size-4 shrink-0" />
                     {errorMessage}
                   </div>
                 )}
@@ -345,5 +477,20 @@ export function ContactForm() {
         </div>
       </div>
     </section>
+  )
+}
+
+function FieldMessages({ field, errors }: { field: FieldName; errors: FieldErrors }) {
+  return (
+    <>
+      <p id={`${field}-hint`} className="text-xs text-foreground/80">
+        {FIELD_RULES[field].hint}
+      </p>
+      {errors[field] && (
+        <p id={`${field}-error`} className="text-sm font-medium text-red-700">
+          {errors[field]}
+        </p>
+      )}
+    </>
   )
 }
