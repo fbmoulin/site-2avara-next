@@ -66,8 +66,8 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 - [x] **T016 Landmarks e link de salto** (R2.5) — feito em 27/11/2026
   `app/(public)/layout.tsx`, `app/(public)/page.tsx`, `app/(public)/pauta/page.tsx`.
 
-- [ ] **T017 Redirecionamento do login** (R2.6)
-  `app/login/page.tsx`, com teste do caso `/\evil.com`.
+- [x] **T017 Redirecionamento do login** (R2.6) — feito em 27/11/2026
+  `app/(admin)/login/page.tsx` e `lib/safe-redirect.ts`, com teste do caso `/\evil.com`.
 
 - [ ] **T018 Validações do servidor** (R2.7)
   `lib/validators.ts`, honeypot no formulário, `app/api/client-errors/route.ts`, `app/admin/actions.ts` e clientes do admin.
