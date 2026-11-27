@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { currentWeek, scheduleSchema, type Hearing } from "../lib/hearing-schedule"
+import { currentWeek, hearingSuspensionNotice, scheduleSchema, type Hearing } from "../lib/hearing-schedule"
 
 const hearing: Hearing = {
   date: "2026-10-27",
@@ -47,4 +47,14 @@ test("invalid dates, wrong weeks, invalid modalities and extra fields fail close
       hearings: [{ ...hearing, modality: "Invalid" }],
     }).success,
   ).toBe(false)
+})
+
+test("hearings are suspended through 31/01/2027 (Sao Paulo) and the notice ends on 01/02", () => {
+  expect(hearingSuspensionNotice(new Date("2026-11-27T15:00:00Z"))).toBe(
+    "Sem audiências designadas até 31/01/2027.",
+  )
+  expect(hearingSuspensionNotice(new Date("2027-02-01T02:59:00Z"))).toBe(
+    "Sem audiências designadas até 31/01/2027.",
+  )
+  expect(hearingSuspensionNotice(new Date("2027-02-01T03:00:00Z"))).toBeNull()
 })

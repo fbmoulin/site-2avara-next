@@ -3,12 +3,19 @@ import { connection } from "next/server"
 import { and, eq } from "drizzle-orm"
 import { db } from "@/lib/db"
 import { hearingSchedules } from "@/lib/db/schema"
-import { addDays, currentWeek, formatDate, scheduleSchema } from "@/lib/hearing-schedule"
+import {
+  addDays,
+  currentWeek,
+  formatDate,
+  hearingSuspensionNotice,
+  scheduleSchema,
+} from "@/lib/hearing-schedule"
 
 export const metadata = { title: "Pauta semanal de audiências — 2ª Vara Cível de Cariacica" }
 
 export default async function HearingSchedulePage() {
   await connection()
+  const suspension = hearingSuspensionNotice()
   const weekStart = currentWeek()
   let schedule:
     | { hearings: import("@/lib/hearing-schedule").Hearing[]; updatedAt: Date }
@@ -46,7 +53,11 @@ export default async function HearingSchedulePage() {
         A pauta revisada é disponibilizada às segundas-feiras e pode receber atualizações durante a
         semana.
       </p>
-      {unavailable ? (
+      {suspension ? (
+        <p role="status" className="rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4 font-semibold">
+          {suspension}
+        </p>
+      ) : unavailable ? (
         <p role="alert">Não foi possível consultar a pauta. Tente novamente mais tarde.</p>
       ) : !schedule ? (
         <p role="status">A pauta desta semana ainda não foi publicada.</p>
@@ -81,7 +92,7 @@ export default async function HearingSchedulePage() {
           </table>
         </div>
       )}
-      {schedule && (
+      {!suspension && schedule && (
         <p className="text-sm text-muted-foreground">
           Atualizada em{" "}
           {schedule.updatedAt.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}{" "}

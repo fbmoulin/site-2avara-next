@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+import { hearingSuspensionNotice } from "../lib/hearing-schedule"
 
 test("weekly schedule is reachable, explains unpublished week and Zoom guidance", async ({
   page,
@@ -8,7 +9,10 @@ test("weekly schedule is reachable, explains unpublished week and Zoom guidance"
   await expect(
     page.getByRole("heading", { name: "Pauta semanal de audiências", exact: true }),
   ).toBeVisible()
-  await expect(page.getByRole("status")).toHaveText("A pauta desta semana ainda não foi publicada.")
+  const suspension = hearingSuspensionNotice()
+  await expect(page.getByRole("status")).toHaveText(
+    suspension ?? "A pauta desta semana ainda não foi publicada.",
+  )
   await expect(
     page.getByText("Utilize o link recebido na intimação", { exact: false }),
   ).toBeVisible()
