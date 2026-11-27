@@ -78,8 +78,8 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 - [x] **T020 Rodapé, mapa e pauta** (R2.9) — feito em 27/11/2026
   `components/footer.tsx` (contraste, `h2` oculto), embed do mapa, mensagem de erro de `/pauta`.
 
-- [ ] **T021 Artigos** (R2.10)
-  `app/admin/actions.ts` (`revalidatePath` do slug) e `app/artigos/[slug]/page.tsx` (`isPublished` no `generateMetadata`; `cache()` na consulta).
+- [x] **T021 Artigos** (R2.10) — feito em 27/11/2026
+  `app/(admin)/admin/actions.ts` (`revalidatePath` do slug) e `app/(public)/artigos/[slug]/page.tsx` (`isPublished` no `generateMetadata`; `cache()` na consulta, em `lib/articles.ts`).
 
 - [ ] **T022 Verificação da onda 2**
   Preview → merge → roteiro de §8, com teclado e leitor de tela nos fluxos principais.

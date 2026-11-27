@@ -7,6 +7,7 @@ import { eq, desc, count } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { requireAdmin } from "@/lib/auth"
 import { adminNotesSchema, zoomLinkSchema } from "@/lib/validators"
+import { articleRevalidationPaths } from "@/lib/articles"
 
 const uuidSchema = z.string().uuid()
 
@@ -331,21 +332,26 @@ export async function updateArticle(
   uuidSchema.parse(id)
   const validated = updateArticleSchema.parse(data)
 
-  await db
+  const [previous] = await db
+    .select({ slug: articles.slug })
+    .from(articles)
+    .where(eq(articles.id, id))
+    .limit(1)
+  const [updated] = await db
     .update(articles)
     .set({ ...validated, updatedAt: new Date() })
     .where(eq(articles.id, id))
+    .returning({ slug: articles.slug })
 
-  revalidatePath("/admin/artigos")
-  revalidatePath("/artigos")
-  revalidatePath("/")
+  // Old and new slug: a renamed article must disappear from its previous address (R2.10).
+  for (const path of articleRevalidationPaths(previous?.slug, updated?.slug)) revalidatePath(path)
 }
 
 export async function toggleArticlePublish(id: string, isPublished: boolean) {
   await requireAdmin()
   uuidSchema.parse(id)
 
-  await db
+  const [updated] = await db
     .update(articles)
     .set({
       isPublished,
@@ -353,10 +359,9 @@ export async function toggleArticlePublish(id: string, isPublished: boolean) {
       updatedAt: new Date(),
     })
     .where(eq(articles.id, id))
+    .returning({ slug: articles.slug })
 
-  revalidatePath("/admin/artigos")
-  revalidatePath("/artigos")
-  revalidatePath("/")
+  for (const path of articleRevalidationPaths(updated?.slug)) revalidatePath(path)
 }
 
 // ---------------------------------------------------------------------------
