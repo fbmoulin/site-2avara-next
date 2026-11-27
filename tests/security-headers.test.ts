@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import { contentSecurityPolicy } from "../lib/security-headers"
+import {
+  PUBLIC_CSP_SOURCE,
+  adminContentSecurityPolicy,
+  contentSecurityPolicy,
+  isAdminPath,
+} from "../lib/security-headers"
 
 const savedUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 process.env.NEXT_PUBLIC_SUPABASE_URL = "https://abcdefghijklmnop.supabase.co"
@@ -19,8 +24,19 @@ function directives(csp: string) {
 describe("security headers from next.config.ts", async () => {
   const rules = (await nextConfig.headers?.()) ?? []
   const global = rules.find((rule) => rule.source === "/(.*)")
-  const headers = new Map(global?.headers.map((header) => [header.key, header.value]))
+  const publicRule = rules.find((rule) => rule.source === PUBLIC_CSP_SOURCE)
+  const headers = new Map(
+    [...(global?.headers ?? []), ...(publicRule?.headers ?? [])].map((header) => [
+      header.key,
+      header.value,
+    ]),
+  )
   const csp = directives(headers.get("Content-Security-Policy") ?? "")
+
+  test("the CSP is not part of the every-route rule: admin routes get the proxy nonce CSP", () => {
+    expect(global?.headers.some((header) => header.key === "Content-Security-Policy")).toBe(false)
+    expect(publicRule).toBeDefined()
+  })
 
   test("applies to every route and keeps the existing protections", () => {
     expect(global).toBeDefined()
@@ -83,4 +99,56 @@ test("without NEXT_PUBLIC_SUPABASE_URL the Supabase wildcard is the fallback", (
   const csp = directives(contentSecurityPolicy(undefined))
   expect(csp.get("connect-src")).toContain("https://*.supabase.co")
   expect(csp.get("img-src")).toContain("https://*.supabase.co")
+})
+
+describe("public CSP source excludes exactly the admin routes (R2.1)", () => {
+  // Same anchoring Next applies to header sources.
+  const source = new RegExp(`^${PUBLIC_CSP_SOURCE}$`)
+  test.each(["/", "/pauta", "/noticias", "/artigos", "/artigos/artigo-de-teste", "/administracao", "/loginx", "/api/news"])(
+    "public path %s gets the VLibras CSP",
+    (path) => {
+      expect(source.test(path)).toBe(true)
+      expect(isAdminPath(path)).toBe(false)
+    },
+  )
+  test.each(["/admin", "/admin/", "/admin/pauta", "/login", "/acesso-negado", "/servico-indisponivel"])(
+    "admin path %s does not",
+    (path) => {
+      expect(source.test(path)).toBe(false)
+      expect(isAdminPath(path)).toBe(true)
+    },
+  )
+})
+
+describe("admin CSP (R2.1)", () => {
+  test("production: nonce and strict-dynamic, no unsafe-inline/unsafe-eval, no VLibras", () => {
+    const csp = directives(adminContentSecurityPolicy("abc123", "https://abcdefghijklmnop.supabase.co"))
+    expect(csp.get("script-src")).toEqual(["'self'", "'nonce-abc123'", "'strict-dynamic'"])
+    const raw = adminContentSecurityPolicy("abc123", "https://abcdefghijklmnop.supabase.co")
+    expect(raw).not.toContain("vlibras")
+    expect(raw).not.toContain("jsdelivr")
+    expect(csp.get("connect-src")).toEqual(["'self'", "https://abcdefghijklmnop.supabase.co"])
+    expect(csp.get("object-src")).toEqual(["'none'"])
+    expect(csp.get("frame-ancestors")).toEqual(["'none'"])
+    expect(csp.get("form-action")).toEqual(["'self'"])
+    expect(csp.get("base-uri")).toEqual(["'self'"])
+  })
+  test("connect-src follows the configured Supabase origin, wildcard only without it", () => {
+    expect(directives(adminContentSecurityPolicy("n", "http://127.0.0.1:54329")).get("connect-src")).toEqual([
+      "'self'",
+      "http://127.0.0.1:54329",
+    ])
+    expect(directives(adminContentSecurityPolicy("n", undefined)).get("connect-src")).toContain(
+      "https://*.supabase.co",
+    )
+  })
+  test("development adds only unsafe-eval, which React needs for dev error stacks", () => {
+    const csp = directives(adminContentSecurityPolicy("abc123", undefined, true))
+    expect(csp.get("script-src")).toEqual([
+      "'self'",
+      "'nonce-abc123'",
+      "'strict-dynamic'",
+      "'unsafe-eval'",
+    ])
+  })
 })

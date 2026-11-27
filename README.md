@@ -22,6 +22,8 @@ bun run dev
 
 As ações administrativas, o layout, o Proxy e o upload verificam a autorização. As APIs diferenciam ausência de sessão (401), usuário sem permissão (403) e dependência/configuração indisponível (503). As páginas usam login ou telas de acesso negado/indisponibilidade. `proxy.ts` preserva os cookies renovados; sua proteção não substitui a guarda em cada operação.
 
+As rotas do painel ficam em `app/(admin)` (`/admin`, `/login`, `/acesso-negado`, `/servico-indisponivel`) e não carregam VLibras, guia nem barra de acessibilidade, que ficam em `app/(public)`. Nelas, `proxy.ts` envia uma CSP com nonce novo a cada pedido, sem `'unsafe-inline'` (e sem `'unsafe-eval'` fora do `next dev`); por isso são renderizadas sob demanda. A CSP das páginas públicas, que o VLibras exige, vem de `next.config.ts` e não alcança essas rotas. A sessão do painel dura 8 horas a partir do login (`ADMIN_SESSION_MAX_AGE_SECONDS`); depois disso a pessoa entra de novo.
+
 `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` são obrigatórios em produção. A falta da proteção ou sua indisponibilidade resulta em 503 nas rotas públicas protegidas; esgotamento da cota resulta em 429. Em desenvolvimento e nos testes locais, a proteção pode ser omitida.
 
 `RESEND_API_KEY` habilita notificações. Contatos são confirmados após persistência; a notificação ocorre depois da resposta com `after()`. Falhas são sinalizadas por evento e ID, sem copiar a mensagem aos logs. Não há fila durável de retentativas neste lote.

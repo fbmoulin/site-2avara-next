@@ -1,7 +1,12 @@
 import "server-only"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
-import { AdminAccessError, authorizeAdmin } from "./admin-policy"
+import {
+  ADMIN_SESSION_COOKIE_OPTIONS,
+  AdminAccessError,
+  activeSessionUser,
+  authorizeAdmin,
+} from "./admin-policy"
 import { authorizeStaff } from "./staff-access"
 
 export async function createSupabaseServer() {
@@ -14,6 +19,7 @@ export async function createSupabaseServer() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: ADMIN_SESSION_COOKIE_OPTIONS,
       cookies: {
         getAll() {
           return cookieStore.getAll()
@@ -47,7 +53,7 @@ export async function getUser() {
     } = await supabase.auth.getUser()
     if (error && (!error.status || error.status === 429 || error.status >= 500))
       throw new AdminAccessError(503)
-    return error ? null : user
+    return error ? null : activeSessionUser(user)
   } catch (error) {
     if (error instanceof AdminAccessError) throw error
     throw new AdminAccessError(503)

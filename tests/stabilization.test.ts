@@ -3,7 +3,12 @@ import { staffUsers } from "../lib/db/schema"
 
 const ADMIN = "11111111-1111-4111-8111-111111111111"
 const MEMBER = "22222222-2222-4222-8222-222222222222"
-let user: { id: string; app_metadata?: object; user_metadata?: object } | null = null
+let user: {
+  id: string
+  app_metadata?: object
+  user_metadata?: object
+  last_sign_in_at?: string | null
+} | null = null
 let authError: { status?: number } | null = null
 let authThrows = false
 let staffRecord: { role: string; active: boolean } | undefined
@@ -50,7 +55,11 @@ mock.module("@supabase/ssr", () => ({
           options.cookies.setAll([
             { name: "session-test", value: "refreshed", options: { path: "/", httpOnly: true } },
           ])
-        return { data: { user }, error: authError }
+        // Fixtures sign in "now" unless a test sets last_sign_in_at (8-hour panel session).
+        return {
+          data: { user: user && { last_sign_in_at: new Date().toISOString(), ...user } },
+          error: authError,
+        }
       },
     },
   }),
@@ -103,18 +112,20 @@ mock.module("../lib/db", () => ({
   },
 }))
 
-const { authorizeAdmin, AdminAccessError } = await import("../lib/admin-policy")
+const { authorizeAdmin, AdminAccessError, activeSessionUser, ADMIN_SESSION_MAX_AGE_SECONDS } =
+  await import("../lib/admin-policy")
 const { requireAdmin } = await import("../lib/auth")
-const actions = await import("../app/admin/actions")
-const scheduleActions = await import("../app/admin/pauta/actions")
-const userActions = await import("../app/admin/usuarios/actions")
+const actions = await import("../app/(admin)/admin/actions")
+const scheduleActions = await import("../app/(admin)/admin/pauta/actions")
+const userActions = await import("../app/(admin)/admin/usuarios/actions")
 const { POST: chat } = await import("../app/api/chat/route")
 const { POST: contact } = await import("../app/api/contact/route")
 const { POST: upload } = await import("../app/api/upload/route")
 const appointmentRoute = await import("../app/api/appointments/route")
 const demandRoute = await import("../app/api/demands/route")
-const { default: AdminLayout } = await import("../app/admin/layout")
-const { proxy } = await import("../proxy")
+const { default: AdminLayout } = await import("../app/(admin)/admin/layout")
+const { proxy, config: proxyConfig } = await import("../proxy")
+const { ADMIN_PATHS } = await import("../lib/security-headers")
 const { NextRequest } = await import("next/server")
 const { sendContactNotification, sendAppointmentNotification, sendDemandNotification } =
   await import("../lib/email")
@@ -316,6 +327,67 @@ describe("Administrative authorization", () => {
     expect(response.headers.get("x-middleware-rewrite")).toContain("/acesso-negado")
     expect(response.cookies.get("session-test")?.value).toBe("refreshed")
     expect(response.headers.get("cache-control")).toContain("no-store")
+  })
+})
+
+describe("Administrative session and CSP (R2.1)", () => {
+  const NINE_HOURS_AGO = () => new Date(Date.now() - 9 * 3600 * 1000).toISOString()
+  test("a session older than 8 hours is treated as no session", async () => {
+    user = { id: ADMIN, last_sign_in_at: NINE_HOURS_AGO() }
+    await expect(requireAdmin()).rejects.toMatchObject({ status: 401 })
+    const response = await proxy(new NextRequest("http://localhost/admin/contatos"))
+    expect(response.status).toBe(307)
+    expect(response.headers.get("location")).toContain("/login?redirect=%2Fadmin%2Fcontatos")
+    user = { id: ADMIN, last_sign_in_at: new Date(Date.now() - 7 * 3600 * 1000).toISOString() }
+    expect((await requireAdmin()).id).toBe(ADMIN)
+  })
+  test("missing or invalid sign-in time fails closed", async () => {
+    for (const lastSignIn of [null, "not-a-date"]) {
+      user = { id: ADMIN, last_sign_in_at: lastSignIn }
+      await expect(requireAdmin()).rejects.toMatchObject({ status: 401 })
+    }
+  })
+  test("8-hour limit is pure and exact", () => {
+    const now = Date.parse("2026-11-27T20:00:00Z")
+    expect(activeSessionUser({ last_sign_in_at: "2026-11-27T12:00:00Z" }, now)).not.toBeNull()
+    expect(activeSessionUser({ last_sign_in_at: "2026-11-27T11:59:59Z" }, now)).toBeNull()
+    expect(activeSessionUser(null, now)).toBeNull()
+    expect(ADMIN_SESSION_MAX_AGE_SECONDS).toBe(28800)
+  })
+  test.each(["/admin", "/admin/pauta", "/login", "/acesso-negado", "/servico-indisponivel"])(
+    "%s gets a fresh nonce CSP without unsafe-inline or unsafe-eval",
+    async (path) => {
+      user = { id: ADMIN }
+      const first = await proxy(new NextRequest(`http://localhost${path}`))
+      const second = await proxy(new NextRequest(`http://localhost${path}`))
+      const csp = first.headers.get("content-security-policy") ?? ""
+      const scripts = csp.split(";").find((part) => part.trim().startsWith("script-src")) ?? ""
+      expect(scripts).toMatch(/'nonce-[A-Za-z0-9+/=]{20,}'/)
+      expect(scripts).toContain("'strict-dynamic'")
+      expect(scripts).not.toContain("unsafe-inline")
+      expect(scripts).not.toContain("unsafe-eval")
+      expect(csp).not.toContain("vlibras")
+      expect(csp).not.toContain("jsdelivr")
+      expect(csp).toContain("frame-ancestors 'none'")
+      expect(second.headers.get("content-security-policy")).not.toBe(csp)
+      // Next reads the nonce from the forwarded request CSP while rendering.
+      expect(first.headers.get("x-middleware-request-content-security-policy")).toBe(csp)
+      expect(first.headers.get("x-middleware-request-x-nonce")).toBeTruthy()
+    },
+  )
+  test("proxy matcher covers every admin path", () => {
+    for (const path of ADMIN_PATHS)
+      expect(proxyConfig.matcher.some((pattern) => pattern.startsWith(path))).toBe(true)
+  })
+  test("denied and redirected admin responses also carry the nonce CSP", async () => {
+    let response = await proxy(new NextRequest("http://localhost/admin"))
+    expect(response.status).toBe(307)
+    expect(response.headers.get("content-security-policy")).toContain("'nonce-")
+    user = { id: MEMBER }
+    response = await proxy(new NextRequest("http://localhost/admin"))
+    expect(response.status).toBe(403)
+    expect(response.headers.get("content-security-policy")).toContain("'nonce-")
+    expect(response.headers.get("x-middleware-request-content-security-policy")).toContain("'nonce-")
   })
 })
 

@@ -51,7 +51,7 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 
 ## Onda 2 — estrutura e acessibilidade (branch `fix/onda-2-acessibilidade`)
 
-- [ ] **T012 Grupos de rotas público/admin** (R2.1)
+- [x] **T012 Grupos de rotas público/admin** (R2.1) — feito em 27/11/2026
   Mover páginas para `app/(public)` e `app/(admin)`; VLibras, guia e barra só no público; nonce de CSP no `proxy.ts` para `/admin`. E2E: HTML do admin sem scripts externos.
 
 - [ ] **T013 Navegação e menu móvel** (R2.2)

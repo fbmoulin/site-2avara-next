@@ -1,11 +1,5 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
-import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
-import { AccessibilityBar } from "@/components/accessibility-bar"
-import { Chatbot } from "@/components/chatbot"
-import { LoggerInit } from "@/components/logger-init"
-import { VLibrasInit } from "@/components/vlibras-init"
 import "./globals.css"
 
 const geistSans = Geist({
@@ -24,6 +18,8 @@ export const metadata: Metadata = {
     "Portal informativo da 2ª Vara Cível de Cariacica (ES): serviços, pauta de audiências, notícias e contato.",
 }
 
+// Shared shell only. The public chrome (VLibras, guide, accessibility bar) lives in app/(public);
+// the panel in app/(admin) loads no external script (SPEC-PORTAL-001 R2.1).
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,32 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col pt-11 md:pt-9">
-        <AccessibilityBar />
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
-
-        <LoggerInit />
-        <Chatbot />
-
-        {/* VLibras - acessibilidade em Libras */}
-        <div
-          // @ts-expect-error — VLibras uses non-standard vw attribute
-          vw="true"
-          className="enabled"
-        >
-          <div vw-access-button="true" className="active" />
-          <div vw-plugin-wrapper="true">
-            <div className="vw-plugin-top-wrapper" />
-          </div>
-        </div>
-        <VLibrasInit />
-        <style>{`
-          [vw] .active { position: fixed !important; bottom: 20px !important; right: 20px !important; z-index: 9999 !important; }
-          [vw-plugin-wrapper] { position: fixed !important; z-index: 9998 !important; }
-        `}</style>
-      </body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   )
 }

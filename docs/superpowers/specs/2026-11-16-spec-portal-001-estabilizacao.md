@@ -253,3 +253,11 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 | Mapa | Marcador cerca de 4 km a sudoeste do Fórum |
 | Contraste do rodapé | 4,23:1 e 2,66:1 (mínimo 4,5:1) |
 | Painel | `ADMIN_USER_IDS` ausente em Production |
+
+## 10. Execução da onda 2
+
+Branch `fix/onda-2-acessibilidade`, criada de `master` em 27/11/2026. Um commit por tarefa (T012 a T021). Validação local: `bun run lint`, `bun run typecheck`, `bun test tests`, `bun run audit:production` e `bun run verify:local` (cópia local sem a fonte do Google, que o ambiente bloqueia).
+
+| Requisito | Execução |
+| --- | --- |
+| R2.1 | Rotas em `app/(public)` (barra de acessibilidade, guia, VLibras e `<main>`) e `app/(admin)` (`/admin`, `/login`, `/acesso-negado`, `/servico-indisponivel`), sem script externo. O layout do grupo admin chama `connection()`: o nonce só é aplicado na renderização. `proxy.ts` casa as quatro rotas e envia a cada pedido uma CSP com nonce e `'strict-dynamic'`, sem `'unsafe-inline'`; `'unsafe-eval'` só em `next dev`, como pede o guia do Next. A CSP pública (VLibras) continua em `lib/security-headers.ts`, agora numa regra de `next.config.ts` que exclui as rotas do admin, para as duas políticas não se somarem. Sessão do painel de 8 horas a partir do login (Q-8): `activeSessionUser` em `lib/admin-policy.ts`, aplicada no Proxy e em `getUser()`; sessão mais antiga ou sem horário de login vale como ausente (401 → `/login`); cookies do Supabase com `maxAge` de 8 h. Testes: unidade (CSP de produção, nonce novo por pedido, regra pública, sessão vencida) e E2E (HTML de `/login`, `/acesso-negado` e `/servico-indisponivel` sem `vlibras.gov.br`, login hidratado sem violação de CSP). Conferido também com `next start`: o login funciona com a CSP de produção. Pendência [manual]: se o plano do Supabase permitir, ativar também o limite de sessão (time-box) de 8 h no painel do Auth de produção; a aplicação já aplica o limite sem isso. |
