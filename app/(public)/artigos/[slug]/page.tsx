@@ -13,19 +13,20 @@ import { articleJsonLd, OG_IMAGE, pageMetadata } from "@/lib/seo"
 export const revalidate = 60
 
 export async function generateStaticParams() {
-  const items = await db
-    .select({ slug: articles.slug })
-    .from(articles)
-    .where(eq(articles.isPublished, true))
-
-  return items.map((item) => ({ slug: item.slug }))
+  try {
+    const items = await db
+      .select({ slug: articles.slug })
+      .from(articles)
+      .where(eq(articles.isPublished, true))
+    return items.map((item) => ({ slug: item.slug }))
+  } catch {
+    // Database unavailable at build time: the pages are rendered on the first visit (R3.4).
+    console.error("[artigos] static_params_failed")
+    return []
+  }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   // Unpublished articles have no public metadata (title, excerpt, image) either.
   const article = await getPublishedArticle(slug)
@@ -50,11 +51,7 @@ export async function generateMetadata({
   }
 }
 
-export default async function ArtigoPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export default async function ArtigoPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const article = await getPublishedArticle(slug)
 
@@ -93,9 +90,7 @@ export default async function ArtigoPage({
           {article.category}
         </span>
 
-        <h1 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
-          {article.title}
-        </h1>
+        <h1 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">{article.title}</h1>
 
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <span>{article.author}</span>

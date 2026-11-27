@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { eq } from "drizzle-orm"
 import { requirePanelUser } from "@/lib/auth"
 import { db } from "@/lib/db"
@@ -16,7 +17,7 @@ export default async function ScheduleAdminPage({
   if (!week.success)
     return (
       <p role="alert">
-        Selecione uma segunda-feira válida. <a href="/admin/pauta">Voltar à pauta</a>
+        Selecione uma segunda-feira válida. <Link href="/admin/pauta">Voltar à pauta</Link>
       </p>
     )
   const [schedule] = await db

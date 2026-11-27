@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { news } from "@/lib/db/schema"
 import { desc, eq } from "drizzle-orm"
 import { pageMetadata } from "@/lib/seo"
+import { TJES_NEWS_URL } from "@/lib/constants"
 import {
   Card,
   CardHeader,
@@ -21,12 +22,22 @@ export const metadata = pageMetadata({
   path: "/noticias",
 })
 
+type NewsItem = typeof news.$inferSelect
+
 export default async function NoticiasPage() {
-  const items = await db
-    .select()
-    .from(news)
-    .where(eq(news.isActive, true))
-    .orderBy(desc(news.publishedAt))
+  // R3.4: a database failure shows a notice instead of the error page.
+  let items: NewsItem[] = []
+  let unavailable = false
+  try {
+    items = await db
+      .select()
+      .from(news)
+      .where(eq(news.isActive, true))
+      .orderBy(desc(news.publishedAt))
+  } catch {
+    unavailable = true
+    console.error("[noticias] read_failed")
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
@@ -38,14 +49,18 @@ export default async function NoticiasPage() {
         Voltar ao início
       </Link>
 
-      <h1 className="mb-8 text-3xl font-bold tracking-tight">
-        Notícias do TJES
-      </h1>
+      <h1 className="mb-8 text-3xl font-bold tracking-tight">Notícias do TJES</h1>
 
-      {items.length === 0 ? (
-        <p className="text-muted-foreground">
-          Nenhuma notícia disponível no momento.
+      {unavailable ? (
+        <p role="alert" className="rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4">
+          Não foi possível carregar as notícias agora. Consulte as publicações mais recentes no{" "}
+          <a href={TJES_NEWS_URL} className="font-medium underline underline-offset-2">
+            site do TJES
+          </a>
+          .
         </p>
+      ) : items.length === 0 ? (
+        <p className="text-muted-foreground">Nenhuma notícia disponível no momento.</p>
       ) : (
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
@@ -61,9 +76,7 @@ export default async function NoticiasPage() {
 
               <CardContent className="flex-1">
                 {item.description && (
-                  <CardDescription className="line-clamp-3">
-                    {item.description}
-                  </CardDescription>
+                  <CardDescription className="line-clamp-3">{item.description}</CardDescription>
                 )}
               </CardContent>
 
