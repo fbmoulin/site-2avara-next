@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test, type Page } from "@playwright/test"
+import { hearingSuspensionNotice } from "../lib/hearing-schedule"
 
 // SPEC-PORTAL-001 R3.7: first screen with four task shortcuts; R3.8: one event per shortcut.
 
@@ -57,8 +58,10 @@ test("server HTML has the title, the four shortcuts and the notice, with nothing
     expect(hero).toContain(`href="${href}"`)
     expect(hero).toContain(`data-shortcut="${id}"`)
   }
-  // The verify:local date is before 31/01/2027: the suspension notice is under the shortcuts.
-  expect(text).toContain("Sem audiências designadas até 31/01/2027.")
+  // The suspension notice is under the shortcuts while it lasts, and gone after its date.
+  const suspension = hearingSuspensionNotice()
+  if (suspension) expect(text).toContain(suspension)
+  else expect(text).not.toContain("Sem audiências designadas")
   expect(hero).not.toMatch(/opacity:\s*0/)
   expect(hero).not.toMatch(/animate-|data-reveal/)
 })
@@ -91,9 +94,12 @@ test.describe("phone, 390×844", () => {
     await expect(eyebrow).toBeVisible()
     // innerText follows CSS: the uppercase transform and the part hidden on the phone.
     await expect(eyebrow).toHaveText("COMARCA DE CARIACICA — ES", { useInnerText: true })
-    const notice = hero.getByText("Sem audiências designadas até 31/01/2027.")
-    await expect(notice).toBeInViewport({ ratio: 1 })
-    expect((await notice.boundingBox())!.y).toBeGreaterThan(boxes[3].y + boxes[3].height)
+    const suspension = hearingSuspensionNotice()
+    if (suspension) {
+      const notice = hero.getByText(suspension)
+      await expect(notice).toBeInViewport({ ratio: 1 })
+      expect((await notice.boundingBox())!.y).toBeGreaterThan(boxes[3].y + boxes[3].height)
+    }
     // Decorative icons are hidden from assistive technology.
     await expect(hero.locator("svg:not([aria-hidden='true'])")).toHaveCount(0)
     await expect(page.locator("#inicio h1")).toHaveText("Como podemos ajudar?")
@@ -238,7 +244,7 @@ test.describe("navigation and events", () => {
     ])
   })
 
-  test('"Pauta da semana" goes to /pauta, which keeps the suspension notice', async ({ page }) => {
+  test('"Pauta da semana" goes to /pauta', async ({ page }) => {
     const events = await recordEvents(page)
     await page.goto("/")
     await shortcutLink(page, "Pauta da semana").click()
@@ -246,7 +252,8 @@ test.describe("navigation and events", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Pauta semanal de audiências" }),
     ).toBeVisible()
-    await expect(page.getByText("Sem audiências designadas até 31/01/2027.")).toBeVisible()
+    const suspension = hearingSuspensionNotice()
+    if (suspension) await expect(page.getByText(suspension)).toBeVisible()
     expect(await events()).toEqual([
       { name: "home_shortcut", data: { shortcut: "pauta_da_semana" }, options: undefined },
     ])
