@@ -171,3 +171,14 @@
 @media (min-width: 48rem) {
   :where(section[id], #localizacao) { scroll-margin-top: 7rem; }
 }
+
+/* Reduced motion (R2.3): scroll-reveal wrappers show their final state at once. CSS, not JS, so it
+   also holds before hydration and never changes the server HTML that React hydrates. */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}

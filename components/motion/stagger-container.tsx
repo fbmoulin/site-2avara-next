@@ -45,6 +45,7 @@ export function StaggerContainer({
         },
       }}
       className={className}
+      data-reveal=""
     >
       {children}
     </motion.div>
@@ -67,6 +68,7 @@ export function StaggerItem({
       variants={getItemVariants(direction)}
       transition={{ duration: 0.4, ease: "easeOut" }}
       className={className}
+      data-reveal=""
     >
       {children}
     </motion.div>
