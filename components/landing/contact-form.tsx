@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react"
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle } from "lucide-react"
 import { ScrollReveal } from "@/components/motion/scroll-reveal"
 import { log } from "@/lib/logger"
+import { trackContactFormSent } from "@/lib/analytics"
 import {
   CONTACT_HONEYPOT_FIELD,
   CONTACT_INFO,
@@ -170,6 +171,8 @@ export function ContactForm() {
       }
       setFieldErrors({})
       setStatus("success")
+      // R3.8: counted only after the server confirmed the record; never affects the result.
+      trackContactFormSent(body.subject)
     } catch {
       log.error("contact_form_network_error")
       setErrorMessage(

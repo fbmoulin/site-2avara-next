@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import {
   Search,
   Video,
@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Scale,
 } from "lucide-react"
+import { trackZoomTutorialPlay } from "@/lib/analytics"
 import { SERVICES } from "@/lib/constants"
 import type { ServiceItem } from "@/lib/constants"
 import { ScrollReveal } from "@/components/motion/scroll-reveal"
@@ -54,6 +55,8 @@ function ServiceCard({
     Boolean(service.tutorialVideo)
 
   const panelId = `service-panel-${service.id}`
+  // R3.8: one event the first time the tutorial video plays while the card is open.
+  const videoTracked = useRef(false)
   // Hover effect in CSS (R3.3), off with reduced motion.
   const icon = (
     <div
@@ -163,6 +166,11 @@ function ServiceCard({
                   controls
                   playsInline
                   preload="none"
+                  onPlay={() => {
+                    if (videoTracked.current) return
+                    videoTracked.current = true
+                    trackZoomTutorialPlay()
+                  }}
                   poster={service.tutorialVideo.poster}
                   aria-labelledby={`tutorial-video-${service.id}-title`}
                   aria-describedby={`tutorial-video-${service.id}-desc`}

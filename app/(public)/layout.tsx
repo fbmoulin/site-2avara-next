@@ -4,6 +4,7 @@ import { AccessibilityBar } from "@/components/accessibility-bar"
 import { Chatbot } from "@/components/chatbot"
 import { LoggerInit } from "@/components/logger-init"
 import { VLibrasInit } from "@/components/vlibras-init"
+import { WebAnalytics } from "@/components/web-analytics"
 
 // Public pages: accessibility bar, informative guide and VLibras. The admin group never renders these.
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <Footer />
 
       <LoggerInit />
+      <WebAnalytics />
       <Chatbot />
 
       {/* VLibras - acessibilidade em Libras */}
