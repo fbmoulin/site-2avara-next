@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Hero } from "@/components/landing/hero"
 import { Judge } from "@/components/landing/judge"
 import { Services } from "@/components/landing/services"
+import { ZoomTutorialHighlight } from "@/components/landing/zoom-tutorial-highlight"
 import { BlogPreview } from "@/components/landing/blog-preview"
 import { NewsPreview } from "@/components/landing/news-preview"
 import { Faq } from "@/components/landing/faq"
@@ -16,6 +17,7 @@ export default function Home() {
     <main id="main-content">
       <Hero />
       <Judge />
+      <ZoomTutorialHighlight />
       <Services />
       <section className="bg-muted px-4 py-10 text-center" aria-labelledby="pauta-heading">
         <h2 id="pauta-heading" className="text-2xl font-bold">
