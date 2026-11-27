@@ -10,6 +10,15 @@ for (const statement of statements) await database.exec(statement)
 await database.exec(
   `INSERT INTO articles (title, slug, content, excerpt, is_published, published_at) VALUES ('Artigo de teste', 'artigo-de-teste', 'Conteúdo fictício para validar a renderização.', 'Resumo fictício.', true, NOW());`
 )
+// Synthetic news (R3.5): 35 from the last 35 days in four categories and one 100 days old, which
+// the public listing must leave out. Fictitious titles and tjes.jus.br-shaped links only.
+await database.exec(`INSERT INTO news (external_id, title, link, description, category, published_at)
+  SELECT 'e2e-' || g, 'Notícia fictícia ' || g, 'https://www.tjes.jus.br/noticia-ficticia-' || g || '/',
+    'Descrição fictícia da notícia ' || g || '.', (ARRAY['Institucional', 'Cível', 'Criminal', 'Eventos'])[1 + g % 4],
+    now() - (g || ' days')::interval + interval '1 hour'
+  FROM generate_series(0, 34) g;
+  INSERT INTO news (external_id, title, link, category, published_at)
+  VALUES ('e2e-antiga', 'Notícia fictícia antiga', 'https://www.tjes.jus.br/noticia-ficticia-antiga/', 'Cível', now() - interval '100 days');`)
 const server = new PGLiteSocketServer({
   db: database,
   host: "127.0.0.1",

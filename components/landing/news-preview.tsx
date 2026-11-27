@@ -1,6 +1,4 @@
-import { db } from "@/lib/db"
-import { news } from "@/lib/db/schema"
-import { eq, desc } from "drizzle-orm"
+import { latestNews, type NewsListItem } from "@/lib/news"
 import { ExternalLink, Newspaper } from "lucide-react"
 import { ScrollReveal } from "@/components/motion/scroll-reveal"
 import { StaggerContainer, StaggerItem } from "@/components/motion/stagger-container"
@@ -8,22 +6,11 @@ import { TJES_NEWS_URL } from "@/lib/constants"
 import Link from "next/link"
 
 export async function NewsPreview() {
-  let articles: {
-    id: string
-    title: string
-    link: string
-    description: string | null
-    category: string | null
-    publishedAt: Date | null
-  }[] = []
+  let articles: NewsListItem[] = []
 
   try {
-    articles = await db
-      .select()
-      .from(news)
-      .where(eq(news.isActive, true))
-      .orderBy(desc(news.publishedAt))
-      .limit(6)
+    // Same rule as /noticias (R3.5): active items from the last 90 days.
+    articles = await latestNews(6)
   } catch {
     // DB unavailable - will use fallback
   }
