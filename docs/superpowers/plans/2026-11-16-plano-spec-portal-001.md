@@ -60,7 +60,7 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 - [x] **T014 Hero e movimento** (R2.3) — feito em 27/11/2026
   `components/landing/hero.tsx`, `components/motion/*`, `MotionConfig`. Corrigir o `e2e/smoke.spec.ts` para conferir a opacidade.
 
-- [ ] **T015 Cards de serviços** (R2.4)
+- [x] **T015 Cards de serviços** (R2.4) — feito em 27/11/2026
   `components/landing/services.tsx`: `inert`/renderização condicional, `aria-expanded`, `aria-controls`. Teste com axe.
 
 - [ ] **T016 Landmarks e link de salto** (R2.5)
