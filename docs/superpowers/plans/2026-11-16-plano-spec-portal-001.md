@@ -75,7 +75,7 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 - [x] **T019 Formulário de contato** (R2.8) — feito em 27/11/2026
   `components/landing/contact-form.tsx`: `autocomplete`, ARIA de erro, foco no sucesso, `tel:`/`mailto:`.
 
-- [ ] **T020 Rodapé, mapa e pauta** (R2.9)
+- [x] **T020 Rodapé, mapa e pauta** (R2.9) — feito em 27/11/2026
   `components/footer.tsx` (contraste, `h2` oculto), embed do mapa, mensagem de erro de `/pauta`.
 
 - [ ] **T021 Artigos** (R2.10)

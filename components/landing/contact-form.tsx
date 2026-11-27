@@ -5,7 +5,12 @@ import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle } from "luci
 import { motion } from "framer-motion"
 import { ScrollReveal } from "@/components/motion/scroll-reveal"
 import { log } from "@/lib/logger"
-import { CONTACT_HONEYPOT_FIELD, CONTACT_INFO, CONTACT_SUBJECTS } from "@/lib/constants"
+import {
+  CONTACT_HONEYPOT_FIELD,
+  CONTACT_INFO,
+  CONTACT_SUBJECTS,
+  FORUM_MAP_EMBED_URL,
+} from "@/lib/constants"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -265,14 +270,14 @@ export function ContactForm() {
             {/* Google Maps */}
             <div className="overflow-hidden rounded-xl border border-border">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3741.!2d-40.41!3d-20.35!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjDCsDIxJzAzLjAiUyA0MMKwMjQnMzguMCJX!5e0!3m2!1sen!2sbr!4v1"
+                src={FORUM_MAP_EMBED_URL}
                 width="100%"
                 height="300"
                 style={{ border: 0 }}
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Localização da 2ª Vara Cível de Cariacica"
+                title="Mapa: Fórum de Cariacica, sede da 2ª Vara Cível"
               />
             </div>
           </ScrollReveal>
