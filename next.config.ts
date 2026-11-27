@@ -6,6 +6,11 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
   : undefined
 
 const nextConfig: NextConfig = {
+  // verify:local (E2E_FIXTURE=1) builds against one disposable PGlite behind a socket server, which
+  // runs every connection on the same session: parallel build workers interleave their unnamed
+  // prepared statements ("bind message supplies 3 parameters, but prepared statement "" requires
+  // 2"). One build worker there keeps one connection. Production builds are unchanged.
+  ...(process.env.E2E_FIXTURE === "1" ? { experimental: { cpus: 1 } } : {}),
   images: {
     remotePatterns: [
       {
