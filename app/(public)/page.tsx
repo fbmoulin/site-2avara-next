@@ -15,7 +15,7 @@ export const revalidate = 3600
 export default function Home() {
   const suspension = hearingSuspensionNotice()
   return (
-    <main id="main-content">
+    <>
       <Hero />
       <Judge />
       <Services />
@@ -59,6 +59,6 @@ export default function Home() {
       </Suspense>
       <Faq />
       <ContactForm />
-    </main>
+    </>
   )
 }

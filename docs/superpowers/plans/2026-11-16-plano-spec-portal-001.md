@@ -63,8 +63,8 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 - [x] **T015 Cards de serviços** (R2.4) — feito em 27/11/2026
   `components/landing/services.tsx`: `inert`/renderização condicional, `aria-expanded`, `aria-controls`. Teste com axe.
 
-- [ ] **T016 Landmarks e link de salto** (R2.5)
-  `app/layout.tsx`, `app/page.tsx`, `app/pauta/page.tsx`.
+- [x] **T016 Landmarks e link de salto** (R2.5) — feito em 27/11/2026
+  `app/(public)/layout.tsx`, `app/(public)/page.tsx`, `app/(public)/pauta/page.tsx`.
 
 - [ ] **T017 Redirecionamento do login** (R2.6)
   `app/login/page.tsx`, com teste do caso `/\evil.com`.

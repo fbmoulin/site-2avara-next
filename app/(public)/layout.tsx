@@ -13,7 +13,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <div className="flex min-h-full flex-1 flex-col pt-11 md:pt-9">
         <AccessibilityBar />
         <Navbar />
-        <main className="flex-1">{children}</main>
+        {/* The only <main> of every public page; target of the "Ir para conteúdo" link (R2.5). */}
+        <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
+          {children}
+        </main>
         <Footer />
 
         <LoggerInit />

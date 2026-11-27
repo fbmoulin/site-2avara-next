@@ -40,7 +40,7 @@ export default async function HearingSchedulePage() {
     console.error("[hearing-schedule] read_failed")
   }
   return (
-    <section id="main-content" className="mx-auto max-w-5xl space-y-6 px-4 py-12">
+    <div className="mx-auto max-w-5xl space-y-6 px-4 py-12">
       <Link href="/" className="underline">
         Voltar ao início
       </Link>
@@ -109,6 +109,6 @@ export default async function HearingSchedulePage() {
           Ver orientações para audiências e instalação do Zoom
         </Link>
       </div>
-    </section>
+    </div>
   )
 }
