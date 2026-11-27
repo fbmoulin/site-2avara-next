@@ -8,7 +8,7 @@ export const ANALYTICS_EVENTS = {
   homeShortcut: "home_shortcut",
 } as const
 
-// The four shortcuts planned for the first screen (R3.7, T029). Ready for when they exist.
+// The four shortcuts of the first screen (R3.7, T029; components/landing/hero.tsx).
 export const HOME_SHORTCUTS = [
   "tenho_audiencia",
   "consultar_processo",
@@ -35,7 +35,7 @@ export function trackContactFormSent(subject: string) {
   safeTrack(ANALYTICS_EVENTS.contactFormSent, { subject })
 }
 
-/** One of the four first-screen shortcuts was used (T029; not wired yet). */
+/** One of the four first-screen shortcuts was used (T029). */
 export function trackHomeShortcut(shortcut: HomeShortcut) {
   safeTrack(ANALYTICS_EVENTS.homeShortcut, { shortcut })
 }

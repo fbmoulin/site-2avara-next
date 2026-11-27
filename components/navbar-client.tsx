@@ -126,7 +126,9 @@ export function NavbarClient() {
           <span className="text-xs font-medium tracking-wider text-slate-300 uppercase">
             Poder Judiciário
           </span>
-          <span className="text-sm font-bold text-white">2ª Vara Cível de Cariacica</span>
+          <span className="text-xl font-bold text-white xl:text-2xl">
+            2ª Vara Cível de Cariacica
+          </span>
         </span>
       </Link>
 

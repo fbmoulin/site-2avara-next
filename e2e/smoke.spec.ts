@@ -92,7 +92,7 @@ test.describe("Accessibility — visible content and reduced motion (R2.3)", () 
     const start = html.indexOf('id="inicio"')
     expect(start).toBeGreaterThan(-1)
     const hero = html.slice(start, html.indexOf("</section>", start))
-    expect(hero).toContain("Excelência e Celeridade na Prestação Jurisdicional")
+    expect(hero).toContain("Como podemos ajudar?")
     expect(hero).not.toMatch(/opacity:\s*0/)
   })
 
@@ -101,8 +101,8 @@ test.describe("Accessibility — visible content and reduced motion (R2.3)", () 
     const hero = page.locator("#inicio")
     for (const element of [
       hero.locator("h1"),
-      hero.getByText("Comprometidos com a humanização"),
-      hero.getByRole("link", { name: "Nossos Serviços" }),
+      hero.getByText("Escolha o que você precisa resolver hoje."),
+      hero.getByRole("link", { name: /^Tenho audiência/ }),
     ]) {
       await expect(element).toBeVisible()
       await expect(element).toHaveCSS("opacity", "1")
