@@ -30,6 +30,20 @@ export interface FaqItem {
   answer: string
 }
 
+// Subjects offered by the contact form. lib/validators.ts accepts only these values (R2.7).
+export const CONTACT_SUBJECTS = [
+  { value: "informacao", label: "Informação" },
+  { value: "agendamento", label: "Agendamento" },
+  { value: "sugestao", label: "Sugestão" },
+  { value: "reclamacao", label: "Reclamação" },
+  { value: "outro", label: "Outro" },
+] as const
+
+// Name of the hidden honeypot field of the contact form. People never see or fill it.
+export const CONTACT_HONEYPOT_FIELD = "website"
+
+export type ContactSubject = (typeof CONTACT_SUBJECTS)[number]["value"]
+
 export const SERVICES: ServiceItem[] = [
   {
     id: "1",

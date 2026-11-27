@@ -20,7 +20,7 @@ bun run dev
 
 `ADMIN_USER_IDS` é uma lista de UUIDs das contas administrativas existentes no Supabase, separados por vírgulas. É uma variável exclusiva do servidor. Não use e-mails, `user_metadata` ou variáveis `NEXT_PUBLIC_` para conceder permissão. Lista ausente, vazia ou inválida nega o acesso. Somente atribua UUIDs cuja identidade e autorização tenham sido verificadas.
 
-As ações administrativas, o layout, o Proxy e o upload verificam a autorização. As APIs diferenciam ausência de sessão (401), usuário sem permissão (403) e dependência/configuração indisponível (503). As páginas usam login ou telas de acesso negado/indisponibilidade. `proxy.ts` preserva os cookies renovados; sua proteção não substitui a guarda em cada operação.
+As ações administrativas, o layout, o Proxy e o upload verificam a autorização. Os campos de auditoria (`answeredBy`, `confirmedBy`, `resolvedBy`) gravam o e-mail da conta autenticada, nunca um valor enviado pelo navegador. As APIs diferenciam ausência de sessão (401), usuário sem permissão (403) e dependência/configuração indisponível (503). As páginas usam login ou telas de acesso negado/indisponibilidade. `proxy.ts` preserva os cookies renovados; sua proteção não substitui a guarda em cada operação.
 
 As rotas do painel ficam em `app/(admin)` (`/admin`, `/login`, `/acesso-negado`, `/servico-indisponivel`) e não carregam VLibras, guia nem barra de acessibilidade, que ficam em `app/(public)`. Nelas, `proxy.ts` envia uma CSP com nonce novo a cada pedido, sem `'unsafe-inline'` (e sem `'unsafe-eval'` fora do `next dev`); por isso são renderizadas sob demanda. A CSP das páginas públicas, que o VLibras exige, vem de `next.config.ts` e não alcança essas rotas. A sessão do painel dura 8 horas a partir do login (`ADMIN_SESSION_MAX_AGE_SECONDS`); depois disso a pessoa entra de novo.
 
@@ -30,7 +30,8 @@ As rotas do painel ficam em `app/(admin)` (`/admin`, `/login`, `/acesso-negado`,
 
 ## Fluxos públicos
 
-- `POST /api/contact`: valida entrada, persiste em `contact_messages` e retorna 201 com `message` e `id`. Esse identificador é de contato, não protocolo de petição ou confirmação de agendamento.
+- `POST /api/contact`: valida entrada, persiste em `contact_messages` e retorna 201 com `message` e `id`. Esse identificador é de contato, não protocolo de petição ou confirmação de agendamento. O assunto precisa ser um dos valores do formulário (`CONTACT_SUBJECTS` em `lib/constants.ts`); o campo oculto `website` (honeypot) preenchido resulta em 400, sem gravar.
+- `POST /api/client-errors`: recebe os erros do navegador (`lib/logger.ts`), com corpo de até 8192 bytes e o mesmo rate limit obrigatório das outras rotas públicas (503 sem a proteção em produção, 429 na cota). Registra só as chaves conhecidas e o caminho das URLs, sem consulta nem domínio.
 - `POST /api/chat`: recebe `{ "option": "services" | "contact" | "virtual" }` e retorna orientação JSON. Clientes antigos com `message/history` recebem orientação fixa em SSE, sem reflexão do conteúdo e sem chamada a provedor.
 - `/api/appointments` e `/api/demands` foram desativadas: respondem 410 a qualquer método, sem gravar e sem enviar e-mail. As tabelas `appointments` e `demands` e as telas do painel que listam os registros antigos continuam disponíveis.
 - `/api/news?cron=true`: exige `Authorization: Bearer <CRON_SECRET>` (comparação em tempo constante; sem a variável, 503). Lê o RSS do TJES diretamente, com `User-Agent` identificável, guarda só links `https` de `tjes.jus.br`, registra no log um JSON `news_scrape` (`fetched`, `inserted`, `updated`, `skipped`, `errors`) e revalida `/` e `/noticias` quando há novidade. Feed recusado ou sem itens responde 502; falha de banco, 500.

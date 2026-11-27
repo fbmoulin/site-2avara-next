@@ -69,8 +69,8 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 - [x] **T017 Redirecionamento do login** (R2.6) — feito em 27/11/2026
   `app/(admin)/login/page.tsx` e `lib/safe-redirect.ts`, com teste do caso `/\evil.com`.
 
-- [ ] **T018 Validações do servidor** (R2.7)
-  `lib/validators.ts`, honeypot no formulário, `app/api/client-errors/route.ts`, `app/admin/actions.ts` e clientes do admin.
+- [x] **T018 Validações do servidor** (R2.7) — feito em 27/11/2026
+  `lib/validators.ts`, honeypot no formulário, `app/api/client-errors/route.ts`, `app/(admin)/admin/actions.ts` e clientes do admin.
 
 - [ ] **T019 Formulário de contato** (R2.8)
   `components/landing/contact-form.tsx`: `autocomplete`, ARIA de erro, foco no sucesso, `tel:`/`mailto:`.

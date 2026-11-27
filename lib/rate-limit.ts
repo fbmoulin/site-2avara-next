@@ -30,6 +30,8 @@ export const contactRateLimit = lazyLimiter(3, "15 m", "rl:contact")
 export const appointmentRateLimit = lazyLimiter(5, "15 m", "rl:appointment")
 export const demandRateLimit = lazyLimiter(10, "15 m", "rl:demand")
 export const chatRateLimit = lazyLimiter(20, "15 m", "rl:chat")
+// Browser error reports: one page sends at most one batch every 5 s while open.
+export const clientErrorRateLimit = lazyLimiter(30, "15 m", "rl:client-errors")
 
 export async function checkRateLimit(
   limiter: { instance: Ratelimit },

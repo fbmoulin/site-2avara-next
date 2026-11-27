@@ -6,8 +6,14 @@ import { contactMessages, appointments, demands, articles, news } from "@/lib/db
 import { eq, desc, count } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 import { requireAdmin } from "@/lib/auth"
+import { adminNotesSchema, zoomLinkSchema } from "@/lib/validators"
 
 const uuidSchema = z.string().uuid()
+
+// Audit fields record the signed-in account from requireAdmin(), never a value sent by the browser.
+function auditIdentity(admin: { id: string; email?: string | null }) {
+  return admin.email || admin.id
+}
 const CONTACT_STATUSES = ["pending", "answered", "archived"] as const
 const APPOINTMENT_STATUSES = ["pre_reserved", "confirmed", "completed", "cancelled"] as const
 const DEMAND_STATUSES = ["pending", "in_analysis", "resolved", "archived"] as const
@@ -152,22 +158,18 @@ export async function getContacts(status?: string) {
   return query
 }
 
-export async function updateContactStatus(
-  id: string,
-  status: string,
-  answeredBy: string,
-  notes: string
-) {
-  await requireAdmin()
+export async function updateContactStatus(id: string, status: string, notes: string) {
+  const admin = await requireAdmin()
   uuidSchema.parse(id)
   if (!(CONTACT_STATUSES as readonly string[]).includes(status)) throw new Error("Status inválido")
+  const validNotes = adminNotesSchema.parse(notes)
 
   await db
     .update(contactMessages)
     .set({
       status,
-      answeredBy,
-      notes,
+      answeredBy: auditIdentity(admin),
+      notes: validNotes,
       answeredAt: new Date(),
     })
     .where(eq(contactMessages.id, id))
@@ -195,14 +197,10 @@ export async function getAppointments(status?: string) {
   return query
 }
 
-export async function confirmAppointment(
-  id: string,
-  confirmedDate: string,
-  zoomLink: string,
-  confirmedBy: string
-) {
-  await requireAdmin()
+export async function confirmAppointment(id: string, confirmedDate: string, zoomLink: string) {
+  const admin = await requireAdmin()
   uuidSchema.parse(id)
+  const validZoomLink = zoomLinkSchema.parse(zoomLink)
 
   await db
     .update(appointments)
@@ -213,8 +211,8 @@ export async function confirmAppointment(
         if (isNaN(d.getTime())) throw new Error("Data de confirmação inválida")
         return d
       })(),
-      zoomLink,
-      confirmedBy,
+      zoomLink: validZoomLink || null,
+      confirmedBy: auditIdentity(admin),
       confirmedAt: new Date(),
     })
     .where(eq(appointments.id, id))
@@ -226,12 +224,13 @@ export async function confirmAppointment(
 export async function rejectAppointment(id: string, notes: string) {
   await requireAdmin()
   uuidSchema.parse(id)
+  const validNotes = adminNotesSchema.parse(notes)
 
   await db
     .update(appointments)
     .set({
       status: "cancelled",
-      notes,
+      notes: validNotes,
     })
     .where(eq(appointments.id, id))
 
@@ -258,16 +257,17 @@ export async function getDemands(status?: string) {
   return query
 }
 
-export async function resolveDemand(id: string, resolvedBy: string, resolutionNotes: string) {
-  await requireAdmin()
+export async function resolveDemand(id: string, resolutionNotes: string) {
+  const admin = await requireAdmin()
   uuidSchema.parse(id)
+  const validNotes = adminNotesSchema.parse(resolutionNotes)
 
   await db
     .update(demands)
     .set({
       status: "resolved",
-      resolvedBy,
-      resolutionNotes,
+      resolvedBy: auditIdentity(admin),
+      resolutionNotes: validNotes,
       resolvedAt: new Date(),
     })
     .where(eq(demands.id, id))

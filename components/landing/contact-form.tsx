@@ -5,7 +5,7 @@ import { MapPin, Phone, Mail, Clock, Send, CheckCircle, AlertCircle } from "luci
 import { motion } from "framer-motion"
 import { ScrollReveal } from "@/components/motion/scroll-reveal"
 import { log } from "@/lib/logger"
-import { CONTACT_INFO } from "@/lib/constants"
+import { CONTACT_HONEYPOT_FIELD, CONTACT_INFO, CONTACT_SUBJECTS } from "@/lib/constants"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -17,14 +17,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"
-
-const SUBJECT_OPTIONS = [
-  { value: "informacao", label: "Informação" },
-  { value: "agendamento", label: "Agendamento" },
-  { value: "sugestao", label: "Sugestão" },
-  { value: "reclamacao", label: "Reclamação" },
-  { value: "outro", label: "Outro" },
-]
 
 const PRIVACY_NOTICE_ID = "contact-privacy-notice"
 
@@ -50,6 +42,7 @@ export function ContactForm() {
       email: formData.get("email") as string,
       subject: subject ?? "outro",
       message: formData.get("message") as string,
+      [CONTACT_HONEYPOT_FIELD]: (formData.get(CONTACT_HONEYPOT_FIELD) as string | null) ?? "",
     }
 
     try {
@@ -81,7 +74,7 @@ export function ContactForm() {
         typeof receipt.id !== "string"
       ) {
         setErrorMessage(
-          "Não foi possível confirmar o recebimento. Antes de reenviar, consulte a equipe pelos canais de contato."
+          "Não foi possível confirmar o recebimento. Antes de reenviar, consulte a equipe pelos canais de contato.",
         )
         setStatus("error")
         return
@@ -97,7 +90,7 @@ export function ContactForm() {
     } catch {
       log.error("contact_form_network_error")
       setErrorMessage(
-        "Não foi possível confirmar o recebimento. Antes de reenviar, consulte a equipe pelos canais de contato."
+        "Não foi possível confirmar o recebimento. Antes de reenviar, consulte a equipe pelos canais de contato.",
       )
       setStatus("error")
     } finally {
@@ -215,7 +208,26 @@ export function ContactForm() {
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} aria-busy={status === "loading"} className="space-y-5">
+              <form
+                onSubmit={handleSubmit}
+                aria-busy={status === "loading"}
+                className="relative space-y-5"
+              >
+                {/* Honeypot (R2.7): off screen and out of the tab order; only bots fill it. */}
+                <div
+                  aria-hidden="true"
+                  className="absolute -left-[10000px] h-px w-px overflow-hidden"
+                >
+                  <label htmlFor={CONTACT_HONEYPOT_FIELD}>Deixe este campo em branco</label>
+                  <input
+                    id={CONTACT_HONEYPOT_FIELD}
+                    name={CONTACT_HONEYPOT_FIELD}
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    defaultValue=""
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome completo</Label>
                   <Input
@@ -263,7 +275,7 @@ export function ContactForm() {
                       <SelectValue placeholder="Selecione o assunto" />
                     </SelectTrigger>
                     <SelectContent>
-                      {SUBJECT_OPTIONS.map((opt) => (
+                      {CONTACT_SUBJECTS.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
                           {opt.label}
                         </SelectItem>
