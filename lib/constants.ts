@@ -13,6 +13,8 @@ export interface TutorialVideo {
 
 export interface ServiceItem {
   id: string
+  /** Element id of the card, for links such as the first-screen shortcuts (R3.7). */
+  anchor?: string
   title: string
   description: string
   icon: string
@@ -31,6 +33,12 @@ export interface FaqItem {
 }
 
 export const BALCAO_VIRTUAL_URL = "https://www.tjes.jus.br/balcao-virtual/"
+
+// Public case lookup used by the "Consulta Processual" card and the first-screen shortcut (R3.7).
+export const PROCESS_LOOKUP_URL = "https://portaldeservicos.pdpj.jus.br/consulta"
+
+// Anchor of the "Audiências Virtuais" card (Zoom tutorial video); arriving there opens the card.
+export const VIRTUAL_HEARINGS_ANCHOR = "audiencias-virtuais"
 
 // Subjects offered by the contact form. lib/validators.ts accepts only these values (R2.7).
 export const CONTACT_SUBJECTS = [
@@ -52,7 +60,7 @@ export const SERVICES: ServiceItem[] = [
     title: "Consulta Processual",
     description: "Acesse o andamento atualizado dos seus processos judiciais.",
     icon: "search",
-    url: "https://portaldeservicos.pdpj.jus.br/consulta",
+    url: PROCESS_LOOKUP_URL,
   },
   {
     id: "3",
@@ -64,6 +72,7 @@ export const SERVICES: ServiceItem[] = [
   },
   {
     id: "2",
+    anchor: VIRTUAL_HEARINGS_ANCHOR,
     title: "Audiências Virtuais",
     description:
       "As audiências virtuais são realizadas por meio do Aplicativo Zoom. Baixe e instale o aplicativo no seu celular com antecedência para evitar atrasos, por meio dos links abaixo:",

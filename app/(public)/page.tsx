@@ -23,7 +23,7 @@ export default function Home() {
     <>
       <JsonLd data={governmentOrganizationJsonLd()} />
       <JsonLd data={faqPageJsonLd(FAQS)} />
-      <Hero />
+      <Hero notice={suspension} />
       <Judge />
       <Services />
       <section className="bg-muted px-4 py-10 text-center" aria-labelledby="pauta-heading">

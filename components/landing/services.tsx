@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   Search,
   Video,
@@ -68,7 +68,11 @@ function ServiceCard({
   )
 
   return (
-    <div className="group overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-md">
+    <div
+      id={service.anchor}
+      // Anchored cards stop below the fixed accessibility bar and the sticky header, like sections.
+      className="group scroll-mt-32 overflow-hidden rounded-xl border border-border bg-background transition-shadow hover:shadow-md md:scroll-mt-28"
+    >
       {hasExpandableContent ? (
         // Disclosure: the button names the card and controls the panel below (R2.4).
         <h3>
@@ -222,6 +226,20 @@ function ServiceCard({
 
 export function Services() {
   const [expandedService, setExpandedService] = useState<string | null>(null)
+
+  // Arriving at a card's anchor (e.g. /#audiencias-virtuais from the first-screen shortcut, R3.7)
+  // opens that card. The server HTML stays collapsed; the card opens after hydration.
+  useEffect(() => {
+    function openFromHash() {
+      const service = SERVICES.find(
+        (item) => item.anchor && window.location.hash === `#${item.anchor}`,
+      )
+      if (service) setExpandedService(service.id)
+    }
+    openFromHash()
+    window.addEventListener("hashchange", openFromHash)
+    return () => window.removeEventListener("hashchange", openFromHash)
+  }, [])
 
   return (
     <section id="servicos" className="bg-muted py-20">
