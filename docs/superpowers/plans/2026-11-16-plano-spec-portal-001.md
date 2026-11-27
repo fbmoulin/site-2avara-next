@@ -95,9 +95,10 @@ Tarefas marcadas **[manual]** são feitas pelo responsável no painel (Supabase,
 - [x] **T026 Páginas de erro e carregamento** (R3.4) — feito em 27/11/2026
 - [x] **T027 Notícias paginadas e filtradas** (R3.5) — feito em 27/11/2026; Q-5 decidida: todas as categorias
 - T028 Expurgo de dados pessoais (R3.6) — antecipada para a onda 1 em 20/11/2026
-- [ ] **T029 Primeira tela com atalhos** (R3.7) — proposta visual aprovada pelo responsável antes de codificar
+- [x] **T029 Primeira tela com atalhos** (R3.7) — feito em 27/11/2026 com a proposta visual aprovada pelo responsável; medições na seção 11 da spec
+  `components/landing/hero.tsx` e `home-shortcut-link.tsx`: quatro atalhos com evento `home_shortcut`, aviso de suspensão abaixo deles, card "Audiências Virtuais" com âncora `#audiencias-virtuais`, nome maior no cabeçalho.
 - [x] **T030 Web Analytics** (R3.8) — feito em 27/11/2026, sem a pergunta de satisfação (decisão do responsável)
-  Eventos do vídeo do Zoom e do contato confirmado; função pronta para os atalhos de T029. Pendente [manual]: ativar Web Analytics no projeto da Vercel.
+  Eventos do vídeo do Zoom e do contato confirmado; os atalhos de T029 usam `trackHomeShortcut`. Pendente [manual]: ativar Web Analytics no projeto da Vercel.
 - [ ] **T031 Verificação da onda 3 e linha de base** — registrar métricas da semana 1 no README
 
 ## Dependências
