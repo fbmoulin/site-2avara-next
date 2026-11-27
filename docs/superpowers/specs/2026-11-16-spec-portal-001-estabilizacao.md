@@ -179,7 +179,7 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 - `error.tsx`, `global-error.tsx`, `not-found.tsx` e `loading.tsx` em português; consultas de `/noticias` e `/artigos` com try/catch.
 
 **R3.5 (P2) Notícias enxutas**
-- `/noticias` com 30 itens por página; itens com mais de 90 dias desativados; filtro de categorias (Q-5).
+- `/noticias` com 30 itens por página; itens com mais de 90 dias desativados; filtro de categorias (Q-5). Q-5 decidida em 27/11/2026 (D-11): todas as categorias, sem filtro.
 - Aceite: HTML de `/noticias` ≤ 150 KB (hoje 1,5 MB).
 
 **R3.6 (P2) Retenção de dados** — antecipado para a onda 1 em 20/11/2026 (T028; D-6)
@@ -194,7 +194,7 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 
 **R3.8 (P2) Métricas**
 - Vercel Web Analytics (sem cookies), com eventos dos quatro atalhos, do vídeo do Zoom e de envio do formulário.
-- Pergunta "Isto resolveu sua dúvida?" no guia e na pauta.
+- Pergunta "Isto resolveu sua dúvida?" no guia e na pauta. Retirada em 27/11/2026 por decisão do responsável (D-12).
 - Aceite: eventos visíveis no painel por quatro semanas.
 
 ## 5. Decisões tomadas
@@ -211,6 +211,8 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 | D-8 | Q-2: o Gmail do gabinete continua como canal público por enquanto. Q-8: sessão do painel de 8 horas aprovada | 21/11/2026 |
 | D-9 | Q-7: canal sobre proteção de dados no aviso do formulário passa a ser `suporte@lexintelligentia.com.br` (Lex Intelligentia) | 21/11/2026 |
 | D-10 | Q-4: o TJES responde 403 ao cron vindo de `iad1` (EUA); as funções passam a rodar em `gru1` (São Paulo) antes de qualquer alternativa | 27/11/2026 |
+| D-11 | Q-5: `/noticias` mostra todas as categorias do feed, sem filtrar matérias criminais | 27/11/2026 |
+| D-12 | R3.8 sem a pergunta "Isto resolveu sua dúvida?"; T029 (primeira tela com atalhos) aguarda aprovação da proposta visual | 27/11/2026 |
 
 ## 6. Questões em aberto
 
@@ -220,7 +222,7 @@ Cada requisito tem critério de aceite verificável. A prioridade segue a revis�
 | Q-2 | Manter o Gmail do gabinete como canal público | Mantido por enquanto (D-8); migrar para caixa institucional do TJES quando possível |
 | Q-3 | Crédito do rodapé | Resolvida em 21/11/2026 (D-7): "Desenvolvido e publicado por Felipe Moulin — Instagram: @felipemoulinjus" |
 | Q-4 | Se o TJES bloquear os IPs da Vercel mesmo com User-Agent | (a) curadoria manual no admin; (b) coleta por GitHub Actions gravando via endpoint autenticado; (c) retirar a seção |
-| Q-5 | Filtrar matérias criminais do feed | Mostrar só as categorias institucionais e cíveis |
+| Q-5 | Filtrar matérias criminais do feed | Resolvida em 27/11/2026 (D-11): todas as categorias, sem filtro |
 | Q-6 | UUID do responsável e lista da equipe para produção | Informar na execução de R1.2 |
 | Q-7 | Controlador e canal do titular | Resolvida em 21/11/2026 (D-9): Lex Intelligentia; o aviso do formulário indica `suporte@lexintelligentia.com.br`. Sem política publicada (D-5) |
 | Q-8 | Duração da sessão do painel | 8 horas, aprovada em 21/11/2026 (D-8) |
@@ -272,3 +274,31 @@ Branch `fix/onda-2-acessibilidade`, criada de `master` em 27/11/2026. Um commit 
 | R2.10 | `updateArticle` lê o slug anterior e recebe o novo (`returning`); `toggleArticlePublish` recebe o slug; ambos revalidam `/admin/artigos`, `/artigos`, `/` e `/artigos/<slug>` de cada slug (`lib/articles.ts:articleRevalidationPaths`). `generateMetadata` e a página usam a mesma consulta com `cache()` (`getPublishedArticle`), que filtra `isPublished`: artigo despublicado não expõe título, resumo nem imagem. `export const revalidate = 60` na página do artigo como rede de segurança para o prazo de 1 min. Teste com PGlite descartável em processo separado (`tests/article-revalidation.test.ts`): troca de slug revalida o antigo e o novo; despublicar revalida a página e tira os metadados. Pendência [manual]: o aceite em preview (despublicar artigo sintético e conferir a página fora do ar em até 1 min) depende do deploy de preview. |
 
 Gate final da onda 2 (27/11/2026, commit da T021): `bun run lint` e `bun run typecheck` sem erros; `bun test tests` com 236 testes aprovados (801 verificações); `bun run audit:production` com 99 entradas de produção e nenhum aviso aplicável (80 avisos no lockfile inteiro, de ferramentas de desenvolvimento); `bun run verify:local` com build de produção e 90 testes Playwright aprovados, numa cópia local em que só a fonte Geist do Google foi desligada (o ambiente bloqueia `fonts.googleapis.com`; a alteração não está no repositório). O login também foi conferido com `next start` sob a CSP de produção, sem violação. Falta a verificação em preview e produção (T022).
+
+## 11. Execução da onda 3
+
+Branch `feat/onda-3-otimizacao`, criada de `master` (`395b94f`, com a onda 2) em 27/11/2026. Um commit por tarefa (T023 a T027 e T030). T028 já estava feita (onda 1). T029 (primeira tela com atalhos) aguarda a aprovação da proposta visual (D-12); o hero não foi alterado. T031 fica aberta até a verificação em preview/produção e as métricas da primeira semana.
+
+Medições locais (27/11/2026): build de produção com `next start` (gzip, como o servidor do Next entrega), banco PGlite descartável com 600 notícias sintéticas (uma por dia) e Chromium 1243. "Antes" é `master` `395b94f`; "depois" é o último commit da onda 3. A Vercel entrega com brotli: os números em brotli foram calculados sobre os mesmos arquivos. Os scripts externos (VLibras) não entram na conta, porque o ambiente local não os alcança.
+
+| Medida | Antes | Depois | Meta |
+| --- | --- | --- | --- |
+| JS transferido da home (gzip) | 277,2 KB (825 KB sem compressão, 12 arquivos) | 192,2 KB (570 KB sem compressão, 12 arquivos) | ≤ 200 KB |
+| JS da home em brotli | 225,7 KB | 150,7 KB | — |
+| HTML de `/noticias` | 3,14 MB (600 notícias numa página) | 100,7 KB (30 notícias; 10,9 KB com gzip) | ≤ 150 KB |
+| LCP móvel emulado (390×844, RTT 150 ms, 1,6 Mbps, CPU 4×) | 1,02 s | 1,08 s (elemento: título do hero) | ≤ 2,5 s |
+
+O LCP é o título do hero (texto), nos dois casos; a diferença está no ruído da emulação. A meta de LCP precisa ser conferida no preview (PageSpeed Insights ou dados de campo); a emulação local não a substitui.
+
+| Requisito | Execução |
+| --- | --- |
+| R3.1 | `lib/seo.ts`: `SITE_URL` (`https://2avaraciveldecariacica.org`), `pageMetadata` (título, descrição, canonical e Open Graph completo por página, porque o Next junta metadados de forma rasa) e os geradores de JSON-LD. Layout raiz com `metadataBase`, `title.template` "%s \| 2ª Vara Cível de Cariacica", Open Graph e cartão `summary_large_image` com `public/images/og-portal.jpg` (1200×630, foto do Fórum e destaque laranja). O título da home deixou de dizer "TJES"; nenhum texto chama o portal de oficial (teste). JSON-LD `GovernmentOrganization` na home (endereço, telefone, e-mail, `parentOrganization` TJES; horário em `contactPoint.hoursAvailable` e no `location` do tipo `Courthouse`, com as coordenadas do Fórum), `FAQPage` na home e `Article` em cada artigo; serialização com `<` escapado (guia do Next). Endereço e horário passaram a constantes estruturadas (`ADDRESS`, `OFFICE_HOURS`); o texto exibido não mudou. `sitemap.ts`: `/`, `/pauta`, `/noticias`, `/artigos` e os artigos publicados, `revalidate = 3600`. `robots.ts`: fora do índice as quatro rotas do grupo admin e `/api/`. Testes: `tests/seo.test.ts` e `e2e/seo.spec.ts`. Pendência [manual]: Rich Results Test e validador do schema.org sobre o preview. |
+| R3.2 | `components/landing/faq.tsx` virou componente de servidor com `<details>/<summary>`: respostas no HTML (teste no HTML bruto), teclado nativo (Enter e Espaço), seta girando só por CSS. Rótulos em amber-800 (amber-500 sobre branco ficava abaixo de 4,5:1). `e2e/faq.spec.ts` com axe sem violações. |
+| R3.3 | CSS puro em vez de `LazyMotion`: `components/motion/use-reveal.ts` mantém a API de `ScrollReveal`/`StaggerContainer`; o HTML do servidor é o estado final visível e só blocos abaixo da dobra ficam ocultos depois da hidratação (nada com movimento reduzido). framer-motion saiu do projeto. Assunto do contato em `<select>` nativo (o Select do Base UI trazia popup e floating-ui para a home). Foto do Fórum sem `priority`, com `loading="lazy"` e `sizes="(max-width: 480px) calc(100vw - 2rem), 448px"`. Geist Mono só em `app/(admin)/layout.tsx`. Números na tabela acima; `e2e/performance.spec.ts`. |
+| R3.4 | `error.tsx` em `app/(public)`, `app/(admin)` (com `<main>` próprio) e `app/(admin)/admin`; `global-error.tsx` com documento próprio; `not-found.tsx` na raiz (endereços sem rota, cabeçalho simples e um `<main>`), em `app/(public)` e no painel, com `app/(admin)/admin/[...path]` para o 404 do painel sair dentro do layout, depois da sessão e com a CSP com nonce. `loading.tsx` em `/noticias` e no painel; nenhum na raiz do grupo público, para o 404 de artigo continuar com status 404 (um `loading` acima faria o streaming começar com 200). As telas registram só o `digest`. `/noticias` e `/artigos` tratam falha de banco com aviso. Verificado com `next start`: endereço desconhecido e artigo inexistente respondem 404 com um `<main>`. Comportamento do Next anotado: o 404 de artigo (rota ISR) chega com o corpo montado pelo JavaScript; status e `noindex` vêm no HTML, como antes desta onda. Testes: `tests/error-pages.test.tsx` e `e2e/error-pages.spec.ts`. |
+| R3.5 | `lib/news.ts` e `lib/news-pagination.ts`: 30 por página, `?pagina=N` (inválido vira 1; além do fim, aviso, link para a primeira e `noindex`), só itens ativos dos últimos 90 dias pelo relógio do banco (sem data de publicação, vale a coleta); os antigos ficam na tabela e no painel. Todas as categorias (D-11). A prévia da home usa a mesma regra. Paginação por links com `aria-current`, `rel` prev/next e canonical por página. Cartões enxutos (título como link para o TJES, resumo de até 240 caracteres, `<time>`). A página passou a ser renderizada a cada pedido, por causa do parâmetro. `verify:local` insere 35 notícias fictícias recentes e uma antiga. Testes: `tests/news-pagination.test.ts` (PGlite descartável) e `e2e/news.spec.ts` (inclui HTML ≤ 150 KB no servidor de desenvolvimento, maior que o de produção, e axe). |
+| R3.6 | Feito na onda 1 (T028). Sem alteração. |
+| R3.7 | Não implementado: aguarda a proposta visual (D-12). `lib/analytics.ts` já tem `trackHomeShortcut` e os quatro identificadores. |
+| R3.8 | `@vercel/analytics` (sem cookies) em `components/web-analytics.tsx`, só no layout público e só em builds da Vercel (`VERCEL=1`). CSP pública sem mudança: script e envio em `/_vercel/insights/*`, mesma origem, cobertos por `'self'` (teste). Eventos sem dados pessoais e sem efeito se falharem: `zoom_tutorial_play` (primeira reprodução do vídeo no card "Audiências Virtuais") e `contact_form_sent` (depois do 201; só o assunto). Sem a pergunta de satisfação (D-12). Testes: `tests/analytics.test.tsx` e `e2e/analytics.spec.ts`. Pendência [manual]: ativar Web Analytics no projeto da Vercel; até lá o script responde 404 e nada é coletado. |
+
+Gate final da onda 3 (27/11/2026, commit da T030): `bun run lint` e `bun run typecheck` sem erros; `bun test tests` com 260 testes aprovados (954 verificações); `bun run audit:production` com 97 entradas de produção e nenhum aviso aplicável (80 avisos no lockfile inteiro, de ferramentas de desenvolvimento); `bun run verify:local` com build de produção e 119 testes Playwright aprovados, numa cópia local em que só a fonte Geist do Google foi desligada (o ambiente bloqueia `fonts.googleapis.com`; a alteração não está no repositório). Falta a verificação em preview e produção (T031), incluindo PageSpeed, Rich Results Test e a ativação manual do Web Analytics.

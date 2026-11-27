@@ -37,6 +37,15 @@ As rotas do painel ficam em `app/(admin)` (`/admin`, `/login`, `/acesso-negado`,
 - `/api/news?cron=true`: exige `Authorization: Bearer <CRON_SECRET>` (comparação em tempo constante; sem a variável, 503). Lê o RSS do TJES diretamente, com `User-Agent` identificável, guarda só links `https` de `tjes.jus.br`, registra no log um JSON `news_scrape` (`fetched`, `inserted`, `updated`, `skipped`, `errors`) e revalida `/` e `/noticias` quando há novidade. Feed recusado ou sem itens responde 502; falha de banco, 500.
 - `GET /api/news?limit=n`: `n` inteiro de 1 a 50; valor ausente ou inválido usa 10.
 
+## Páginas públicas, busca e métricas
+
+- `/noticias` (SPEC-PORTAL-001 R3.5): 30 notícias por página, navegação por links (`/noticias?pagina=N`; valor inválido vira a página 1; página além do fim explica e leva à primeira). Só itens ativos dos últimos 90 dias (`lib/news.ts`, relógio do banco; sem data de publicação, vale a data da coleta). Os antigos continuam na tabela e no painel. Todas as categorias são exibidas (Q-5). A prévia da home segue a mesma regra. A página é renderizada a cada pedido, por causa do parâmetro.
+- Busca (R3.1): `metadataBase` `https://2avaraciveldecariacica.org`, títulos "<página> | 2ª Vara Cível de Cariacica", canonical e Open Graph por página (`lib/seo.ts:pageMetadata`), imagem `public/images/og-portal.jpg` (1200×630). JSON-LD `GovernmentOrganization` (endereço, telefone e horário de `lib/constants.ts`) e `FAQPage` na home, `Article` em cada artigo. `sitemap.xml` com `/`, `/pauta`, `/noticias`, `/artigos` e os artigos publicados (revalidado a cada hora); `robots.txt` exclui as rotas do grupo admin e `/api/`. Os textos não apresentam o portal como página oficial do TJES.
+- Perguntas frequentes (R3.2) em `<details>/<summary>`, com as respostas no HTML do servidor.
+- Erros (R3.4): `error.tsx` nos grupos público e admin e no painel, `global-error.tsx`, `not-found.tsx` (raiz, público e painel) e `loading.tsx` (`/noticias` e painel), em português. Endereços desconhecidos respondem 404.
+- Peso (R3.3): sem framer-motion (revelação ao rolar em CSS, `components/motion`), assunto do contato em `<select>` nativo, foto do Fórum sem `priority` e Geist Mono só no painel.
+- Métricas (R3.8): Vercel Web Analytics (`@vercel/analytics`, sem cookies) só no layout público, e só em builds da Vercel (`VERCEL=1`). Script e envio são da mesma origem (`/_vercel/insights/*`), já permitidos pela CSP pública. Eventos, sem dados pessoais (`lib/analytics.ts`): `zoom_tutorial_play` (primeira reprodução do vídeo do Zoom no card "Audiências Virtuais") e `contact_form_sent` (contato confirmado com 201; só o assunto). `trackHomeShortcut` está pronta para os quatro atalhos da primeira tela (T029). Para coletar, é preciso ativar Web Analytics no projeto da Vercel (passo manual).
+
 ## Retenção de dados pessoais
 
 Contatos (`contact_messages`), agendamentos (`appointments`) e demandas (`demands`) são guardados por **12 meses** a partir de `created_at` e depois excluídos (`RETENTION_MONTHS` em `lib/retention.ts`; SPEC-PORTAL-001, R3.6). A exclusão é definitiva e corre numa transação: as três tabelas são expurgadas juntas ou nenhuma é. O corte é calculado pelo relógio do banco (`now() - interval '12 months'`). Notícias e artigos não entram na rotina.
@@ -58,7 +67,7 @@ bun x playwright install --with-deps chromium
 bun run verify:local
 ```
 
-`verify:local` cria PostgreSQL descartável em memória com PGlite, gera o esquema a partir do Drizzle, insere conteúdo fictício, executa o build de produção e a suíte Playwright. Sobrescreve `DATABASE_URL` e credenciais dos serviços: não usa o banco fornecido pelo ambiente, não envia e-mails e não chama IA. Para apenas o build: `bun scripts/verify-local.ts build`. Para apenas E2E: `bun run test:e2e`.
+`verify:local` cria PostgreSQL descartável em memória com PGlite, gera o esquema a partir do Drizzle, insere conteúdo fictício (um artigo, 35 notícias recentes e uma de 100 dias), executa o build de produção e a suíte Playwright. Sobrescreve `DATABASE_URL` e credenciais dos serviços: não usa o banco fornecido pelo ambiente, não envia e-mails e não chama IA. Para apenas o build: `bun scripts/verify-local.ts build`. Para apenas E2E: `bun run test:e2e`.
 
 PGlite valida SQL, persistência e renderização, mas não reproduz as políticas RLS/Storage/Auth do Supabase. Os testes de autorização de funções/rotas usam identidades simuladas. Antes de publicar, é necessária validação em homologação com as configurações reais de acesso.
 
