@@ -165,3 +165,9 @@
   }
   .admin-content :where(button, summary) { min-height: 44px; }
 }
+
+/* Anchored sections stop below the fixed accessibility bar and the sticky header (R2.2). */
+:where(section[id], #localizacao) { scroll-margin-top: 8rem; }
+@media (min-width: 48rem) {
+  :where(section[id], #localizacao) { scroll-margin-top: 7rem; }
+}
