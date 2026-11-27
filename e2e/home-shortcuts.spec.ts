@@ -8,7 +8,7 @@ const SHORTCUTS = [
   [
     "consultar_processo",
     "Consultar processo",
-    "Consulta pública do TJES",
+    "Portal de Serviços do PDPJ",
     "https://portaldeservicos.pdpj.jus.br/consulta",
   ],
   ["pauta_da_semana", "Pauta da semana", "Horários das audiências", "/pauta"],

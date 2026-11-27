@@ -24,7 +24,7 @@ export const HOME_SHORTCUT_LINKS: readonly Shortcut[] = [
   {
     id: "consultar_processo",
     title: "Consultar processo",
-    description: "Consulta pública do TJES",
+    description: "Portal de Serviços do PDPJ",
     href: PROCESS_LOOKUP_URL,
     icon: Search,
     external: true,
